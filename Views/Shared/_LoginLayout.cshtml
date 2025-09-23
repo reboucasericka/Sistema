@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sistema de Estética</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- CSS específico do login -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/favicon.ico" />
+</head>
+<body>
+    @RenderBody()
+
+    <!-- Rodapé (opcional) -->
+    <footer class="footer-login">
+        <div class="container text-center">
+            <p>&copy; 2025 - Sistema de Estética</p>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JS específico do login -->
+    <script src="~/js/login.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
