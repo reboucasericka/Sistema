@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Sistema.Data.Entities.Agendamento>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Cliente)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Servico)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Profissional)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Data)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Horario)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Observacoes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LembreteEnviado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExportadoExcel)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExportadoPdf)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Cliente.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Servico.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Profissional.Especialidade)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Data)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Horario)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Observacoes)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LembreteEnviado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExportadoExcel)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExportadoPdf)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.AgendamentoId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.AgendamentoId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.AgendamentoId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -7,21 +7,30 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Views\Painel\IndexTemplate.cshtml" />
+    <Compile Remove="Views\Layouts\**" />
+    <Compile Remove="Views\Templates\**" />
+    <Content Remove="Views\Layouts\**" />
+    <Content Remove="Views\Templates\**" />
+    <EmbeddedResource Remove="Views\Layouts\**" />
+    <EmbeddedResource Remove="Views\Templates\**" />
+    <None Remove="Views\Layouts\**" />
+    <None Remove="Views\Templates\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Views\Templates\IndexTemplate.cshtml" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Dashboard\" />
-    <Folder Include="Views\Layouts\Template\" />
+    <Folder Include="Views\Home\" />
   </ItemGroup>
 
 </Project>

@@ -10,23 +10,22 @@ using Sistema.Data.Entities;
 
 namespace Sistema.Controllers
 {
-    public class UsuariosController : Controller
+    public class ClientesController : Controller
     {
         private readonly SistemaDbContext _context;
 
-        public UsuariosController(SistemaDbContext context)
+        public ClientesController(SistemaDbContext context)
         {
             _context = context;
         }
 
-        // GET: Usuarios
+        // GET: Clientes
         public async Task<IActionResult> Index()
         {
-            var sistemaDbContext = _context.Usuarios.Include(u => u.Perfil);
-            return View(await sistemaDbContext.ToListAsync());
+            return View(await _context.Clientes.ToListAsync());
         }
 
-        // GET: Usuarios/Details/5
+        // GET: Clientes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +33,39 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(m => m.ClienteId == id);
+            if (cliente == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(cliente);
         }
 
-        // GET: Usuarios/Create
+        // GET: Clientes/Create
         public IActionResult Create()
         {
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome");
             return View();
         }
 
-        // POST: Usuarios/Create
+        // POST: Clientes/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Create([Bind("ClienteId,Nome,Email,Telemovel,Endereco,DataNascimento,DataCadastro,Ativo,Observacoes,HistoricoAlergias")] Cliente cliente)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(usuario);
+                _context.Add(cliente);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(cliente);
         }
 
-        // GET: Usuarios/Edit/5
+        // GET: Clientes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +73,22 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null)
             {
                 return NotFound();
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(cliente);
         }
 
-        // POST: Usuarios/Edit/5
+        // POST: Clientes/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Edit(int id, [Bind("ClienteId,Nome,Email,Telemovel,Endereco,DataNascimento,DataCadastro,Ativo,Observacoes,HistoricoAlergias")] Cliente cliente)
         {
-            if (id != usuario.UsuarioId)
+            if (id != cliente.ClienteId)
             {
                 return NotFound();
             }
@@ -102,12 +97,12 @@ namespace Sistema.Controllers
             {
                 try
                 {
-                    _context.Update(usuario);
+                    _context.Update(cliente);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UsuarioExists(usuario.UsuarioId))
+                    if (!ClienteExists(cliente.ClienteId))
                     {
                         return NotFound();
                     }
@@ -118,11 +113,10 @@ namespace Sistema.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(cliente);
         }
 
-        // GET: Usuarios/Delete/5
+        // GET: Clientes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +124,34 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(m => m.ClienteId == id);
+            if (cliente == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(cliente);
         }
 
-        // POST: Usuarios/Delete/5
+        // POST: Clientes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario != null)
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente != null)
             {
-                _context.Usuarios.Remove(usuario);
+                _context.Clientes.Remove(cliente);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UsuarioExists(int id)
+        private bool ClienteExists(int id)
         {
-            return _context.Usuarios.Any(e => e.UsuarioId == id);
+            return _context.Clientes.Any(e => e.ClienteId == id);
         }
     }
 }
