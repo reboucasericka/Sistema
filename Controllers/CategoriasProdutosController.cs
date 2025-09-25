@@ -18,7 +18,7 @@ namespace Sistema.Controllers
         // GET: CategoriasProdutos
         public IActionResult Index()
         {
-            var categorias = _categoriaProdutoRepository.GetAll();
+            var categorias = _categoriaProdutoRepository.GetAll().OrderBy(c => c.Nome);
             return View(categorias);
 
         }
@@ -60,10 +60,10 @@ namespace Sistema.Controllers
         {
             if (id == null) return NotFound();
 
-            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
-            if (categoriaProduto == null) return NotFound();
+            var categoria = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
+            if (categoria == null) return NotFound();
 
-            return View(categoriaProduto);
+            return View(categoria);
         }
 
         // POST: CategoriasProdutos/Edit/5
@@ -71,13 +71,21 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CategoriaProdutoId,Nome")] CategoriaProduto categoriaProduto)
+        public async Task<IActionResult> Edit(CategoriaProduto categoriaProduto)
         {
-            if (id != categoriaProduto.CategoriaProdutoId) return NotFound();
-
             if (ModelState.IsValid)
             {
-                await _categoriaProdutoRepository.UpdateAsync(categoriaProduto);
+                try
+                {
+                    await _categoriaProdutoRepository.UpdateAsync(categoriaProduto);
+                }
+                catch
+                {
+                    if (!await _categoriaProdutoRepository.ExistsAsync(categoriaProduto.CategoriaProdutoId))
+                        return NotFound();
+                    else
+                        throw;
+                }
                 return RedirectToAction(nameof(Index));
             }
             return View(categoriaProduto);
@@ -88,10 +96,10 @@ namespace Sistema.Controllers
         {
             if (id == null) return NotFound();
 
-            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
-            if (categoriaProduto == null) return NotFound();
+            var categoria = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
+            if (categoria == null) return NotFound();
 
-            return View(categoriaProduto);
+            return View(categoria);
         }
 
         // POST: CategoriasProdutos/Delete/5
@@ -99,11 +107,9 @@ namespace Sistema.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id);
-            await _categoriaProdutoRepository.DeleteAsync(categoriaProduto);
+            var categoria = await _categoriaProdutoRepository.GetByIdAsync(id);
+            await _categoriaProdutoRepository.DeleteAsync(categoria);
             return RedirectToAction(nameof(Index));
-        }
-
-        
+        }        
     }
 }

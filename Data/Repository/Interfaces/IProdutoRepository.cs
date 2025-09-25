@@ -1,10 +1,16 @@
-﻿using Sistema.Data.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
+using Sistema.Data.Entities;
+using Sistema.Data.Repository.Implementations;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Sistema.Data.Repository.Interfaces
 {
     public interface IProdutoRepository : IGenericRepository<Produto>
     {
+
+        public IQueryable GetAllWithUsers(); //metodo novo para incluir o usuário na api
+
         // Listar todos os produtos já incluindo categoria e fornecedor
         IQueryable<Produto> GetAllWithIncludes();
 

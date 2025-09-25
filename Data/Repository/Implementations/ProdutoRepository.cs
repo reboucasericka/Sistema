@@ -13,6 +13,12 @@ namespace Sistema.Data.Repository.Implementations
             _context = context;
         }
 
+        public IQueryable GetAllWithUsers()
+        {
+            return _context.Produtos.Include(p => p.Usuario);
+
+        }
+
 
 
         public IQueryable<Produto> GetAllWithIncludes()

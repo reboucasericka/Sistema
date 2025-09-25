@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Sistema.Models
 {
-    public class ProdutoViewModel : Produto
+    public class ProductViewModel : Produto
     {
         [Display(Name = "Foto do Produto")]
         public IFormFile ImageProductFile { get; set; }

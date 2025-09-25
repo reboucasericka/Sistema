@@ -46,15 +46,19 @@ namespace Sistema
             builder.Services.AddScoped<ICategoriaProdutoRepository, CategoriaProdutoRepository>();
 
 
+
+            // Helpers e serviços customizados
             builder.Services.AddScoped<IUsuarioHelper, UsuarioHelper>();
+            builder.Services.AddScoped<IImageHelper, ImageHelper>();
+            builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
 
             //builder.Services.AddScoped<ICategoriaServicoRepository, CategoriaServicoRepository>();
-            // Helpers e serviços customizados
+
 
 
             //builder.Services.AddScoped<IBlobHelper, BlobHelper>();
-            //builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
-            //builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+
 
 
 
