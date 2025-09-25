@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sistema.Data.Entities
 {
     [Table("Usuarios")]
-    public class Usuario
+    public class Usuario : IdentityUser
     {
         [Key]
         public int UsuarioId { get; set; }
@@ -12,6 +13,8 @@ namespace Sistema.Data.Entities
         [Required]
         [MaxLength(100)]
         public string Nome { get; set; }
+
+        public string? Apelido { get; set; }//opcional
 
         [Required]
         [MaxLength(100)]
