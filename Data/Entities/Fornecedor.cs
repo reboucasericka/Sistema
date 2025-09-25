@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Fornecedores")]
-    public class Fornecedor
+    public class Fornecedor : IEntity
     {
         [Key]
         public int FornecedorId { get; set; }
@@ -35,5 +35,13 @@ namespace Sistema.Data.Entities
 
         // 🔗 relação 1:N (um fornecedor pode fornecer vários produtos)
         public ICollection<Produto> Produtos { get; set; }
+        
+
+        // ✅ Implementação da interface IEntity
+        public int Id
+        {
+            get => FornecedorId;
+            set => FornecedorId = value;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿@model Sistema.Data.Entities.Produto
+﻿@model Sistema.Models.ProdutoViewModel
 
 @{
     ViewData["Title"] = "Editar os produtos";
@@ -10,9 +10,11 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ProdutoId" />
+            <input type="hidden" asp-for="ImageProductFile" />
+
             <div class="form-group">
                 <label asp-for="Nome" class="control-label"></label>
                 <input asp-for="Nome" class="form-control" />
@@ -44,9 +46,9 @@
                 <span asp-validation-for="Estoque" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Foto" class="control-label"></label>
-                <input asp-for="Foto" class="form-control" />
-                <span asp-validation-for="Foto" class="text-danger"></span>
+                <label asp-for="ImageProductFile" class="control-label"></label>
+                <input asp-for="ImageProductFile" class="form-control" type="file" />
+                <span asp-validation-for="ImageProductFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="NivelEstoqueMinimo" class="control-label"></label>
@@ -63,6 +65,12 @@
                 <a asp-action="Index"class="btn btn-success">Back to List</a>
             </div>
         </form>
+    </div>
+    <div class="col-md-4">
+        @if (!string.IsNullOrEmpty(Model.Foto))
+        {
+            <img src="@Url.Content(Model.Foto)" alt="Imagem do Produto" style="width:300px; height:450px; max-width: 100px; max-height: 100px;" />
+        }
     </div>
 </div>
 

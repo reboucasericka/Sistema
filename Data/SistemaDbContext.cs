@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Sistema.Data.Entities;
 
 
 namespace Sistema.Data
 {
-    public class SistemaDbContext : DbContext
+    public class SistemaDbContext : IdentityDbContext<Usuario>
     {
         
 

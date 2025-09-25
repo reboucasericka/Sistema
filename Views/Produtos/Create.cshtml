@@ -1,4 +1,4 @@
-﻿@model Sistema.Data.Entities.Produto
+﻿@model Sistema.Models.ProdutoViewModel
 
 @{
     ViewData["Title"] = "Criar um novo produto";
@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Nome" class="control-label"></label>
@@ -42,9 +42,9 @@
                 <span asp-validation-for="Estoque" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Foto" class="control-label"></label>
-                <input asp-for="Foto" class="form-control" />
-                <span asp-validation-for="Foto" class="text-danger"></span>
+                <label asp-for="ImageProductFile" class="control-label"></label>
+                <input asp-for="ImageProductFile" class="form-control" type="file" />
+                <span asp-validation-for="ImageProductFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="NivelEstoqueMinimo" class="control-label"></label>

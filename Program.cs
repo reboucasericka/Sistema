@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
 using Sistema.Data;
 using Sistema.Data.Entities;
-using Sistema.Data.Repository.Interfaces;
 using Sistema.Data.Repository.Implementations;
+using Sistema.Data.Repository.Interfaces;
+using Sistema.Helpers;
 
 namespace Sistema
 {
@@ -20,29 +20,52 @@ namespace Sistema
             // ======================
 
             // DbContext
-            builder.Services.AddDbContext<SistemaDbContext>(options =>
-                options.UseSqlServer(
+
+            builder.Services.AddIdentity<Usuario, IdentityRole>(cfg =>
+            {
+                cfg.User.RequireUniqueEmail = true;
+                cfg.Password.RequireDigit = false;
+                cfg.Password.RequiredUniqueChars = 0;
+                cfg.Password.RequireLowercase = false;
+                cfg.Password.RequireNonAlphanumeric = false;
+                cfg.Password.RequireUppercase = false;
+                cfg.Password.RequiredLength = 6;
+
+            })
+              .AddEntityFrameworkStores<SistemaDbContext>();
+
+            builder.Services.AddDbContext<SistemaDbContext>(cfg =>
+                cfg.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddControllersWithViews();
+            
             builder.Services.AddTransient<SeedDb>();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
-            //builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
-            //builder.Services.AddScoped<ICategoriaProdutoRepository, CategoriaProdutoRepository>();
+            builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();              
+            builder.Services.AddScoped<ICategoriaProdutoRepository, CategoriaProdutoRepository>();
+
+
+            builder.Services.AddScoped<IUsuarioHelper, UsuarioHelper>();
+
             //builder.Services.AddScoped<ICategoriaServicoRepository, CategoriaServicoRepository>();
             // Helpers e serviços customizados
 
-            //builder.Services.AddScoped<IUserHelper, UserHelper>();
+
             //builder.Services.AddScoped<IBlobHelper, BlobHelper>();
             //builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
             //builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
+
+
+            builder.Services.AddControllersWithViews();
+
             // Configuração de cookies (login/logout)
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
+                .AddCookie(cfg =>
                 {
-                    options.LoginPath = "/Account/Login";
-                    options.AccessDeniedPath = "/Account/AccessDenied";
+                    cfg.LoginPath = "/Account/Login";
+                    cfg.AccessDeniedPath = "/Account/AccessDenied";
                 });
             builder.Services.AddAuthorization();
 
@@ -50,7 +73,7 @@ namespace Sistema
             // MVC
             builder.Services.AddControllersWithViews();
 
-            using var app = builder.Build();
+            var app = builder.Build();
 
             // ======================
             // 2. Seed inicial (Roles + Admin)
@@ -75,7 +98,12 @@ namespace Sistema
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseStatusCodePagesWithReExecute("/error/{0}");
+
+
+            // ======================
+            // 4. Chamar os serviços
+            // ======================
+            //app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

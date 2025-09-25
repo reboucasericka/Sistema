@@ -1,44 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Data.Repository.Interfaces;
 
 namespace Sistema.Controllers
 {
     public class FornecedoresController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly IFornecedorRepository _fornecedorRepository;
 
-        public FornecedoresController(SistemaDbContext context)
+        public FornecedoresController(IFornecedorRepository fornecedorRepository)
         {
-            _context = context;
+            _fornecedorRepository = fornecedorRepository;
         }
 
         // GET: Fornecedores
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Fornecedores.ToListAsync());
+            var fornecedores = _fornecedorRepository.GetAll();
+            return View(fornecedores);
         }
 
         // GET: Fornecedores/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var fornecedor = await _context.Fornecedores
-                .FirstOrDefaultAsync(m => m.FornecedorId == id);
-            if (fornecedor == null)
-            {
-                return NotFound();
-            }
+            var fornecedor = await _fornecedorRepository.GetByIdWithProdutosAsync(id.Value);
+            if (fornecedor == null) return NotFound();
 
             return View(fornecedor);
         }
@@ -54,12 +44,11 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FornecedorId,Nome,Telemovel,Email,Nif,Endereco,PrazoEntrega,Observacoes,DataCadastro")] Fornecedor fornecedor)
+        public async Task<IActionResult> Create(Fornecedor fornecedor)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(fornecedor);
-                await _context.SaveChangesAsync();
+                await _fornecedorRepository.CreateAsync(fornecedor);
                 return RedirectToAction(nameof(Index));
             }
             return View(fornecedor);
@@ -68,16 +57,11 @@ namespace Sistema.Controllers
         // GET: Fornecedores/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var fornecedor = await _context.Fornecedores.FindAsync(id);
-            if (fornecedor == null)
-            {
-                return NotFound();
-            }
+            var fornecedor = await _fornecedorRepository.GetByIdAsync(id.Value);
+            if (fornecedor == null) return NotFound();
+
             return View(fornecedor);
         }
 
@@ -86,31 +70,13 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("FornecedorId,Nome,Telemovel,Email,Nif,Endereco,PrazoEntrega,Observacoes,DataCadastro")] Fornecedor fornecedor)
+        public async Task<IActionResult> Edit(int id, Fornecedor fornecedor)
         {
-            if (id != fornecedor.FornecedorId)
-            {
-                return NotFound();
-            }
+            if (id != fornecedor.FornecedorId) return NotFound();
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(fornecedor);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!FornecedorExists(fornecedor.FornecedorId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _fornecedorRepository.UpdateAsync(fornecedor);
                 return RedirectToAction(nameof(Index));
             }
             return View(fornecedor);
@@ -119,17 +85,10 @@ namespace Sistema.Controllers
         // GET: Fornecedores/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var fornecedor = await _context.Fornecedores
-                .FirstOrDefaultAsync(m => m.FornecedorId == id);
-            if (fornecedor == null)
-            {
-                return NotFound();
-            }
+            var fornecedor = await _fornecedorRepository.GetByIdAsync(id.Value);
+            if (fornecedor == null) return NotFound();
 
             return View(fornecedor);
         }
@@ -139,19 +98,10 @@ namespace Sistema.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var fornecedor = await _context.Fornecedores.FindAsync(id);
-            if (fornecedor != null)
-            {
-                _context.Fornecedores.Remove(fornecedor);
-            }
-
-            await _context.SaveChangesAsync();
+            var fornecedor = await _fornecedorRepository.GetByIdAsync(id);
+            await _fornecedorRepository.DeleteAsync(fornecedor);
             return RedirectToAction(nameof(Index));
         }
-
-        private bool FornecedorExists(int id)
-        {
-            return _context.Fornecedores.Any(e => e.FornecedorId == id);
-        }
+        
     }
 }

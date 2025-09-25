@@ -1,39 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Data.Repository.Interfaces;
+
 
 namespace Sistema.Controllers
 {
     public class CategoriasProdutosController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly ICategoriaProdutoRepository _categoriaProdutoRepository;
 
-        public CategoriasProdutosController(SistemaDbContext context)
+        public CategoriasProdutosController(ICategoriaProdutoRepository categoriaProdutoRepository)
         {
-            _context = context;
+            _categoriaProdutoRepository = categoriaProdutoRepository;
         }
 
         // GET: CategoriasProdutos
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.CategoriasProdutos.ToListAsync());
+            var categorias = _categoriaProdutoRepository.GetAll();
+            return View(categorias);
+
         }
 
         // GET: CategoriasProdutos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var categoriaProduto = await _context.CategoriasProdutos
-                .FirstOrDefaultAsync(m => m.CategoriaProdutoId == id);
-            if (categoriaProduto == null)
-            {
-                return NotFound();
-            }
+            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
+            if (categoriaProduto == null) return NotFound();
 
             return View(categoriaProduto);
         }
@@ -49,12 +45,11 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CategoriaProdutoId,Nome")] CategoriaProduto categoriaProduto)
+        public async Task<IActionResult> Create(CategoriaProduto categoriaProduto)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(categoriaProduto);
-                await _context.SaveChangesAsync();
+                await _categoriaProdutoRepository.CreateAsync(categoriaProduto);
                 return RedirectToAction(nameof(Index));
             }
             return View(categoriaProduto);
@@ -63,16 +58,11 @@ namespace Sistema.Controllers
         // GET: CategoriasProdutos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var categoriaProduto = await _context.CategoriasProdutos.FindAsync(id);
-            if (categoriaProduto == null)
-            {
-                return NotFound();
-            }
+            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
+            if (categoriaProduto == null) return NotFound();
+
             return View(categoriaProduto);
         }
 
@@ -83,29 +73,11 @@ namespace Sistema.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CategoriaProdutoId,Nome")] CategoriaProduto categoriaProduto)
         {
-            if (id != categoriaProduto.CategoriaProdutoId)
-            {
-                return NotFound();
-            }
+            if (id != categoriaProduto.CategoriaProdutoId) return NotFound();
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(categoriaProduto);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoriaProdutoExists(categoriaProduto.CategoriaProdutoId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _categoriaProdutoRepository.UpdateAsync(categoriaProduto);
                 return RedirectToAction(nameof(Index));
             }
             return View(categoriaProduto);
@@ -114,17 +86,10 @@ namespace Sistema.Controllers
         // GET: CategoriasProdutos/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var categoriaProduto = await _context.CategoriasProdutos
-                .FirstOrDefaultAsync(m => m.CategoriaProdutoId == id);
-            if (categoriaProduto == null)
-            {
-                return NotFound();
-            }
+            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id.Value);
+            if (categoriaProduto == null) return NotFound();
 
             return View(categoriaProduto);
         }
@@ -134,19 +99,11 @@ namespace Sistema.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categoriaProduto = await _context.CategoriasProdutos.FindAsync(id);
-            if (categoriaProduto != null)
-            {
-                _context.CategoriasProdutos.Remove(categoriaProduto);
-            }
-
-            await _context.SaveChangesAsync();
+            var categoriaProduto = await _categoriaProdutoRepository.GetByIdAsync(id);
+            await _categoriaProdutoRepository.DeleteAsync(categoriaProduto);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CategoriaProdutoExists(int id)
-        {
-            return _context.CategoriasProdutos.Any(e => e.CategoriaProdutoId == id);
-        }
+        
     }
 }

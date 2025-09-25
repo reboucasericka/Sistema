@@ -1,25 +1,61 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Sistema.Data.Entities;
+using Sistema.Helpers;
 
 namespace Sistema.Data
 {
     public class SeedDb
     {
         private readonly SistemaDbContext _context;
-        //rivate readonly UserManager<Usuario> _userManager;
-        //private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IUsuarioHelper _usuarioHelper;
         private Random _random;
+        //private readonly RoleManager<IdentityRole> _roleManager;
 
-        public SeedDb(SistemaDbContext context)
+
+        public SeedDb(SistemaDbContext context,IUsuarioHelper usuarioHelper)
         {
             _context = context;
+            _usuarioHelper = usuarioHelper;
             _random = new Random();
         }
 
         public async Task SeedAsync()
         {
+            //await _userHelper.CheckRoleAsync("Admin"); //verifica se a role admin existe se nao existir cria a role
+            //await _userHelper.CheckRoleAsync("Customer"); //verifica se a role customer existe se nao existir cria a role
+            //verifica se esse usuario existe se nao existir cria o usuario
+            // 1.Garante que BD existe
             await _context.Database.EnsureCreatedAsync();
 
+            // 2. Garante usuário admin (via Identity Helper)
+            var user = await _usuarioHelper.GetUserByEmailAsync("reboucasericka@gmail.com");
+            if (user == null)
+            {
+                user = new Usuario
+                {
+                    Nome = "ericka",
+                    Apelido = "reboucas",
+                    Email = "reboucasericka@gmail.com",
+                    UserName = "reboucasericka",
+                    PhoneNumber = "000000000"
+                };
+
+                var result = await _usuarioHelper.AddUserAsync(user, "123456");
+                if (result != IdentityResult.Success)
+                {
+                    throw new InvalidOperationException("❌ Não foi possível criar o usuário seed");
+                }
+
+                await _usuarioHelper.AddUserToRoleAsync(user, "Admin");
+            }
+
+            var isInRole = await _usuarioHelper.IsUserInRoleAsync(user, "Admin");
+            if (!isInRole)
+            {
+                await _usuarioHelper.AddUserToRoleAsync(user, "Admin");
+            }
+
+            // 3. Popula tabelas auxiliares
             await CheckPerfisAsync();
             await CheckUsuariosAsync();
             await CheckCategoriasServicosAsync();
@@ -27,6 +63,7 @@ namespace Sistema.Data
             await CheckFornecedoresAsync();
             await CheckEsteticaAsync();
         }
+
 
         private async Task CheckPerfisAsync()
         {

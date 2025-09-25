@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Produtos")]
-    public class Produto :IEntity
+    public class Produto : IEntity
     {
         [Key]
         public int ProdutoId { get; set; }
@@ -40,7 +40,7 @@ namespace Sistema.Data.Entities
 
         [MaxLength(200)]
         [Display(Name = "Foto do Produto")]
-        public string? Foto { get; set; }
+        public string? Foto { get; set; }  //ImageProductFile
 
         public int NivelEstoqueMinimo { get; set; } = 0;
 
@@ -48,5 +48,20 @@ namespace Sistema.Data.Entities
         [ForeignKey("Fornecedor")]
         public int? FornecedorId { get; set; }
         public Fornecedor? Fornecedor { get; set; }
+
+        public Usuario Usuario { get; set; }
+
+        public string ImagemFullPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Foto))
+                {
+                    return null;
+                }
+                return $"https://localhost:7183/images/noimage.png";
+                return $"https://localhost:7183/{Foto.Substring(1)}";
+            }
+        }
     }
 }

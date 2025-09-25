@@ -7,66 +7,69 @@
 <h1>Lista de Detalhes</h1>
 
 <div>
-    <h4>Produtos</h4>
     <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nome)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nome)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Descricao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Descricao)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CategoriaProduto)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CategoriaProduto.Nome)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ValorCompra)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ValorCompra)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ValorVenda)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ValorVenda)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Estoque)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Estoque)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Foto)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Foto)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NivelEstoqueMinimo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NivelEstoqueMinimo)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Fornecedor)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Fornecedor.Nome)
-        </dd>
-    </dl>
+    <div class="row">
+        <div class="col-md-8">
+            <dl class="row">
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Nome)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Nome)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Descricao)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Descricao)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.CategoriaProduto)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.CategoriaProduto.Nome)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.ValorCompra)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ValorCompra)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.ValorVenda)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ValorVenda)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Estoque)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Estoque)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.NivelEstoqueMinimo)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.NivelEstoqueMinimo)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Fornecedor)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Fornecedor.Nome)
+                </dd>
+            </dl>
+        </div>
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(item.ImageProductFile))
+            {
+                <img src="@Url.Content(item.ImageProductFile)" alt="Imagem do Produto" style="width:100px; height:auto; max-width: 100px; max-height: 100px;" />
+            }           
+        </div>
+    </div>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.ProdutoId" class="btn btn-warning">Edit</a> 
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.ProdutoId" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-success">Back to List</a>
 </div>

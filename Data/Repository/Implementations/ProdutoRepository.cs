@@ -1,64 +1,61 @@
-﻿using Microsoft.Build.Tasks.Deployment.Bootstrapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Sistema.Data.Entities;
 using Sistema.Data.Repository.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Sistema.Data.Repository.Implementations
 {
-    public class ProdutoRepository : IProdutoRepository
+    public class ProdutoRepository : GenericRepository<Produto>, IProdutoRepository
     {
         private readonly SistemaDbContext _context;
 
-        public ProdutoRepository(SistemaDbContext context)
+        public ProdutoRepository(SistemaDbContext context) : base(context)
         {
             _context = context;
         }
 
-        //PRODUTOS
-        public IEnumerable<Produto> GetAllProducts()
+
+
+        public IQueryable<Produto> GetAllWithIncludes()
         {
             return _context.Produtos
                 .Include(p => p.CategoriaProduto)
                 .Include(p => p.Fornecedor)
-                .OrderBy(p => p.Nome)
-                .ToList();
+                .AsNoTracking();
         }
-        public Produto? GetProductById(int id, bool incluirRelacionamentos = false)
-        {
-            if (incluirRelacionamentos)
-            {
-                return _context.Produtos
-                    .Include(p => p.CategoriaProduto)
-                    .Include(p => p.Fornecedor)
-                    .FirstOrDefault(p => p.ProdutoId == id);
-            }
 
-            return _context.Produtos.Find(id);
-        }
-        public void AddProduct(Produto produto)
+        public IQueryable<Produto> GetByCategoria(int categoriaProdutoId)
         {
-            _context.Produtos.Add(produto);
+            return _context.Produtos
+                .Include(p => p.CategoriaProduto)
+                .Include(p => p.Fornecedor)
+                .Where(p => p.CategoriaProdutoId == categoriaProdutoId)
+                .AsNoTracking();
+        }
 
+        public IQueryable<Produto> GetByFornecedor(int fornecedorId)
+        {
+            return _context.Produtos
+                .Include(p => p.CategoriaProduto)
+                .Include(p => p.Fornecedor)
+                .Where(p => p.FornecedorId == fornecedorId)
+                .AsNoTracking();
         }
-        public void UpdateProduct(Produto produto)
+
+        public async Task<Produto?> GetByIdWithIncludesAsync(int id)
         {
-            _context.Produtos.Update(produto);
+            return await _context.Produtos
+                .Include(p => p.CategoriaProduto)
+                .Include(p => p.Fornecedor)
+                .FirstOrDefaultAsync(p => p.ProdutoId == id);
         }
-        public void RemoveProduct(Produto produto)
+
+        public IQueryable<Produto> GetProdutosComEstoqueBaixo()
         {
-            _context.Produtos.Remove(produto);
-        }        
-        public bool ProdutoExists(int id)
-        {
-            return _context.Produtos.Any(p => p.ProdutoId == id);
+            return _context.Produtos
+                .Include(p => p.CategoriaProduto)
+                .Include(p => p.Fornecedor)
+                .Where(p => p.Estoque < p.NivelEstoqueMinimo)
+                .AsNoTracking();
         }
-        public async Task<bool> SaveAllAsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
-        }       
-        
     }
 }
