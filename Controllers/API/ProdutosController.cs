@@ -17,8 +17,8 @@ namespace Sistema.Controllers.API
 
         public IActionResult GetProducts()
         {
-                      
-            return Ok(_produtoRepository.GetAll());    
+
+            return Ok(_produtoRepository.GetAllWithUsers());
         }
     }
 }

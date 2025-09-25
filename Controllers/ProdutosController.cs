@@ -5,27 +5,33 @@ using Sistema.Data.Entities;
 using Sistema.Data.Repository.Interfaces;
 using Sistema.Helpers;
 using Sistema.Models;
+using System.IO;
 
 namespace Sistema.Controllers
 {
     public class ProdutosController : Controller
     {
-              
+
         private readonly IProdutoRepository _produtoRepository;
         private readonly ICategoriaProdutoRepository _categoriaProdutoRepository;
         private readonly IFornecedorRepository _fornecedorRepository;
         private readonly IUsuarioHelper _usuarioHelper;
+        private readonly IImageHelper _imageHelper;
+        private readonly IConverterHelper _converterHelper;
 
         // Construtor injeta apenas IProdutoRepository
         public ProdutosController(IProdutoRepository produtoRepository,
             ICategoriaProdutoRepository categoriaProdutoRepository,
-            IFornecedorRepository fornecedorRepository, 
-            IUsuarioHelper usuarioHelper)
+            IFornecedorRepository fornecedorRepository,
+            IUsuarioHelper usuarioHelper, IImageHelper imageHelper,
+            IConverterHelper converterHelper)
         {
            _produtoRepository = produtoRepository;
            _categoriaProdutoRepository = categoriaProdutoRepository;
            _fornecedorRepository = fornecedorRepository;
            _usuarioHelper = usuarioHelper;
+           _imageHelper = imageHelper;
+           _converterHelper = converterHelper;
         }
 
         // =======================
@@ -69,52 +75,32 @@ namespace Sistema.Controllers
         // =======================
         // POST: Produtos/Create
         // =======================
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProdutoViewModel model)
+        public async Task<IActionResult> Create(ProductViewModel model)
         {
             if (ModelState.IsValid)
             {
                 var path = string.Empty;
                 if (model.ImageProductFile != null && model.ImageProductFile.Length > 0)
                 {
-                    path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\Products", model.ImageProductFile.FileName);
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await model.ImageProductFile.CopyToAsync(stream);
-                    }
-                    path = $"~/images/Products/{model.ImageProductFile.FileName}";
+                    path = await _imageHelper.UploadImageAsync(model.ImageProductFile, "Produtos");                
+                }                               
+                var produto = _converterHelper.ToProduct(model, path, true);
 
-                }
-                var produto = this.ToProduct(model, path);
                 //TODO: atribuir o usuário logado
                 produto.Usuario = await _usuarioHelper.GetUserByEmailAsync(User.Identity.Name);
                 await _produtoRepository.CreateAsync(produto); // ✅ agora usa método genérico
                 return RedirectToAction(nameof(Index));
             }
             // ⚠️ repetir SelectList caso o ModelState seja inválido
-            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", produto.CategoriaProdutoId);
-            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", produto.FornecedorId);
+            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", model.CategoriaProdutoId);
+            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", model.FornecedorId);
             return View(model);
         }
 
-        private Produto ToProduct(ProdutoViewModel model, string path)
-        {
-            return new Produto
-            {
-                ProdutoId = model.ProdutoId,
-                Nome = model.Nome,
-                Descricao = model.Descricao,
-                CategoriaProdutoId = model.CategoriaProdutoId,
-                ValorCompra = model.ValorCompra,
-                ValorVenda = model.ValorVenda,
-                Estoque = model.Estoque,
-                Foto = path,
-                NivelEstoqueMinimo = model.NivelEstoqueMinimo,
-                FornecedorId = model.FornecedorId
-            };
-        }
+        
 
         // =======================
         // GET: Produtos/Edit/5
@@ -126,37 +112,22 @@ namespace Sistema.Controllers
             var produto = await _produtoRepository.GetByIdAsync(id.Value);
             if (produto == null) return NotFound();
 
-            var model = this.ToProductViewModel(produto);
-            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", produto.CategoriaProdutoId);
-            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", produto.FornecedorId);
-            return View(model);
-        }
 
-        private ProdutoViewModel ToProductViewModel(Produto produto)
-        {
-            return new ProdutoViewModel
-            {
-                ProdutoId = produto.ProdutoId,
-                Nome = produto.Nome,
-                Descricao = produto.Descricao,
-                CategoriaProdutoId = produto.CategoriaProdutoId,
-                ValorCompra = produto.ValorCompra,
-                ValorVenda = produto.ValorVenda,
-                Estoque = produto.Estoque,
-                NivelEstoqueMinimo = produto.NivelEstoqueMinimo,
-                FornecedorId = produto.FornecedorId,
-                Foto = produto.Foto
-            };
-        }
+            var model = _converterHelper.ToProductViewModel(produto);
+
+            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", model.CategoriaProdutoId);
+            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", model.FornecedorId);
+            return View(model);
+        }       
 
         // =======================
         // POST: Produtos/Edit/5
         // =======================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(ProdutoViewModel model)
+        public async Task<IActionResult> Edit(ProductViewModel model)
         {
-            
+
             if (ModelState.IsValid)
             {
                 try
@@ -164,14 +135,11 @@ namespace Sistema.Controllers
                     var path = model.Foto; // manter a foto atual se não for alterada
                     if (model.ImageProductFile != null && model.ImageProductFile.Length > 0)
                     {
-                        path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\Products", model.ImageProductFile.FileName);
-                        using (var stream = new FileStream(path, FileMode.Create))
-                        {
-                            await model.ImageProductFile.CopyToAsync(stream);
-                        }
-                        path = $"~/images/Products/{model.ImageProductFile.FileName}";
+
+                        path = await _imageHelper.UploadImageAsync(model.ImageProductFile, "Produtos");
+
                     }
-                    var produto = this.ToProduct(model, path);
+                    var produto = _converterHelper.ToProduct(model, path, false);
 
                     //TODO: atribuir o usuário logado
                     produto.Usuario = await _usuarioHelper.GetUserByEmailAsync(User.Identity.Name);
@@ -187,8 +155,8 @@ namespace Sistema.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", produto.CategoriaProdutoId);
-            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", produto.FornecedorId);
+            ViewData["CategoriaProdutoId"] = new SelectList(_categoriaProdutoRepository.GetAll(), "CategoriaProdutoId", "Nome", model.CategoriaProdutoId);
+            ViewData["FornecedorId"] = new SelectList(_fornecedorRepository.GetAll(), "FornecedorId", "Nome", model.FornecedorId);
             return View(model);
         }
 
@@ -216,6 +184,6 @@ namespace Sistema.Controllers
             await _produtoRepository.DeleteAsync(produto);
             return RedirectToAction(nameof(Index));
         }
-        
+
     }
 }
