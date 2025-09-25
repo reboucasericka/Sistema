@@ -10,23 +10,23 @@ using Sistema.Data.Entities;
 
 namespace Sistema.Controllers
 {
-    public class UsuariosController : Controller
+    public class ProfissionaisController : Controller
     {
         private readonly SistemaDbContext _context;
 
-        public UsuariosController(SistemaDbContext context)
+        public ProfissionaisController(SistemaDbContext context)
         {
             _context = context;
         }
 
-        // GET: Usuarios
+        // GET: Profissionais
         public async Task<IActionResult> Index()
         {
-            var sistemaDbContext = _context.Usuarios.Include(u => u.Perfil);
+            var sistemaDbContext = _context.Profissionais.Include(p => p.Usuario);
             return View(await sistemaDbContext.ToListAsync());
         }
 
-        // GET: Usuarios/Details/5
+        // GET: Profissionais/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +34,42 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var profissional = await _context.Profissionais
+                .Include(p => p.Usuario)
+                .FirstOrDefaultAsync(m => m.ProfissionalId == id);
+            if (profissional == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(profissional);
         }
 
-        // GET: Usuarios/Create
+        // GET: Profissionais/Create
         public IActionResult Create()
         {
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome");
+            ViewData["UsuarioId"] = new SelectList(_context.Usuarios, "UsuarioId", "Email");
             return View();
         }
 
-        // POST: Usuarios/Create
+        // POST: Profissionais/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Create([Bind("ProfissionalId,UsuarioId,Especialidade,ComissaoPadrao,Ativo")] Profissional profissional)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(usuario);
+                _context.Add(profissional);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            ViewData["UsuarioId"] = new SelectList(_context.Usuarios, "UsuarioId", "Email", profissional.UsuarioId);
+            return View(profissional);
         }
 
-        // GET: Usuarios/Edit/5
+        // GET: Profissionais/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +77,23 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
+            var profissional = await _context.Profissionais.FindAsync(id);
+            if (profissional == null)
             {
                 return NotFound();
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            ViewData["UsuarioId"] = new SelectList(_context.Usuarios, "UsuarioId", "Email", profissional.UsuarioId);
+            return View(profissional);
         }
 
-        // POST: Usuarios/Edit/5
+        // POST: Profissionais/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Edit(int id, [Bind("ProfissionalId,UsuarioId,Especialidade,ComissaoPadrao,Ativo")] Profissional profissional)
         {
-            if (id != usuario.UsuarioId)
+            if (id != profissional.ProfissionalId)
             {
                 return NotFound();
             }
@@ -102,12 +102,12 @@ namespace Sistema.Controllers
             {
                 try
                 {
-                    _context.Update(usuario);
+                    _context.Update(profissional);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UsuarioExists(usuario.UsuarioId))
+                    if (!ProfissionalExists(profissional.ProfissionalId))
                     {
                         return NotFound();
                     }
@@ -118,11 +118,11 @@ namespace Sistema.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            ViewData["UsuarioId"] = new SelectList(_context.Usuarios, "UsuarioId", "Email", profissional.UsuarioId);
+            return View(profissional);
         }
 
-        // GET: Usuarios/Delete/5
+        // GET: Profissionais/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +130,35 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var profissional = await _context.Profissionais
+                .Include(p => p.Usuario)
+                .FirstOrDefaultAsync(m => m.ProfissionalId == id);
+            if (profissional == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(profissional);
         }
 
-        // POST: Usuarios/Delete/5
+        // POST: Profissionais/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario != null)
+            var profissional = await _context.Profissionais.FindAsync(id);
+            if (profissional != null)
             {
-                _context.Usuarios.Remove(usuario);
+                _context.Profissionais.Remove(profissional);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UsuarioExists(int id)
+        private bool ProfissionalExists(int id)
         {
-            return _context.Usuarios.Any(e => e.UsuarioId == id);
+            return _context.Profissionais.Any(e => e.ProfissionalId == id);
         }
     }
 }

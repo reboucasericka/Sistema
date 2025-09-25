@@ -1,32 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
 
 namespace Sistema.Controllers
 {
-    public class UsuariosController : Controller
+    public class CategoriasProdutosController : Controller
     {
         private readonly SistemaDbContext _context;
 
-        public UsuariosController(SistemaDbContext context)
+        public CategoriasProdutosController(SistemaDbContext context)
         {
             _context = context;
         }
 
-        // GET: Usuarios
+        // GET: CategoriasProdutos
         public async Task<IActionResult> Index()
         {
-            var sistemaDbContext = _context.Usuarios.Include(u => u.Perfil);
-            return View(await sistemaDbContext.ToListAsync());
+            return View(await _context.CategoriasProdutos.ToListAsync());
         }
 
-        // GET: Usuarios/Details/5
+        // GET: CategoriasProdutos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,42 +28,39 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var categoriaProduto = await _context.CategoriasProdutos
+                .FirstOrDefaultAsync(m => m.CategoriaProdutoId == id);
+            if (categoriaProduto == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(categoriaProduto);
         }
 
-        // GET: Usuarios/Create
+        // GET: CategoriasProdutos/Create
         public IActionResult Create()
         {
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome");
             return View();
         }
 
-        // POST: Usuarios/Create
+        // POST: CategoriasProdutos/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Create([Bind("CategoriaProdutoId,Nome")] CategoriaProduto categoriaProduto)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(usuario);
+                _context.Add(categoriaProduto);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(categoriaProduto);
         }
 
-        // GET: Usuarios/Edit/5
+        // GET: CategoriasProdutos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +68,22 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
+            var categoriaProduto = await _context.CategoriasProdutos.FindAsync(id);
+            if (categoriaProduto == null)
             {
                 return NotFound();
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(categoriaProduto);
         }
 
-        // POST: Usuarios/Edit/5
+        // POST: CategoriasProdutos/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UsuarioId,Nome,Email,Nif,SenhaHash,PerfilId,DataCadastro,Ativo,Telemovel,Endereco,Foto")] Usuario usuario)
+        public async Task<IActionResult> Edit(int id, [Bind("CategoriaProdutoId,Nome")] CategoriaProduto categoriaProduto)
         {
-            if (id != usuario.UsuarioId)
+            if (id != categoriaProduto.CategoriaProdutoId)
             {
                 return NotFound();
             }
@@ -102,12 +92,12 @@ namespace Sistema.Controllers
             {
                 try
                 {
-                    _context.Update(usuario);
+                    _context.Update(categoriaProduto);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UsuarioExists(usuario.UsuarioId))
+                    if (!CategoriaProdutoExists(categoriaProduto.CategoriaProdutoId))
                     {
                         return NotFound();
                     }
@@ -118,11 +108,10 @@ namespace Sistema.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PerfilId"] = new SelectList(_context.Perfis, "PerfilId", "Nome", usuario.PerfilId);
-            return View(usuario);
+            return View(categoriaProduto);
         }
 
-        // GET: Usuarios/Delete/5
+        // GET: CategoriasProdutos/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -130,35 +119,34 @@ namespace Sistema.Controllers
                 return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(m => m.UsuarioId == id);
-            if (usuario == null)
+            var categoriaProduto = await _context.CategoriasProdutos
+                .FirstOrDefaultAsync(m => m.CategoriaProdutoId == id);
+            if (categoriaProduto == null)
             {
                 return NotFound();
             }
 
-            return View(usuario);
+            return View(categoriaProduto);
         }
 
-        // POST: Usuarios/Delete/5
+        // POST: CategoriasProdutos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario != null)
+            var categoriaProduto = await _context.CategoriasProdutos.FindAsync(id);
+            if (categoriaProduto != null)
             {
-                _context.Usuarios.Remove(usuario);
+                _context.CategoriasProdutos.Remove(categoriaProduto);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UsuarioExists(int id)
+        private bool CategoriaProdutoExists(int id)
         {
-            return _context.Usuarios.Any(e => e.UsuarioId == id);
+            return _context.CategoriasProdutos.Any(e => e.CategoriaProdutoId == id);
         }
     }
 }

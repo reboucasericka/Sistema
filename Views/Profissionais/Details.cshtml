@@ -1,0 +1,42 @@
+﻿@model Sistema.Data.Entities.Profissional
+
+@{
+    ViewData["Title"] = "Detalhes Profissional";
+}
+
+<h1>Detalhes Profissional</h1>
+
+<div>
+   
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Usuario)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Usuario.Email)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Especialidade)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Especialidade)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ComissaoPadrao)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ComissaoPadrao)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Ativo)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Ativo)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.ProfissionalId">Editar</a> 
+    <a asp-action="Index" class="btn btn-success">Voltar para a lista</a>
+</div>
