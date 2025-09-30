@@ -11,11 +11,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Profissional
         public int ProfissionalId { get; set; }
-        public Profissional Profissional { get; set; }
+        public Professional Profissional { get; set; }
 
         // 🔗 FK → Servico
         public int ServicoId { get; set; }
-        public Servico Servico { get; set; }
+        public Service Servico { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal? Comissao { get; set; }

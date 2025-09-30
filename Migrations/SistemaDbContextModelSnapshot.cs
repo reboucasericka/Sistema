@@ -22,6 +22,172 @@ namespace Sistema.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.AccessLog", b =>
+                {
+                    b.Property<int>("RegistroAcessosId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RegistroAcessosId"));
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("DataHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UsuarioId1")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("RegistroAcessosId");
+
+                    b.HasIndex("UsuarioId1");
+
+                    b.ToTable("RegistroAcessos");
+                });
+
             modelBuilder.Entity("Sistema.Data.Entities.Agendamento", b =>
                 {
                     b.Property<int>("AgendamentoId")
@@ -133,14 +299,14 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioAbertura")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioAberturaRefUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioAberturaRefId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("UsuarioFechamento")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UsuarioFechamentoRefUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioFechamentoRefId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("ValorFinal")
                         .HasColumnType("decimal(10,2)");
@@ -150,29 +316,11 @@ namespace Sistema.Migrations
 
                     b.HasKey("CaixaId");
 
-                    b.HasIndex("UsuarioAberturaRefUsuarioId");
+                    b.HasIndex("UsuarioAberturaRefId");
 
-                    b.HasIndex("UsuarioFechamentoRefUsuarioId");
+                    b.HasIndex("UsuarioFechamentoRefId");
 
                     b.ToTable("Caixa");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.CategoriaProduto", b =>
-                {
-                    b.Property<int>("CategoriaProdutoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoriaProdutoId"));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("CategoriaProdutoId");
-
-                    b.ToTable("CategoriasProdutos");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.CategoriaServico", b =>
@@ -193,48 +341,48 @@ namespace Sistema.Migrations
                     b.ToTable("CategoriasServicos");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Cliente", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Client", b =>
                 {
-                    b.Property<int>("ClienteId")
+                    b.Property<int>("ClientId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClienteId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClientId"));
 
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("bit");
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime>("DataCadastro")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("AllergyHistory")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
-                    b.Property<DateTime?>("DataNascimento")
+                    b.Property<DateTime?>("BirthDate")
                         .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Endereco")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
-                    b.Property<string>("HistoricoAlergias")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Observacoes")
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Telemovel")
+                    b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("ClienteId");
+                    b.Property<DateTime>("RegistrationDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ClientId");
 
                     b.ToTable("Clientes");
                 });
@@ -404,6 +552,9 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal?>("ValorUnitario")
                         .HasColumnType("decimal(10,2)");
 
@@ -413,7 +564,7 @@ namespace Sistema.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("EstoqueEntradas");
                 });
@@ -458,13 +609,16 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("MovimentacaoId");
 
                     b.HasIndex("FornecedorId");
 
                     b.HasIndex("ProdutoId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("EstoqueMovimentacoes");
                 });
@@ -508,6 +662,9 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal?>("ValorUnitario")
                         .HasColumnType("decimal(10,2)");
 
@@ -517,7 +674,7 @@ namespace Sistema.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("EstoqueSaidas");
                 });
@@ -548,12 +705,15 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("ValorTotal")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("FaturacaoId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("Faturacao");
                 });
@@ -577,49 +737,6 @@ namespace Sistema.Migrations
                     b.HasKey("FormaPagamentoId");
 
                     b.ToTable("FormasPagamento");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.Fornecedor", b =>
-                {
-                    b.Property<int>("FornecedorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FornecedorId"));
-
-                    b.Property<DateTime>("DataCadastro")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Endereco")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Nif")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Observacoes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PrazoEntrega")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Telemovel")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("FornecedorId");
-
-                    b.ToTable("Fornecedores");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.HistoricoProcedimento", b =>
@@ -797,14 +914,14 @@ namespace Sistema.Migrations
                     b.Property<int?>("UsuarioBaixa")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UsuarioBaixadorUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioBaixadorId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("UsuarioLanc")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioLancadorUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioLancadorId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Valor")
                         .HasColumnType("decimal(10,2)");
@@ -815,29 +932,11 @@ namespace Sistema.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.HasIndex("UsuarioBaixadorUsuarioId");
+                    b.HasIndex("UsuarioBaixadorId");
 
-                    b.HasIndex("UsuarioLancadorUsuarioId");
+                    b.HasIndex("UsuarioLancadorId");
 
                     b.ToTable("Pagar");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.Perfil", b =>
-                {
-                    b.Property<int>("PerfilId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PerfilId"));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("PerfilId");
-
-                    b.ToTable("Perfis");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Plano", b =>
@@ -910,55 +1009,84 @@ namespace Sistema.Migrations
                     b.ToTable("PlanoAgendamentos");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Produto", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Product", b =>
                 {
-                    b.Property<int>("ProdutoId")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProdutoId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
-                    b.Property<int>("CategoriaProdutoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Descricao")
+                    b.Property<string>("Description")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Estoque")
+                    b.Property<int>("Id")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FornecedorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Foto")
+                    b.Property<Guid>("ImageId")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("NivelEstoqueMinimo")
+                    b.Property<int>("MinimumStockLevel")
                         .HasColumnType("int");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<decimal>("ValorCompra")
+                    b.Property<int>("ProductCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PurchasePrice")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal>("ValorVenda")
+                    b.Property<decimal>("SalePrice")
                         .HasColumnType("decimal(10,2)");
 
-                    b.HasKey("ProdutoId");
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
 
-                    b.HasIndex("CategoriaProdutoId");
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("FornecedorId");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ProductId");
+
+                    b.HasIndex("ProductCategoryId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Produtos");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Profissional", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.ProductCategory", b =>
+                {
+                    b.Property<int>("ProductCategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductCategoryId"));
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ProductCategoryId");
+
+                    b.ToTable("ProductCategories");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Professional", b =>
                 {
                     b.Property<int>("ProfissionalId")
                         .ValueGeneratedOnAdd()
@@ -980,11 +1108,33 @@ namespace Sistema.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId1")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("ProfissionalId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("Profissionais");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Profile", b =>
+                {
+                    b.Property<int>("ProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfileId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ProfileId");
+
+                    b.ToTable("Profiles");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.ProfissionalServico", b =>
@@ -1072,14 +1222,14 @@ namespace Sistema.Migrations
                     b.Property<int?>("UsuarioBaixa")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UsuarioBaixadorUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioBaixadorId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("UsuarioLanc")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioLancadorUsuarioId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioLancadorId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Valor")
                         .HasColumnType("decimal(10,2)");
@@ -1090,44 +1240,14 @@ namespace Sistema.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.HasIndex("UsuarioBaixadorUsuarioId");
+                    b.HasIndex("UsuarioBaixadorId");
 
-                    b.HasIndex("UsuarioLancadorUsuarioId");
+                    b.HasIndex("UsuarioLancadorId");
 
                     b.ToTable("Receber");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.RegistroAcesso", b =>
-                {
-                    b.Property<int>("RegistroAcessosId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RegistroAcessosId"));
-
-                    b.Property<string>("Acao")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("DataHora")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RegistroAcessosId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("RegistroAcessos");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.Servico", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Service", b =>
                 {
                     b.Property<int>("ServicoId")
                         .ValueGeneratedOnAdd()
@@ -1163,79 +1283,221 @@ namespace Sistema.Migrations
 
                     b.HasIndex("CategoriaServicoId");
 
-                    b.ToTable("Servicos");
+                    b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Usuario", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Supplier", b =>
                 {
-                    b.Property<int>("UsuarioId")
+                    b.Property<int>("SupplierId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SupplierId"));
 
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("bit");
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime>("DataCadastro")
-                        .HasColumnType("datetime2");
+                    b.Property<int?>("DeliveryTime")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Endereco")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Foto")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Nif")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("PerfilId")
+                    b.Property<DateTime>("RegistrationDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("SupplierId");
+
+                    b.ToTable("Fornecedores");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("SenhaHash")
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("ImageId")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Telemovel")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("UsuarioId");
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
 
-                    b.HasIndex("PerfilId");
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
 
-                    b.ToTable("Usuarios");
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.AccessLog", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId1");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Agendamento", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Cliente", "Cliente")
+                    b.HasOne("Sistema.Data.Entities.Client", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Profissional", "Profissional")
+                    b.HasOne("Sistema.Data.Entities.Professional", "Profissional")
                         .WithMany("Agendamentos")
                         .HasForeignKey("ProfissionalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Servico", "Servico")
+                    b.HasOne("Sistema.Data.Entities.Service", "Servico")
                         .WithMany()
                         .HasForeignKey("ServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1250,13 +1512,13 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.AvaliacaoAtendimento", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Cliente", "Cliente")
+                    b.HasOne("Sistema.Data.Entities.Client", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Servico", "Servico")
+                    b.HasOne("Sistema.Data.Entities.Service", "Servico")
                         .WithMany()
                         .HasForeignKey("ServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1269,15 +1531,13 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Caixa", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioAberturaRef")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioAberturaRef")
                         .WithMany()
-                        .HasForeignKey("UsuarioAberturaRefUsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioAberturaRefId");
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioFechamentoRef")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioFechamentoRef")
                         .WithMany()
-                        .HasForeignKey("UsuarioFechamentoRefUsuarioId");
+                        .HasForeignKey("UsuarioFechamentoRefId");
 
                     b.Navigation("UsuarioAberturaRef");
 
@@ -1286,21 +1546,19 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.EstoqueEntrada", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Fornecedor", "Fornecedor")
+                    b.HasOne("Sistema.Data.Entities.Supplier", "Fornecedor")
                         .WithMany()
                         .HasForeignKey("FornecedorId");
 
-                    b.HasOne("Sistema.Data.Entities.Produto", "Produto")
+                    b.HasOne("Sistema.Data.Entities.Product", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Fornecedor");
 
@@ -1311,21 +1569,19 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.EstoqueMovimentacao", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Fornecedor", "Fornecedor")
+                    b.HasOne("Sistema.Data.Entities.Supplier", "Fornecedor")
                         .WithMany()
                         .HasForeignKey("FornecedorId");
 
-                    b.HasOne("Sistema.Data.Entities.Produto", "Produto")
+                    b.HasOne("Sistema.Data.Entities.Product", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Fornecedor");
 
@@ -1340,17 +1596,15 @@ namespace Sistema.Migrations
                         .WithMany()
                         .HasForeignKey("AgendamentoId");
 
-                    b.HasOne("Sistema.Data.Entities.Produto", "Produto")
+                    b.HasOne("Sistema.Data.Entities.Product", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Agendamento");
 
@@ -1361,30 +1615,28 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Faturacao", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.HistoricoProcedimento", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Cliente", "Cliente")
+                    b.HasOne("Sistema.Data.Entities.Client", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Profissional", "Profissional")
+                    b.HasOne("Sistema.Data.Entities.Professional", "Profissional")
                         .WithMany()
                         .HasForeignKey("ProfissionalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Servico", "Servico")
+                    b.HasOne("Sistema.Data.Entities.Service", "Servico")
                         .WithMany()
                         .HasForeignKey("ServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1399,7 +1651,7 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Horario", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Profissional", "Profissional")
+                    b.HasOne("Sistema.Data.Entities.Professional", "Profissional")
                         .WithMany("Horarios")
                         .HasForeignKey("ProfissionalId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1425,19 +1677,17 @@ namespace Sistema.Migrations
                         .WithMany("Pagar")
                         .HasForeignKey("FormaPagamentoId");
 
-                    b.HasOne("Sistema.Data.Entities.Produto", "Produto")
+                    b.HasOne("Sistema.Data.Entities.Product", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId");
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioBaixador")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioBaixador")
                         .WithMany()
-                        .HasForeignKey("UsuarioBaixadorUsuarioId");
+                        .HasForeignKey("UsuarioBaixadorId");
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioLancador")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioLancador")
                         .WithMany()
-                        .HasForeignKey("UsuarioLancadorUsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioLancadorId");
 
                     b.Navigation("FormaPagamento");
 
@@ -1450,7 +1700,7 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Plano", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Cliente", "Cliente")
+                    b.HasOne("Sistema.Data.Entities.Client", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId");
 
@@ -1476,28 +1726,34 @@ namespace Sistema.Migrations
                     b.Navigation("Plano");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Produto", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Product", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.CategoriaProduto", "CategoriaProduto")
-                        .WithMany("Produtos")
-                        .HasForeignKey("CategoriaProdutoId")
+                    b.HasOne("Sistema.Data.Entities.ProductCategory", "ProductCategory")
+                        .WithMany("Products")
+                        .HasForeignKey("ProductCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Fornecedor", "Fornecedor")
-                        .WithMany("Produtos")
-                        .HasForeignKey("FornecedorId");
+                    b.HasOne("Sistema.Data.Entities.Supplier", "Supplier")
+                        .WithMany("Products")
+                        .HasForeignKey("SupplierId");
 
-                    b.Navigation("CategoriaProduto");
+                    b.HasOne("Sistema.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
-                    b.Navigation("Fornecedor");
+                    b.Navigation("ProductCategory");
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Profissional", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Professional", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
+                    b.HasOne("Sistema.Data.Entities.User", "Usuario")
                         .WithMany()
-                        .HasForeignKey("UsuarioId")
+                        .HasForeignKey("UsuarioId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1506,13 +1762,13 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.ProfissionalServico", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Profissional", "Profissional")
+                    b.HasOne("Sistema.Data.Entities.Professional", "Profissional")
                         .WithMany("ProfissionalServicos")
                         .HasForeignKey("ProfissionalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.Servico", "Servico")
+                    b.HasOne("Sistema.Data.Entities.Service", "Servico")
                         .WithMany()
                         .HasForeignKey("ServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1529,19 +1785,17 @@ namespace Sistema.Migrations
                         .WithMany("Receber")
                         .HasForeignKey("FormaPagamentoId");
 
-                    b.HasOne("Sistema.Data.Entities.Produto", "Produto")
+                    b.HasOne("Sistema.Data.Entities.Product", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId");
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioBaixador")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioBaixador")
                         .WithMany()
-                        .HasForeignKey("UsuarioBaixadorUsuarioId");
+                        .HasForeignKey("UsuarioBaixadorId");
 
-                    b.HasOne("Sistema.Data.Entities.Usuario", "UsuarioLancador")
+                    b.HasOne("Sistema.Data.Entities.User", "UsuarioLancador")
                         .WithMany()
-                        .HasForeignKey("UsuarioLancadorUsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuarioLancadorId");
 
                     b.Navigation("FormaPagamento");
 
@@ -1552,21 +1806,10 @@ namespace Sistema.Migrations
                     b.Navigation("UsuarioLancador");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.RegistroAcesso", b =>
-                {
-                    b.HasOne("Sistema.Data.Entities.Usuario", "Usuario")
-                        .WithMany("RegistroAcessos")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.Servico", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Service", b =>
                 {
                     b.HasOne("Sistema.Data.Entities.CategoriaServico", "CategoriaServico")
-                        .WithMany("Servicos")
+                        .WithMany("Services")
                         .HasForeignKey("CategoriaServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1574,15 +1817,11 @@ namespace Sistema.Migrations
                     b.Navigation("CategoriaServico");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Usuario", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.User", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.Perfil", "Perfil")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("PerfilId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Perfil");
+                    b.HasOne("Sistema.Data.Entities.Profile", null)
+                        .WithMany("Users")
+                        .HasForeignKey("ProfileId");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Agendamento", b =>
@@ -1590,14 +1829,9 @@ namespace Sistema.Migrations
                     b.Navigation("Lembretes");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.CategoriaProduto", b =>
-                {
-                    b.Navigation("Produtos");
-                });
-
             modelBuilder.Entity("Sistema.Data.Entities.CategoriaServico", b =>
                 {
-                    b.Navigation("Servicos");
+                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.FormaPagamento", b =>
@@ -1607,22 +1841,17 @@ namespace Sistema.Migrations
                     b.Navigation("Receber");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Fornecedor", b =>
-                {
-                    b.Navigation("Produtos");
-                });
-
-            modelBuilder.Entity("Sistema.Data.Entities.Perfil", b =>
-                {
-                    b.Navigation("Usuarios");
-                });
-
             modelBuilder.Entity("Sistema.Data.Entities.Plano", b =>
                 {
                     b.Navigation("PlanoAgendamentos");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Profissional", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.ProductCategory", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Professional", b =>
                 {
                     b.Navigation("Agendamentos");
 
@@ -1631,9 +1860,14 @@ namespace Sistema.Migrations
                     b.Navigation("ProfissionalServicos");
                 });
 
-            modelBuilder.Entity("Sistema.Data.Entities.Usuario", b =>
+            modelBuilder.Entity("Sistema.Data.Entities.Profile", b =>
                 {
-                    b.Navigation("RegistroAcessos");
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Supplier", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

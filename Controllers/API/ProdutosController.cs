@@ -8,9 +8,9 @@ namespace Sistema.Controllers.API
     [ApiController]
     public class ProdutosController : Controller
     {
-        private readonly IProdutoRepository _produtoRepository;
+        private readonly IProductRepository _produtoRepository;
 
-        public ProdutosController(IProdutoRepository produtoRepository)
+        public ProdutosController(IProductRepository produtoRepository)
         {
             _produtoRepository = produtoRepository;
         }

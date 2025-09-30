@@ -1,0 +1,83 @@
+﻿@model Sistema.Data.Entities.Product
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <hr />
+    <div class="row">
+        <div class="col-md-8">
+            <dl class="row">
+                <dt class="col-sm-3">                
+                    @Html.DisplayNameFor(model => model.Name)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Name)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Description)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Description)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.ProductCategory)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ProductCategory.Name)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.PurchasePrice)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.PurchasePrice)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.SalePrice)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.SalePrice)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Stock)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Stock)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.MinimumStockLevel)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.MinimumStockLevel)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Supplier)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Supplier.Name)
+                </dd>
+            </dl>
+        </div>
+
+        <div class="col-md-4">
+            <img src="@Url.Content(Model.ImageFullPath)" alt="Imagem do Produto" style="width:100px; height:auto; max-width: 100px; max-height: 100px;" />            
+        </div>
+    </div>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="ProductId" />
+
+        <!-- Botão de Delete com ícone -->
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-1"></i> Delete
+        </button>
+
+        <!-- Link "Back to List" com ícone -->
+        <a asp-action="Index" class="btn btn-success">
+            <i class="fas fa-list me-1"></i> Back to List
+        </a>
+    </form>
+ </div>

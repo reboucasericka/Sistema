@@ -29,11 +29,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Usuario que lançou
         public int UsuarioLanc { get; set; }
-        public Usuario UsuarioLancador { get; set; }
+        public User UsuarioLancador { get; set; }
 
         // 🔗 FK → Usuario que deu baixa
         public int? UsuarioBaixa { get; set; }
-        public Usuario? UsuarioBaixador { get; set; }
+        public User? UsuarioBaixador { get; set; }
 
         [StringLength(200)]
         public string? Foto { get; set; }
@@ -44,7 +44,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Produto (opcional)
         public int? ProdutoId { get; set; }
-        public Produto? Produto { get; set; }
+        public Product? Produto { get; set; }
 
         public int? Quantidade { get; set; }
 

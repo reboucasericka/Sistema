@@ -11,11 +11,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Cliente
         public int ClienteId { get; set; }
-        public Cliente Cliente { get; set; }
+        public Client Cliente { get; set; }
 
         // 🔗 FK → Servico
         public int ServicoId { get; set; }
-        public Servico Servico { get; set; }
+        public Service Servico { get; set; }
 
         [Column(TypeName = "datetime2")]
         public DateTime DataAvaliacao { get; set; } = DateTime.Now;

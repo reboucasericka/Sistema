@@ -15,7 +15,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Agendamento
         public int AgendamentoId { get; set; }
-        public Agendamento Agendamento { get; set; }
+        public Appointment Agendamento { get; set; }
 
         public bool SessaoUsada { get; set; } = false;
     }

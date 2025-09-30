@@ -21,7 +21,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Usuario
         public int UsuarioId { get; set; }
-        public Usuario Usuario { get; set; }
+        public User Usuario { get; set; }
 
         public bool ExportadoExcel { get; set; } = false;
         public bool ExportadoPdf { get; set; } = false;

@@ -54,7 +54,7 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CategoriaServicoId,Nome")] CategoriaServico categoriaServico)
+        public async Task<IActionResult> Create([Bind("CategoriaServicoId,Nome")] ServiceCategories categoriaServico)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +86,7 @@ namespace Sistema.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CategoriaServicoId,Nome")] CategoriaServico categoriaServico)
+        public async Task<IActionResult> Edit(int id, [Bind("CategoriaServicoId,Nome")] ServiceCategories categoriaServico)
         {
             if (id != categoriaServico.CategoriaServicoId)
             {

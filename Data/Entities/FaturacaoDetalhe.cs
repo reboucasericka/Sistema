@@ -18,11 +18,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Produto (opcional)
         public int? ProdutoId { get; set; }
-        public Produto? Produto { get; set; }
+        public Product? Produto { get; set; }
 
         // 🔗 FK → Servico (opcional)
         public int? ServicoId { get; set; }
-        public Servico? Servico { get; set; }
+        public Service? Servico { get; set; }
 
         public int Quantidade { get; set; }
 

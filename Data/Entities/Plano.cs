@@ -28,7 +28,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Cliente (opcional)
         public int? ClienteId { get; set; }
-        public Cliente? Cliente { get; set; }
+        public Client? Cliente { get; set; }
 
         // Relação 1:N
         public ICollection<PlanoAgendamento> PlanoAgendamentos { get; set; }

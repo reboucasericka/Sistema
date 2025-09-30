@@ -11,7 +11,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Profissional
         public int ProfissionalId { get; set; }
-        public Profissional Profissional { get; set; }
+        public Professional Profissional { get; set; }
 
         [Column(TypeName = "time")]
         public TimeSpan Hora { get; set; }

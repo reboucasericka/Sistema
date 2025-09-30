@@ -4,20 +4,29 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>b9627ff1-0543-4563-b856-530da8c1169f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Dashboard\**" />
     <Compile Remove="Views\Layouts\**" />
     <Compile Remove="Views\Templates\**" />
+    <Content Remove="Dashboard\**" />
     <Content Remove="Views\Layouts\**" />
     <Content Remove="Views\Templates\**" />
+    <EmbeddedResource Remove="Dashboard\**" />
     <EmbeddedResource Remove="Views\Layouts\**" />
     <EmbeddedResource Remove="Views\Templates\**" />
+    <None Remove="Dashboard\**" />
     <None Remove="Views\Layouts\**" />
     <None Remove="Views\Templates\**" />
   </ItemGroup>
 
+  
+
   <ItemGroup>
+    <PackageReference Include="bootstrap" Version="5.3.8" />
+    <PackageReference Include="FontAwesome" Version="4.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
@@ -26,13 +35,28 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+    <PackageReference Include="Microsoft.Graph" Version="5.93.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dashboard\" />
-    <Folder Include="Views\Home\" />
     <Folder Include="wwwroot\images\Products\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

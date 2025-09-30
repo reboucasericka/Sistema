@@ -1,0 +1,32 @@
+﻿@model Sistema.Models.ProductViewModel
+
+@{
+    ViewData["Title"] = "Criar um novo produto";
+}
+
+<h1>Criar um novo produto</h1>
+
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <partial name="_Products" />
+            
+            <div class="form-group">
+                <!-- Botão de Salvar com ícone -->
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>              
+                
+                <!-- Link "Voltar para a Lista" com ícone -->
+                <a asp-action="Index" class="btn btn-success"><i class="fas fa-list"></i> Voltar para a Lista</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

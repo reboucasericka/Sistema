@@ -11,7 +11,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Agendamento
         public int AgendamentoId { get; set; }
-        public Agendamento Agendamento { get; set; }
+        public Appointment Agendamento { get; set; }
 
         [Column(TypeName = "datetime2")]
         public DateTime DataEnvio { get; set; }

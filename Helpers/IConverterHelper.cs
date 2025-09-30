@@ -5,7 +5,7 @@ namespace Sistema.Helpers
 {
     public interface IConverterHelper
     {
-        Produto ToProduct(ProductViewModel model, string path, bool isNew);
-        ProductViewModel ToProductViewModel(Produto produto);
+        Sistema.Data.Entities.Product ToProduct(ProductViewModel model, Guid imageId, bool isNew);
+        ProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product);
     }
 }

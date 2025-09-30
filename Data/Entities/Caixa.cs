@@ -20,11 +20,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Usuario abertura
         public int UsuarioAbertura { get; set; }
-        public Usuario UsuarioAberturaRef { get; set; }
+        public User UsuarioAberturaRef { get; set; }
 
         // 🔗 FK → Usuario fechamento (opcional)
         public int? UsuarioFechamento { get; set; }
-        public Usuario? UsuarioFechamentoRef { get; set; }
+        public User? UsuarioFechamentoRef { get; set; }
 
         [StringLength(20)]
         public string Status { get; set; } = "aberto";

@@ -11,7 +11,7 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Produto
         public int ProdutoId { get; set; }
-        public Produto Produto { get; set; }
+        public Product Produto { get; set; }
 
         public int Quantidade { get; set; }
 
@@ -20,11 +20,11 @@ namespace Sistema.Data.Entities
 
         // 🔗 FK → Usuario (quem lançou)
         public int UsuarioId { get; set; }
-        public Usuario Usuario { get; set; }
+        public User Usuario { get; set; }
 
         // 🔗 FK → Fornecedor (opcional)
         public int? FornecedorId { get; set; }
-        public Fornecedor? Fornecedor { get; set; }
+        public Supplier? Fornecedor { get; set; }
 
         [Column(TypeName = "date")]
         public DateTime Data { get; set; }

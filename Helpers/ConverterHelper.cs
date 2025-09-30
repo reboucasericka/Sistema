@@ -1,46 +1,43 @@
 ﻿using Microsoft.Build.Tasks.Deployment.Bootstrapper;
 using Sistema.Data.Entities;
 using Sistema.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Sistema.Helpers
 {
     public class ConverterHelper : IConverterHelper
     {
-        public Produto ToProduct(ProductViewModel model, string path, bool isNew)
+
+        public Sistema.Data.Entities.Product ToProduct(ProductViewModel model, Guid imageId, bool isNew)
         {
-            return new Produto
+            return new Sistema.Data.Entities.Product
             {
-                ProdutoId = isNew ? 0 : model.ProdutoId,
-                Nome = model.Nome,
-                Descricao = model.Descricao,
-                CategoriaProdutoId = model.CategoriaProdutoId,
-                ValorCompra = model.ValorCompra,
-                ValorVenda = model.ValorVenda,
-                Estoque = model.Estoque,
-                Foto = path,
-                NivelEstoqueMinimo = model.NivelEstoqueMinimo,
-                FornecedorId = model.FornecedorId
+                ProductId = isNew ? 0 : model.ProductId,
+                Name = model.Name,
+                Description = model.Description,
+                ProductCategoryId = model.ProductCategoryId,
+                PurchasePrice = model.PurchasePrice,
+                SalePrice = model.SalePrice,
+                Stock = model.Stock,
+                ImageId = imageId,
+                MinimumStockLevel = model.MinimumStockLevel,
+                SupplierId = model.SupplierId
             };
         }
 
-        public ProductViewModel ToProductViewModel(Produto produto)
+        public ProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product)
         {
             return new ProductViewModel
             {
-                ProdutoId = produto.ProdutoId,
-                Nome = produto.Nome,
-                Descricao = produto.Descricao,
-                CategoriaProdutoId = produto.CategoriaProdutoId,
-                ValorCompra = produto.ValorCompra,
-                ValorVenda = produto.ValorVenda,
-                Estoque = produto.Estoque,
-                NivelEstoqueMinimo = produto.NivelEstoqueMinimo,
-                FornecedorId = produto.FornecedorId,
-                Foto = produto.Foto
-
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Description = product.Description,
+                ProductCategoryId = product.ProductCategoryId,
+                PurchasePrice = product.PurchasePrice,
+                SalePrice = product.SalePrice,
+                Stock = product.Stock,
+                MinimumStockLevel = product.MinimumStockLevel,
+                SupplierId = product.SupplierId,
+                ImageId = product.ImageId
             };
         }
     }
