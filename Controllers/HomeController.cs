@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
-using Sistema.Models;
+using Sistema.Models.Shared;
 using System.Diagnostics;
 
 namespace Sistema.Controllers
@@ -19,8 +19,23 @@ namespace Sistema.Controllers
         }
 
         
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Busca serviços em destaque
+            var featuredServices = await _context.Service
+                .Include(s => s.Category)
+                .Take(6)
+                .ToListAsync();
+
+            // Busca produtos em destaque
+            var featuredProducts = await _context.Products
+                .Include(p => p.ProductCategory)
+                .Take(6)
+                .ToListAsync();
+
+            ViewBag.FeaturedServices = featuredServices;
+            ViewBag.FeaturedProducts = featuredProducts;
+
             return View();
         }
         //  Nova p�gina Store (vitrine de produtos)
@@ -33,6 +48,13 @@ namespace Sistema.Controllers
 
             return View(products); // procura Views/Home/S
         }
+
+        public ActionResult Price()
+        {
+            var precos = _context.PriceTables.ToList();
+            return View(precos);
+        }
+
 
         public IActionResult Privacy()
         {
@@ -61,6 +83,24 @@ namespace Sistema.Controllers
 
         [Route("error/404")]
         public IActionResult Erro404()
+        {
+            return View();
+        }
+
+        // GET: Public About
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        // GET: Public Contact
+        public IActionResult Contact()
+        {
+            return View();
+        }
+
+        // GET: Test DataTables
+        public IActionResult TestDataTables()
         {
             return View();
         }

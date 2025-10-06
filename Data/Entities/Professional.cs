@@ -3,30 +3,41 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sistema.Data.Entities
 {
-    [Table("Profissionais")]
+    [Table("Professionals")]
     public class Professional
     {
         [Key]
-        public int ProfissionalId { get; set; }
+        public int ProfessionalId { get; set; }
 
-        // 🔗 FK → Usuario
-        public int UsuarioId { get; set; }
-        [Required]
-        [MaxLength(100)]
-        public User Usuario { get; set; }
+        // 🔗 FK → User
+        public string UserId { get; set; }
+        public User User { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string Especialidade { get; set; }
+        public string Name { get; set; } // Nome do profissional
+
+        [MaxLength(200)]
+        public string? PhotoPath { get; set; } // Foto de perfil (caminho da imagem)
+
+        [Required]
+        [MaxLength(100)]
+        public string Specialty { get; set; } // Especialidade
+
+        [StringLength(20)]
+        public string? Phone { get; set; } // Telefone do profissional
+
+        [StringLength(100)]
+        public string? Email { get; set; } // Email do profissional
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal ComissaoPadrao { get; set; } = 0;
+        public decimal DefaultCommission { get; set; } = 0;
 
-        public bool Ativo { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
-        // 🔗 Relações
-        public ICollection<ProfissionalServico> ProfissionalServicos { get; set; }
-        public ICollection<Appointment> Agendamentos { get; set; }
-        public ICollection<Horario> Horarios { get; set; }
+        // 🔗 Relacionamentos
+        public ICollection<ProfessionalService> ProfessionalServices { get; set; }
+        public ICollection<Appointment> Appointments { get; set; }
+        public ICollection<Schedule> Schedules { get; set; }
     }
 }

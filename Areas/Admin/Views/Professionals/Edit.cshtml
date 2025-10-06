@@ -1,0 +1,117 @@
+@model Sistema.Data.Entities.Professional
+
+@{
+    ViewData["Title"] = "Editar Profissional";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Editar Profissional</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Profissionais</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Dados do Profissional</h3>
+                    </div>
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="ProfessionalId" />
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="control-label">Nome Completo</label>
+                                        <input asp-for="Name" class="form-control" placeholder="Nome completo do profissional" />
+                                        <span asp-validation-for="Name" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Specialty" class="control-label">Especialidade</label>
+                                        <input asp-for="Specialty" class="form-control" placeholder="Ex: Esteticista, Massagista, etc." />
+                                        <span asp-validation-for="Specialty" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="DefaultCommission" class="control-label">Comissão Padrão (%)</label>
+                                        <input asp-for="DefaultCommission" type="number" step="0.01" min="0" max="100" class="form-control" placeholder="0.00" />
+                                        <span asp-validation-for="DefaultCommission" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Foto do Profissional</label>
+                                        <input type="file" name="photoFile" class="form-control" accept="image/*" />
+                                        <small class="form-text text-muted">Deixe em branco para manter a foto atual</small>
+                                        @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                                        {
+                                            <div class="mt-2">
+                                                <img src="@Model.PhotoPath" alt="@Model.Name" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                                <small class="form-text text-muted">Foto atual</small>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="UserId" class="control-label">Usuário</label>
+                                        <select asp-for="UserId" class="form-control" asp-items="ViewBag.Id">
+                                            <option value="">Selecione um usuário</option>
+                                        </select>
+                                        <span asp-validation-for="UserId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                            <label asp-for="IsActive" class="form-check-label">Profissional Ativo</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

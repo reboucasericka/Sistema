@@ -1,0 +1,251 @@
+@model IEnumerable<Sistema.Data.Entities.Billing>
+
+@{
+    ViewData["Title"] = "Relatório de Vendas";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Relatório de Vendas</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Relatórios</a></li>
+                    <li class="breadcrumb-item active">Vendas</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Filtros</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" class="form-inline">
+                            <div class="form-group mr-3">
+                                <label for="startDate" class="mr-2">Start Date:</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" value="@ViewBag.StartDate.ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="form-group mr-3">
+                                <label for="endDate" class="mr-2">End Date:</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate" value="@ViewBag.EndDate.ToString("yyyy-MM-dd")">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="@Url.Action("Export", new { reportType = "sales", startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })" 
+                               class="btn btn-success ml-2">
+                                <i class="fas fa-file-excel"></i> Exportar Excel
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalBilling.ToString("C")</h3>
+                        <p>Faturamento Total</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalServices</h3>
+                        <p>Serviços Vendidos</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalProducts</h3>
+                        <p>Produtos Vendidos</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalTransactions</h3>
+                        <p>Total de Transações</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Vendas por Dia</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesByDayChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Vendas por Tipo</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesByTypeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Vendas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detalhes das Vendas</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="salesTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Cliente</th>
+                                        <th>Valor Total</th>
+                                        <th>Serviços</th>
+                                        <th>Produtos</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var billing in Model)
+                                    {
+                                        <tr>
+                                            <td>@billing.Date.ToString("dd/MM/yyyy")</td>
+                                            <td>@billing.User?.FirstName @billing.User?.LastName</td>
+                                            <td>@billing.TotalValue.ToString("C")</td>
+                                            <td>@billing.ServicesQuantity</td>
+                                            <td>@billing.ProductsQuantity</td>
+                                            <td>
+                                                @if (billing.ExportedToExcel)
+                                                {
+                                                    <span class="badge badge-success">Exportado</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-warning">Pendente</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Configurar DataTable
+            $('#salesTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                },
+                "order": [[0, "desc"]]
+            });
+
+            // Gráfico de vendas por dia
+            var salesByDayData = @Html.Raw(Json.Serialize(ViewBag.SalesByDay));
+            var salesByDayLabels = salesByDayData.map(item => item.date);
+            var salesByDayValues = salesByDayData.map(item => item.total);
+
+            var salesByDayCtx = document.getElementById('salesByDayChart').getContext('2d');
+            new Chart(salesByDayCtx, {
+                type: 'line',
+                data: {
+                    labels: salesByDayLabels,
+                    datasets: [{
+                        label: 'Vendas (R$)',
+                        data: salesByDayValues,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de vendas por tipo
+            var salesByTypeData = @Html.Raw(Json.Serialize(ViewBag.SalesByType));
+            var salesByTypeLabels = salesByTypeData.map(item => item.type);
+            var salesByTypeValues = salesByTypeData.map(item => item.total);
+
+            var salesByTypeCtx = document.getElementById('salesByTypeChart').getContext('2d');
+            new Chart(salesByTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: salesByTypeLabels,
+                    datasets: [{
+                        data: salesByTypeValues,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 205, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        });
+    </script>
+}
+

@@ -1,0 +1,163 @@
+﻿@{
+    ViewData["Title"] = "Página Inicial";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row hero-section">
+        <div class="col-12">
+            <div class="hero-content text-center">
+                <h1 class="display-4 text-white mb-4">Bem-vindo ao Nosso Sistema</h1>
+                <p class="lead text-white mb-4">Gerencie seus agendamentos, serviços e produtos de forma eficiente</p>
+                <div class="hero-buttons">
+                    <a href="/Public/Agendamento" class="btn btn-primary btn-lg me-3">Fazer Agendamento</a>
+                    <a href="/Public/Services" class="btn btn-outline-light btn-lg">Ver Serviços</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Services Section -->
+    <div class="row py-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">Nossos Serviços</h2>
+            <div class="row">
+                @if (ViewBag.FeaturedServices != null)
+                {
+                    @foreach (var service in ViewBag.FeaturedServices)
+                    {
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@service.Name</h5>
+                                    <p class="card-text">@service.Description</p>
+                                    <p class="card-text">
+                                        <small class="text-muted">Categoria: @service.Category?.Name</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="/Public/Services" class="btn btn-primary">Ver Detalhes</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <p class="text-center text-muted">Nenhum serviço disponível no momento.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Products Section -->
+    <div class="row py-5 bg-light">
+        <div class="col-12">
+            <h2 class="text-center mb-5">Nossos Produtos</h2>
+            <div class="row">
+                @if (ViewBag.FeaturedProducts != null)
+                {
+                    @foreach (var product in ViewBag.FeaturedProducts)
+                    {
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@product.Name</h5>
+                                    <p class="card-text">@product.Description</p>
+                                    <p class="card-text">
+                                        <small class="text-muted">Categoria: @product.ProductCategory?.Name</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="/Public/Products" class="btn btn-primary">Ver Detalhes</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <p class="text-center text-muted">Nenhum produto disponível no momento.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row py-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">Acesso Rápido</h2>
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Agendamentos</h5>
+                            <p class="card-text">Gerencie seus agendamentos</p>
+                            <a href="/Public/Agendamento" class="btn btn-primary">Acessar</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-concierge-bell fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Serviços</h5>
+                            <p class="card-text">Conheça nossos serviços</p>
+                            <a href="/Public/Services" class="btn btn-success">Acessar</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-box fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Produtos</h5>
+                            <p class="card-text">Veja nossos produtos</p>
+                            <a href="/Public/Products" class="btn btn-warning">Acessar</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-dollar-sign fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Preços</h5>
+                            <p class="card-text">Consulte nossa tabela de preços</p>
+                            <a href="/Public/Prices" class="btn btn-info">Acessar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 100px 0;
+        margin-bottom: 0;
+    }
+    
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        transition: transform 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+</style>

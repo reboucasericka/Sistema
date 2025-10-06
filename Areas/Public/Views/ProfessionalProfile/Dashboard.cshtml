@@ -1,0 +1,258 @@
+@model Sistema.Models.Public.ProfessionalDashboardViewModel
+@{
+    ViewData["Title"] = "Professional Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-tachometer-alt me-2"></i>Welcome back, @Model.Profile.Name!
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.TotalAppointments</h4>
+                                            <p class="mb-0">Total Appointments</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-calendar fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.CompletedAppointments</h4>
+                                            <p class="mb-0">Completed</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.PendingAppointments</h4>
+                                            <p class="mb-0">Pending</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-clock fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.MonthlyEarnings.ToString("C")</h4>
+                                            <p class="mb-0">Monthly Earnings</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-dollar-sign fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Today's Appointments -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-calendar-day me-2"></i>Today's Appointments
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.TodayAppointments.Any())
+                                    {
+                                        <div class="list-group">
+                                            @foreach (var appointment in Model.TodayAppointments)
+                                            {
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">@appointment.Client?.Name</h6>
+                                                        <small>@appointment.Time.ToString(@"hh\:mm")</small>
+                                                    </div>
+                                                    <p class="mb-1">@appointment.Service?.Name</p>
+                                                    <small>
+                                                        Status: 
+                                                        @switch (appointment.Status)
+                                                        {
+                                                            case "Pendente":
+                                                                <span class="badge bg-warning">Pending</span>
+                                                                break;
+                                                            case "Confirmado":
+                                                                <span class="badge bg-success">Confirmed</span>
+                                                                break;
+                                                            case "Concluído":
+                                                                <span class="badge bg-info">Completed</span>
+                                                                break;
+                                                            case "Cancelado":
+                                                                <span class="badge bg-danger">Cancelled</span>
+                                                                break;
+                                                            default:
+                                                                <span class="badge bg-secondary">@appointment.Status</span>
+                                                                break;
+                                                        }
+                                                    </small>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No appointments scheduled for today</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Appointments -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-calendar-week me-2"></i>Upcoming Appointments
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.UpcomingAppointments.Any())
+                                    {
+                                        <div class="list-group">
+                                            @foreach (var appointment in Model.UpcomingAppointments.Take(5))
+                                            {
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">@appointment.Client?.Name</h6>
+                                                        <small>@appointment.Date.ToString("MMM dd")</small>
+                                                    </div>
+                                                    <p class="mb-1">@appointment.Service?.Name</p>
+                                                    <small>
+                                                        @appointment.Time.ToString(@"hh\:mm") - 
+                                                        @switch (appointment.Status)
+                                                        {
+                                                            case "Pendente":
+                                                                <span class="badge bg-warning">Pending</span>
+                                                                break;
+                                                            case "Confirmado":
+                                                                <span class="badge bg-success">Confirmed</span>
+                                                                break;
+                                                            case "Concluído":
+                                                                <span class="badge bg-info">Completed</span>
+                                                                break;
+                                                            case "Cancelado":
+                                                                <span class="badge bg-danger">Cancelled</span>
+                                                                break;
+                                                            default:
+                                                                <span class="badge bg-secondary">@appointment.Status</span>
+                                                                break;
+                                                        }
+                                                    </small>
+                                                </div>
+                                            }
+                                        </div>
+                                        @if (Model.UpcomingAppointments.Count > 5)
+                                        {
+                                            <div class="text-center mt-3">
+                                                <a asp-action="Schedule" class="btn btn-outline-primary btn-sm">
+                                                    View All (@Model.UpcomingAppointments.Count)
+                                                </a>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-calendar-plus fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No upcoming appointments</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <a asp-action="Schedule" class="btn btn-primary w-100 mb-2">
+                                                <i class="fas fa-calendar me-2"></i>View Schedule
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="History" class="btn btn-secondary w-100 mb-2">
+                                                <i class="fas fa-history me-2"></i>Appointment History
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Edit" class="btn btn-warning w-100 mb-2">
+                                                <i class="fas fa-edit me-2"></i>Edit Profile
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Index" class="btn btn-info w-100 mb-2">
+                                                <i class="fas fa-user me-2"></i>View Profile
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                @TempData["SuccessMessage"]
+            </div>
+        </div>
+    </div>
+}

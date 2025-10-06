@@ -1,6 +1,4 @@
-﻿using Microsoft.Graph;
-using Microsoft.Graph.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sistema.Data.Entities
@@ -12,8 +10,8 @@ namespace Sistema.Data.Entities
         public int AppointmentId { get; set; } // PK
 
         // 🔗 FK → Cliente
-        public int ClientId { get; set; } // FK
-        public Client Client { get; set; } // Navegação
+        public int CustomerId { get; set; } // FK
+        public Customer Customer { get; set; } // Navegação
 
         // 🔗 FK → Service
         public int ServiceId { get; set; } // FK
@@ -23,16 +21,31 @@ namespace Sistema.Data.Entities
         public int ProfessionalId { get; set; } // FK
         public Professional Professional { get; set; } // Navegação
 
-        [Column(TypeName = "date")] // Usar date para armazenar apenas a data
-        public DateTime Data { get; set; } // Data do agendamento
+        [Column(TypeName = "datetime")]
+        public DateTime StartTime { get; set; } // Data e hora de início
 
-        [Column(TypeName = "time")] // Usar time para armazenar apenas o horário
-        public TimeSpan Horario { get; set; } // Horário do agendamento
+        [Column(TypeName = "datetime")]
+        public DateTime EndTime { get; set; } // Data e hora de fim
+
+        // Propriedades para compatibilidade com as views
+        [NotMapped]
+        public DateTime Date => StartTime.Date;
+
+        [NotMapped]
+        public TimeSpan Time => StartTime.TimeOfDay;
+
+        [NotMapped]
+        public Customer Client => Customer;
 
         [StringLength(20)]
-        public string Status { get; set; } = "scheduled"; // Status do agendamento (e.g., scheduled, completed, canceled)
+        public string Status { get; set; } = "Pending"; // Status do agendamento (Pending, Confirmed, Completed, Canceled)
 
         public string? Notes { get; set; } // Notas adicionais sobre o agendamento
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? TotalPrice { get; set; } // Preço total do agendamento
+
+        public bool IsActive { get; set; } = true; // Indica se o agendamento está ativo
 
         public bool ReminderSent { get; set; } = false; // Indica se o lembrete foi enviado
         public bool ExportedToExcel { get; set; } = false; // Indica se o agendamento foi exportado para Excel

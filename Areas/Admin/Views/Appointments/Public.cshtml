@@ -1,0 +1,200 @@
+@{
+    ViewData["Title"] = "Agendamento Online";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title text-white">
+                        <i class="fas fa-calendar-plus"></i> Agendamento Online - @@ewellinjordaobeauty
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form id="appointmentForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="clientName">Nome Completo</label>
+                                            <input type="text" class="form-control" id="clientName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="clientPhone">Telefone</label>
+                                            <input type="tel" class="form-control" id="clientPhone" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="clientEmail">Email</label>
+                                            <input type="email" class="form-control" id="clientEmail">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="serviceSelect">Serviço</label>
+                                            <select class="form-control" id="serviceSelect" required>
+                                                <option value="">Selecione um serviço</option>
+                                                @foreach (var service in ViewBag.Services)
+                                                {
+                                                    <option value="@service.ServiceId" data-price="@service.Price">@service.Name - R$ @service.Price.ToString("F2")</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="professionalSelect">Profissional</label>
+                                            <select class="form-control" id="professionalSelect" required>
+                                                <option value="">Selecione um profissional</option>
+                                                @foreach (var professional in ViewBag.Professionals)
+                                                {
+                                                    <option value="@professional.ProfessionalId">@professional.Name - @professional.Specialty</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="appointmentDate">Data</label>
+                                            <input type="date" class="form-control" id="appointmentDate" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="timeSelect">Horário</label>
+                                            <select class="form-control" id="timeSelect" required>
+                                                <option value="">Selecione um horário</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="notes">Observações</label>
+                                            <textarea class="form-control" id="notes" rows="3" placeholder="Alguma observação especial..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-calendar-check"></i> Confirmar Agendamento
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card card-outline card-info">
+                                <div class="card-header">
+                                    <h3 class="card-title">Nossos Serviços</h3>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var service in ViewBag.Services)
+                                    {
+                                        <div class="service-item mb-3">
+                                            <h5>@service.Name</h5>
+                                            <p class="text-muted">@service.Description</p>
+                                            <span class="badge badge-primary">R$ @service.Price.ToString("F2")</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="card card-outline card-success">
+                                <div class="card-header">
+                                    <h3 class="card-title">Avaliações</h3>
+                                </div>
+                                <div class="card-body">
+                                    @if (ViewBag.Reviews != null && ViewBag.Reviews.Count > 0)
+                                    {
+                                        @foreach (var review in ViewBag.Reviews.Take(3))
+                                        {
+                                            <div class="review-item mb-3">
+                                                <div class="d-flex justify-content-between">
+                                                    <strong>@review.Client.Name</strong>
+                                                    <div class="rating">
+                                                        @for (int i = 1; i <= 5; i++)
+                                                        {
+                                                            <i class="fas fa-star @(i <= review.Rating ? "text-warning" : "text-muted")"></i>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <p class="text-muted">@review.Comment</p>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Ainda não há avaliações.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Carregar horários disponíveis quando profissional e data forem selecionados
+            $('#professionalSelect, #appointmentDate').change(function() {
+                var professionalId = $('#professionalSelect').val();
+                var date = $('#appointmentDate').val();
+                
+                if (professionalId && date) {
+                    loadAvailableTimes(professionalId, date);
+                }
+            });
+            
+            function loadAvailableTimes(professionalId, date) {
+                $.ajax({
+                    url: '@Url.Action("GetAvailableTimes")',
+                    type: 'GET',
+                    data: { professionalId: professionalId, date: date },
+                    success: function(times) {
+                        $('#timeSelect').empty();
+                        $('#timeSelect').append('<option value="">Selecione um horário</option>');
+                        
+                        times.forEach(function(time) {
+                            $('#timeSelect').append('<option value="' + time + '">' + time + '</option>');
+                        });
+                    },
+                    error: function() {
+                        $('#timeSelect').empty();
+                        $('#timeSelect').append('<option value="">Erro ao carregar horários</option>');
+                    }
+                });
+            }
+            
+            // Submissão do formulário
+            $('#appointmentForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Aqui você pode implementar a lógica para salvar o agendamento
+                // Por enquanto, apenas mostra uma mensagem de sucesso
+                alert('Agendamento realizado com sucesso! Entraremos em contato para confirmar.');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,223 @@
+@model IEnumerable<Sistema.Data.Entities.Customer>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Gestão de Clientes";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Gestão de Clientes</h1>
+            <p class="text-muted">Gerencie todos os clientes do sistema</p>
+        </div>
+        <a href="@Url.Action("Create")" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Cliente
+        </a>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total de Clientes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalClients</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Clientes Ativos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.ActiveClients</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Novos Este Mês</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.NewThisMonth</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Clientes Inativos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.InactiveClients</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros e Busca</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="search">Buscar</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="@ViewBag.Search" placeholder="Nome, email ou telefone...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="sortBy">Ordenar por</label>
+                        <select class="form-control" id="sortBy" name="sortBy">
+                            <option value="name">Nome</option>
+                            <option value="email">Email</option>
+                            <option value="registration">Data de Cadastro</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="sortOrder">Ordem</label>
+                        <select class="form-control" id="sortOrder" name="sortOrder">
+                            <option value="asc">Crescente</option>
+                            <option value="desc">Decrescente</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Clientes -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Clientes</h6>
+            <a href="@Url.Action("Report")" class="btn btn-info btn-sm">
+                <i class="fas fa-chart-bar"></i> Relatório
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Data de Cadastro</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var client in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@client.Name</strong>
+                                    @if (!string.IsNullOrEmpty(client.Notes))
+                                    {
+                                        <br><small class="text-muted">@client.Notes</small>
+                                    }
+                                </td>
+                                <td>@client.Email</td>
+                                <td>@client.Phone</td>
+                                <td>@client.RegistrationDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (client.IsActive)
+                                    {
+                                        <span class="badge badge-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Inativo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="@Url.Action("Details", new { id = client.CustomerId })" 
+                                           class="btn btn-info btn-sm" title="Ver Detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", new { id = client.CustomerId })" 
+                                           class="btn btn-warning btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="@Url.Action("ToggleStatus", new { id = client.CustomerId })" 
+                                           class="btn btn-@(client.IsActive ? "secondary" : "success") btn-sm" 
+                                           title="@(client.IsActive ? "Desativar" : "Ativar")"
+                                           onclick="return confirm('Tem certeza que deseja @(client.IsActive ? "desativar" : "ativar") este cliente?')">
+                                            <i class="fas fa-@(client.IsActive ? "ban" : "check")"></i>
+                                        </a>
+                                        <a href="@Url.Action("Delete", new { id = client.CustomerId })" 
+                                           class="btn btn-danger btn-sm" title="Excluir"
+                                           onclick="return confirm('Tem certeza que deseja excluir este cliente?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#dataTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json"
+                },
+                "pageLength": 25,
+                "order": [[ 0, "asc" ]]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,219 @@
+@model Sistema.Models.Admin.ProfessionalViewModel
+@{
+    ViewData["Title"] = "Professional Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-md me-2"></i>Professional Details
+                    </h3>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.ProfessionalId" class="btn btn-warning me-2">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Professional Information -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Professional Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Full Name</label>
+                                                <p class="form-control-plaintext">@Model.Name</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Specialty</label>
+                                                <p class="form-control-plaintext">
+                                                    <span class="badge bg-info">@Model.Specialty</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Email</label>
+                                                <p class="form-control-plaintext">@Model.UserEmail</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Default Commission</label>
+                                                <p class="form-control-plaintext">@Model.DefaultCommission%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Status</label>
+                                                <p class="form-control-plaintext">
+                                                    @if (Model.IsActive)
+                                                    {
+                                                        <span class="badge bg-success">Active</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger">Inactive</span>
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Photo</label>
+                                                <p class="form-control-plaintext">
+                                                    @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                                                    {
+                                                        <img src="@Model.PhotoPath" alt="@Model.Name" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                                            <i class="fas fa-user fa-2x text-white"></i>
+                                                        </div>
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-chart-bar me-2"></i>Statistics
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-primary">@Model.TotalServices</h4>
+                                                <small class="text-muted">Services</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-success">@Model.TotalAppointments</h4>
+                                                <small class="text-muted">Total Appointments</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-warning">@Model.ActiveAppointments</h4>
+                                                <small class="text-muted">Active Appointments</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-info">@Model.CompletedAppointments</h4>
+                                                <small class="text-muted">Completed</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a asp-action="Appointments" asp-route-id="@Model.ProfessionalId" class="btn btn-primary">
+                                            <i class="fas fa-calendar me-2"></i>View Appointments
+                                        </a>
+                                        <form asp-action="ToggleStatus" asp-route-id="@Model.ProfessionalId" method="post" class="d-inline">
+                                            <button type="submit" class="btn @(Model.IsActive ? "btn-warning" : "btn-success") w-100">
+                                                <i class="fas @(Model.IsActive ? "fa-ban" : "fa-check") me-2"></i>
+                                                @(Model.IsActive ? "Deactivate" : "Activate")
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services Section -->
+                    @if (Model.ProfessionalServices?.Any() == true)
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-cogs me-2"></i>Services Offered
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Service</th>
+                                                        <th>Price</th>
+                                                        <th>Commission</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var service in Model.ProfessionalServices)
+                                                    {
+                                                        <tr>
+                                                            <td>@service.Service?.Name</td>
+                                                            <td>@service.Service?.Price.ToString("C")</td>
+                                                            <td>@(service.Commission?.ToString("F2") ?? "N/A")%</td>
+                                                            <td>
+                                                                @if (service.Service?.IsActive == true)
+                                                                {
+                                                                    <span class="badge bg-success">Active</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge bg-danger">Inactive</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

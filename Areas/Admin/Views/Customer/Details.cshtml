@@ -1,0 +1,178 @@
+@model Sistema.Models.Admin.CustomerViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-user me-2"></i>Customer Details: @Model.Name
+                    </h3>
+                    <div class="btn-group">
+                        <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                        <a asp-action="Appointments" asp-route-id="@Model.CustomerId" class="btn btn-info">
+                            <i class="fas fa-calendar me-2"></i>View Appointments
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Full Name</label>
+                                        <p class="form-control-plaintext">@Model.Name</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Email Address</label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.Email))
+                                            {
+                                                <a href="mailto:@Model.Email">@Model.Email</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not provided</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Phone Number</label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.Phone))
+                                            {
+                                                <a href="tel:@Model.Phone">@Model.Phone</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not provided</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Birth Date</label>
+                                        <p class="form-control-plaintext">
+                                            @if (Model.BirthDate.HasValue)
+                                            {
+                                                @Model.BirthDate.Value.ToString("MMM dd, yyyy")
+                                                <small class="text-muted">(@((DateTime.Now - Model.BirthDate.Value).Days / 365) years old)</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not provided</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Address</label>
+                                <p class="form-control-plaintext">
+                                    @if (!string.IsNullOrEmpty(Model.Address))
+                                    {
+                                        @Model.Address
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not provided</span>
+                                    }
+                                </p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.AllergyHistory))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Allergy History</label>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        @Model.AllergyHistory
+                                    </div>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Notes))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Notes</label>
+                                    <p class="form-control-plaintext">@Model.Notes</p>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Customer Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Customer ID</label>
+                                        <p class="form-control-plaintext">#@Model.CustomerId</p>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Registration Date</label>
+                                        <p class="form-control-plaintext">@Model.RegistrationDate.ToString("MMM dd, yyyy")</p>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Status</label>
+                                        <p class="form-control-plaintext">
+                                            @if (Model.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Inactive</span>
+                                            }
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Appointment Statistics</label>
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="border rounded p-2">
+                                                    <h4 class="text-primary mb-0">@Model.TotalAppointments</h4>
+                                                    <small class="text-muted">Total</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="border rounded p-2">
+                                                    <h4 class="text-success mb-0">@Model.ActiveAppointments</h4>
+                                                    <small class="text-muted">Active</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

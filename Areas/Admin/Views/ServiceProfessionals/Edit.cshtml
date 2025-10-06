@@ -1,0 +1,103 @@
+@model Sistema.Models.Admin.ServiceProfessionalViewModel
+
+@{
+    ViewData["Title"] = "Vincular Profissionais ao Serviço";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-link"></i> Vincular Profissionais ao Serviço: @Model.ServiceName
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="ServiceId" />
+                        <input type="hidden" asp-for="ServiceName" />
+
+                        <div class="form-group">
+                            <label class="form-label">Selecione os Profissionais:</label>
+                            <div class="row">
+                                @if (Model.AvailableProfessionals?.Any() == true)
+                                {
+                                    @foreach (var professional in Model.AvailableProfessionals)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="form-check">
+                                                <input type="checkbox"
+                                                       name="SelectedProfessionals"
+                                                       value="@professional.Value"
+                                                       @(Model.SelectedProfessionals?.Contains(int.Parse(professional.Value)) == true ? "checked" : "")
+                                                       class="form-check-input"
+                                                       id="professional_@professional.Value" />
+                                                <label class="form-check-label" for="professional_@professional.Value">
+                                                    @professional.Text
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> Nenhum profissional disponível.
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Associações
+                            </button>
+                            <a asp-area="Admin" asp-controller="Services" asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar aos Serviços
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Select all / Deselect all functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllBtn = document.createElement('button');
+            selectAllBtn.type = 'button';
+            selectAllBtn.className = 'btn btn-outline-primary btn-sm mb-3';
+            selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Selecionar Todos';
+            
+            const formGroup = document.querySelector('.form-group');
+            formGroup.insertBefore(selectAllBtn, formGroup.firstChild);
+            
+            let allSelected = false;
+            selectAllBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('input[name="SelectedProfessionals"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = !allSelected;
+                });
+                allSelected = !allSelected;
+                this.innerHTML = allSelected ? 
+                    '<i class="fas fa-square"></i> Desmarcar Todos' : 
+                    '<i class="fas fa-check-square"></i> Selecionar Todos';
+            });
+        });
+    </script>
+}

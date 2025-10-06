@@ -1,0 +1,32 @@
+﻿@model Sistema.Data.Entities.ProfessionalSchedule
+
+@{
+    ViewData["Title"] = "Detalhes da Disponibilidade";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="mb-4">📌 Detalhes da Disponibilidade</h3>
+
+            <dl class="row">
+                <dt class="col-sm-3">Profissional</dt>
+                <dd class="col-sm-9">@Model.Professional?.User</dd>
+
+                <dt class="col-sm-3">Dia da Semana</dt>
+                <dd class="col-sm-9">@Model.DayOfWeek</dd>
+
+                <dt class="col-sm-3">Hora Início</dt>
+                <dd class="col-sm-9">@Model.StartTime</dd>
+
+                <dt class="col-sm-3">Hora Fim</dt>
+                <dd class="col-sm-9">@Model.EndTime</dd>
+            </dl>
+
+            <div class="d-flex justify-content-end">
+                <a asp-action="Edit" asp-route-id="@Model.ScheduleId" class="btn btn-warning me-2">Editar</a>
+                <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>

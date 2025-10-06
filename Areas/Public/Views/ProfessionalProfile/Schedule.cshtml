@@ -1,0 +1,164 @@
+@model IEnumerable<Sistema.Data.Entities.Appointment>
+@{
+    ViewData["Title"] = "My Schedule";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar me-2"></i>My Schedule - @ViewBag.ProfessionalName
+                    </h3>
+                    <div>
+                        <a asp-action="Dashboard" class="btn btn-info me-2">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Schedule Period:</strong> @ViewBag.StartDate.ToString("MMM dd, yyyy") - @ViewBag.EndDate.ToString("MMM dd, yyyy")
+                    </div>
+
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Customer</th>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var appointment in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">@appointment.Date.ToString("MMM dd, yyyy")</span>
+                                            </td>
+                                            <td>
+                                                <strong>@appointment.Time.ToString(@"hh\:mm")</strong>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-user text-white"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>@appointment.Client?.Name</strong>
+                                                        <br>
+                                                        <small class="text-muted">@appointment.Client?.Email</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@appointment.Service?.Name</span>
+                                                <br>
+                                                <small class="text-muted">@appointment.Service?.Price.ToString("C")</small>
+                                            </td>
+                                            <td>
+                                                @switch (appointment.Status)
+                                                {
+                                                    case "Pendente":
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        break;
+                                                    case "Confirmado":
+                                                        <span class="badge bg-success">Confirmed</span>
+                                                        break;
+                                                    case "Concluído":
+                                                        <span class="badge bg-info">Completed</span>
+                                                        break;
+                                                    case "Cancelado":
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@appointment.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(appointment.Notes))
+                                                {
+                                                    <span class="text-muted">@appointment.Notes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No notes</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (appointment.Status == "Pendente")
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <form asp-action="ConfirmAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-success" title="Confirm Appointment">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="CancelAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-danger" title="Cancel Appointment">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                }
+                                                else if (appointment.Status == "Confirmado" && appointment.Date >= DateTime.Today)
+                                                {
+                                                    <form asp-action="CancelAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-sm btn-warning" title="Cancel Appointment">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No actions</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No appointments scheduled</h5>
+                            <p class="text-muted">You don't have any appointments scheduled for the next 7 days.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                @TempData["SuccessMessage"]
+            </div>
+        </div>
+    </div>
+}

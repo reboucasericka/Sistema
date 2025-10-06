@@ -1,27 +1,41 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Sistema.Data.Entities;
-using Sistema.Models;
+using Sistema.Models.Account;
 
 namespace Sistema.Helpers
 {
-    public interface IUserHelper //IUserHelper
+    public interface IUserHelper
     {
-        Task<User> GetUserByEmailAsync(string email);
-
-        Task<IdentityResult> AddUserAsync(User user, string Password);
-
-        Task<SignInResult> LoginAsync(LoginViewModel model);
-
-        Task LogoutAsync();
-
-        //2 metodos para mudar a password
-
+        // User retrieval methods
+        Task<User?> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByUsernameAsync(string username);
+        Task<User?> GetUserByIdAsync(string userId);
+        Task<User?> GetCurrentUserAsync();
         
-        Task<IdentityResult> UpdateUserAsync(User user); //so muda os dados do utlizador
-
-        Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword); //muda a password do user
-        Task CheckRoleAsync(string roleName);//veriifica se a role existe se nao existir cria a role
-        Task AddUserToRoleAsync(User user, string roleName);//adiciona o user a role
-        Task<bool> IsUserInRoleAsync(User user, string roleName);//verifica se o user esta na role
+        // User management methods
+        Task<IdentityResult> AddUserAsync(User user, string password);
+        Task<IdentityResult> UpdateUserAsync(User user);
+        Task<IdentityResult> DeleteUserAsync(User user);
+        Task<IdentityResult> CreateEmployeeUserAsync(User user, string password);
+        
+        // Authentication methods
+        Task<SignInResult> LoginAsync(LoginViewModel model);
+        Task LogoutAsync();
+        
+        // Password methods
+        Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword);
+        Task<string> GeneratePasswordResetTokenAsync(User user);
+        Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
+        
+        // Role management methods
+        Task CheckRoleAsync(string roleName);
+        Task AddUserToRoleAsync(User user, string roleName);
+        Task<bool> IsUserInRoleAsync(User user, string roleName);
+        Task<IList<string>> GetUserRolesAsync(User user);
+        Task<IList<User>> GetUsersInRoleAsync(string roleName);
+        
+        // Email activation methods
+        Task<string> GenerateEmailConfirmationTokenAsync(User user);
+        Task<IdentityResult> ConfirmEmailAsync(User user, string token);
     }
 }

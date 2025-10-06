@@ -1,82 +1,163 @@
-﻿@model Sistema.Models.RegisterNewUserViewModel
+﻿@model Sistema.Models.Account.RegisterNewUserViewModel
 @{
-    ViewData["Title"] = "Registro";
-    Layout = "_Layout";
+    ViewData["Title"] = "Cadastro";
+    Layout = "_AuthLayout";
 }
+<!--Views/Account/Register.cshtml-->
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row w-100">
+        <!-- Imagem esquerda -->
+        <div class="col-md-6 auth-image d-none d-md-flex align-items-center justify-content-center">
+            <div class="auth-image-content">
+                <h3>Venha fazer parte!</h3>
+                <p>Cadastre o seu perfil para agendar seus tratamentos de beleza conosco.</p>
+                <div class="mt-4">
+                    <i class="fas fa-user-plus fa-3x mb-3" style="opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
 
-<div class="hero_area">
-    <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-6 col-lg-5">
-                <div class="card shadow-lg">
-                    <div class="card-header bg-secondary text-white text-center">
-                        <h4 class="mb-0">
-                            <i class="fas fa-user-plus me-2"></i>
-                            Cadastro de Usuário
-                        </h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <form method="post">
-                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <!-- Formulário direita -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center p-4">
+            <div class="auth-card w-100" style="max-width: 500px;">
+                <div class="auth-header">
+                    <h2><i class="fas fa-user-plus me-2"></i>Cadastro</h2>
+                    <p>Crie sua conta e comece sua jornada</p>
+                </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="FirstName" class="form-label">
-                                        <i class="fas fa-user me-2"></i>
-                                        Nome
-                                    </label>
-                                    <input asp-for="FirstName" class="form-control" placeholder="Digite seu nome" />
-                                    <span asp-validation-for="FirstName" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="LastName" class="form-label">
-                                        <i class="fas fa-user me-2"></i>
-                                        Sobrenome
-                                    </label>
-                                    <input asp-for="LastName" class="form-control" placeholder="Digite seu sobrenome" />
-                                    <span asp-validation-for="LastName" class="text-danger"></span>
-                                </div>
-                            </div>
+                <div class="p-4">
+                    <form asp-controller="Account" asp-action="Register" method="post" id="registerForm">
 
-                            <div class="mb-3">
-                                <label asp-for="Username" class="form-label">
-                                    <i class="fas fa-at me-2"></i>
-                                    Username
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label">
+                                    <i class="fas fa-user me-2" style="color: var(--accent-terracotta);"></i>
+                                    Nome
                                 </label>
-                                <input asp-for="Username" class="form-control" placeholder="Digite seu username" />
-                                <span asp-validation-for="Username" class="text-danger"></span>
+                                <input asp-for="FirstName" class="form-control" placeholder="Digite seu nome" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Password" class="form-label">
-                                    <i class="fas fa-lock me-2"></i>
-                                    Senha
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label">
+                                    <i class="fas fa-user me-2" style="color: var(--accent-terracotta);"></i>
+                                    Sobrenome
                                 </label>
+                                <input asp-for="LastName" class="form-control" placeholder="Digite seu sobrenome" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">
+                                <i class="fas fa-envelope me-2" style="color: var(--accent-terracotta);"></i>
+                                E-mail
+                            </label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="Digite seu e-mail" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                            <div class="form-text">Usaremos este e-mail para confirmar seu agendamento</div>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">
+                                <i class="fas fa-mobile-alt me-2" style="color: var(--accent-terracotta);"></i>
+                                Telemóvel
+                            </label>
+                            <input asp-for="Phone" class="form-control" placeholder="Telemóvel" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">
+                                <i class="fas fa-at me-2" style="color: var(--accent-terracotta);"></i>
+                                Username
+                            </label>
+                            <input asp-for="Username" class="form-control" placeholder="Escolha um nome de usuário" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock me-2" style="color: var(--accent-terracotta);"></i>
+                                Senha
+                            </label>
+                            <div class="position-relative">
                                 <input asp-for="Password" type="password" class="form-control" placeholder="Digite sua senha" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Confirm" class="form-label">
-                                    <i class="fas fa-lock me-2"></i>
-                                    Confirmar Senha
-                                </label>
-                                <input asp-for="Confirm" type="password" class="form-control" placeholder="Confirme sua senha" />
-                                <span asp-validation-for="Confirm" class="text-danger"></span>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-secondary">
-                                    <i class="fas fa-user-plus me-2"></i>
-                                    Cadastrar Usuário
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y" 
+                                        style="border: none; background: none; color: var(--neutral-gray);" 
+                                        onclick="togglePassword('Password')">
+                                    <i class="fas fa-eye" id="toggleIconPassword"></i>
                                 </button>
-                                <a asp-action="Login" class="btn btn-outline-primary">
-                                    <i class="fas fa-sign-in-alt me-2"></i>
-                                    Já tenho uma conta
-                                </a>
                             </div>
-                        </form>
-                    </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <div class="form-text">Mínimo 6 caracteres</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Confirm" class="form-label">
+                                <i class="fas fa-lock me-2" style="color: var(--accent-terracotta);"></i>
+                                Confirmar Senha
+                            </label>
+                            <div class="position-relative">
+                                <input asp-for="Confirm" type="password" class="form-control" placeholder="Confirme sua senha" />
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y" 
+                                        style="border: none; background: none; color: var(--neutral-gray);" 
+                                        onclick="togglePassword('Confirm')">
+                                    <i class="fas fa-eye" id="toggleIconConfirm"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Confirm" class="text-danger"></span>
+                        </div>
+
+                        <!-- Checkboxes de consentimento -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter">
+                                <label class="form-check-label" for="newsletter">
+                                    Quero receber newsletters com notícias, eventos e informações do Ewellin Jordão e seus parceiros
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    Li e aceito o <a href="#" class="text-link">termo de uso</a> e a <a href="#" class="text-link">política de privacidade</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Cadastrar
+                            </button>
+                        </div>
+
+                        <!-- Login Social -->
+                        <div class="social-login">
+                            <div class="divider">
+                                <span>ou cadastre-se com</span>
+                            </div>
+                            <a asp-action="ExternalLogin" asp-route-provider="Facebook" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-facebook social-btn">
+                                <i class="fab fa-facebook-f me-2"></i>
+                                Facebook
+                            </a>
+                            <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-google social-btn">
+                                <i class="fab fa-google me-2"></i>
+                                Google
+                            </a>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="mb-2">Já possui uma conta?</p>
+                            <a asp-action="Login" class="text-link">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                Faça login
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -87,4 +168,141 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    @if (TempData["ShowActivationPopup"] != null && (bool)TempData["ShowActivationPopup"])
+    {
+        <script>
+            $(document).ready(function() {
+                // Mostrar popup de ativação
+                $('#activationModal').modal('show');
+            });
+        </script>
+    }
+}
+
+<!-- Modal de Ativação -->
+<div class="modal fade" id="activationModal" tabindex="-1" aria-labelledby="activationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #C97D5D 0%, #D9A791 100%); color: white;">
+                <h5 class="modal-title" id="activationModalLabel">
+                    <i class="fas fa-envelope me-2"></i>
+                    Ativação de Conta Enviada
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4>Cadastro realizado com sucesso!</h4>
+                </div>
+                
+                <p class="mb-3">
+                    Olá <strong>@TempData["UserName"]</strong>! 
+                    Enviamos um email de ativação para <strong>@TempData["UserEmail"]</strong>
+                </p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Próximos passos:</strong>
+                    <ol class="text-start mt-2">
+                        <li>Verifique sua caixa de entrada</li>
+                        <li>Clique no link de ativação no email</li>
+                        <li>Será redirecionada para a página de agendamento</li>
+                    </ol>
+                </div>
+                
+                <p class="text-muted small">
+                    <i class="fas fa-clock me-1"></i>
+                    O link expira em 24 horas por motivos de segurança.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-2"></i>
+                    Entendi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    <script>
+        function togglePassword(fieldName) {
+            const passwordInput = document.querySelector(`input[name="${fieldName}"]`);
+            const toggleIcon = document.getElementById(`toggleIcon${fieldName}`);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Funções de autenticação social já implementadas via links
+
+        // Validação de senha em tempo real
+        document.querySelector('input[name="Password"]').addEventListener('input', function() {
+            const password = this.value;
+            const confirmField = document.querySelector('input[name="Confirm"]');
+            
+            if (password.length < 6) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+            
+            // Verificar se as senhas coincidem
+            if (confirmField.value && password !== confirmField.value) {
+                confirmField.classList.add('is-invalid');
+            } else {
+                confirmField.classList.remove('is-invalid');
+            }
+        });
+
+        // Validação de confirmação de senha
+        document.querySelector('input[name="Confirm"]').addEventListener('input', function() {
+            const password = document.querySelector('input[name="Password"]').value;
+            const confirm = this.value;
+            
+            if (confirm && password !== confirm) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Máscara para telemóvel português
+           // Apenas impede caracteres não-numéricos
+           document.querySelector('input[name="Phone"]').addEventListener('input', function() {
+               this.value = this.value.replace(/[^0-9+ ]/g, '');
+           });
+
+
+        
+        // Adicionar animação aos campos
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Validação do formulário
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const terms = document.getElementById('terms');
+            if (!terms.checked) {
+                e.preventDefault();
+                alert('Você deve aceitar os termos de uso e política de privacidade para continuar.');
+                return false;
+            }
+        });
+    </script>
 }

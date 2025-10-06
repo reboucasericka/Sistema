@@ -7,13 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Ewellin Jordão</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Fontes e Icons -->
+    <!-- CSS DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
 
 
@@ -29,7 +34,7 @@
     <!-- Tema principal -->
     <link rel="stylesheet" href="~/css/style.css" />
 
-    
+
 
 
 
@@ -43,51 +48,54 @@
                     <img src="~/images/1.jpg" alt="Ewellin Jordão" />
                 </a>
             </div>
-            
+
             <!-- Menu Desktop -->
             <nav class="nav-desktop">
                 <ul>
-                    <li><a asp-controller="Home" asp-action="Index">Início</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-area="">Início</a></li>
+
                     <li class="dropdown">
                         <a href="javascript:void(0)" class="dropbtn">Ewellin</a>
                         <div class="dropdown-content">
-                            <a asp-controller="Institutional" asp-action="About">Sobre nós</a>
-                            <a asp-controller="Institutional" asp-action="Academy">Academia</a>
+                            <a asp-area="Public" asp-controller="Institutional" asp-action="About">Sobre nós</a>
+                            <a asp-area="Public" asp-controller="Institutional" asp-action="Academy">Academia</a>
                         </div>
                     </li>
 
-                    <li><a asp-controller="Appointments" asp-action="Index">Agendamento Online</a></li>
-                    <li class="dropdown">
-                        <a href="javascript:void(0)" class="dropbtn">Tabela de preços</a>
-                        <div class="dropdown-content">
-                            <a href="#">Lisboa</a>
-                            <a href="#">Porto</a>
-                            <a href="#">Coimbra</a>
-                        </div>
+                    <li>
+                        <a asp-area="Public" asp-controller="Appointment" asp-action="Index">Agendamento Online</a>
                     </li>
-                    <li><a asp-controller="Services" asp-action="Index">Serviços</a></li>
-                    <li><a asp-controller="Products" asp-action="Index">Produtos</a></li>
+                    <li>
+                        <a asp-area="Public" asp-controller="Price" asp-action="Index">Tabela de preços</a>                       
+                    </li>
+                    <li>
+                        <a asp-area="Public" asp-controller="Service" asp-action="Index">Serviços</a>
+                    </li>
+
+                    <li>
+                        <a asp-area="Public" asp-controller="Product" asp-action="Index">Produtos</a>
+                    </li>
+
                     <li class="dropdown">
                         <a href="javascript:void(0)" class="dropbtn">Contatos</a>
-                        <div class="dropdown-content">
-                            <a href="#">Lojas</a>
-                            <a href="#">Recrutamento</a>
+                        <div class="dropdown-content">                            
+                            <a asp-area="Public" asp-controller="Recrutamento" asp-action="Index">Recrutamento</a>                            
                         </div>
                     </li>
+
+
                 </ul>
             </nav>
 
             <!-- Menu Mobile -->
             <nav class="nav-mobile">
-                <a asp-controller="Home" asp-action="Index">Início</a>
-                <a asp-controller="Institutional" asp-action="About">Sobre nós</a>
-                <a asp-controller="Institutional" asp-action="Academy">Academia</a>
-
-                <a asp-controller="Appointments" asp-action="Index">Agendamento</a>
-                <a href="#">Tabela de preços</a>
-                <a asp-controller="Services" asp-action="Index">Serviços</a>
-                <a asp-controller="Products" asp-action="Index">Produtos</a>
-                <a href="#">Contatos</a>
+                <a asp-controller="Home" asp-action="Index" asp-area="">Início</a>
+                <a asp-area="Public" asp-controller="Institutional" asp-action="About">Sobre nós</a>
+                <a asp-area="Public" asp-controller="Institutional" asp-action="Academy">Academia</a>
+                <a asp-area="Public" asp-controller="Appointment" asp-action="Index">Agendamento Online</a>
+                <a asp-area="Public" asp-controller="Price" asp-action="Index">Tabela de preços</a>
+                <a asp-area="Public" asp-controller="Service" asp-action="Index">Serviços</a>
+                <a asp-area="Public" asp-controller="Product" asp-action="Index">Produtos</a>
             </nav>
 
             <!-- Menu Hambúrguer -->
@@ -97,7 +105,7 @@
                 <div class="bar3"></div>
             </div>
         </div>
-    </header>    
+    </header>
 
     <!-- CONTEÚDO DAS PÁGINAS -->
     <main role="main">
@@ -112,7 +120,7 @@
             <div class="box">
                 <div class="item">
                     <div class="logo">
-                        <img src="~/images/logo_bar.png" alt="Ewellin Jordão" style="height: 30px;">
+                        <img src="~/images/About/about-img.jpg" alt="Ewellin Jordão" style="height: 30px;">
                         <p>O olhar que marca.</p>
                     </div>
                     <p>R. Vale das Flores 23, Alto de São João, 3030-486 Coimbra - Portugal</p>
@@ -128,35 +136,58 @@
                 </div>
                 <div class="item">
                     <h2>MAPA</h2>
-                    <img src="~/images/mapa_footer.png" alt="Mapa" style="max-width: 200px;">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3615.1611306068016!2d-8.41276092360632!3d40.1937568691796!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd22f935721f57a9%3A0x24e30d9bd3d5a6d6!2sEWELLIN%20JORD%C3%83O%20BEAUTY%20ACADEMY!5e1!3m2!1spt-PT!2spt!4v1759487379714!5m2!1spt-PT!2spt"
+                            width="400"
+                            height="300"
+                            style="border:0; border-radius:8px;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
                 </div>
+
                 <div class="item">
                     <ul>
-                        <li><a href="#">Programa de Fidelidade</a></li>
-                        <li><a href="#">Política de Privacidade</a></li>
-                        <li><a href="#">Termos e Condições Gerais de Venda</a></li>
+                        <li><a href="~/pdf/ProgramaFidelidade.pdf" target="_blank">Programa de Fidelidade</a></li>
+                        <li><a href="~/pdf/PoliticaPrivacidade.pdf" target="_blank">Política de Privacidade</a></li>
+                        <li><a href="~/pdf/TermosCondicoes.pdf" target="_blank">Termos e Condições Gerais de Venda</a></li>
                     </ul>
                 </div>
+
             </div>
         </div>
     </footer>
 
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/menu-hamburguer.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-
-
-    <!-- jQuery (necessário para slick) -->
+    <!-- jQuery (primeiro sempre) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap 5 (com Popper embutido) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Scripts locais -->
+    <script src="~/js/menu-hamburguer.js" asp-append-version="true"></script>
 
     <!-- Slick JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
+    <!-- Inicialização global -->
     <script>
         $(document).ready(function(){
+            // Inicializar DataTables se existirem tabelas
+            if ($('table').length) {
+                $('table').DataTable({
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.13.8/i18n/pt-PT.json"
+                    }
+                });
+            }
+
+            // Inicializar Slick slider
             $('.slider_home').slick({
                 dots: true,
                 arrows: false,
@@ -168,6 +199,9 @@
             });
         });
     </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
 
 
 </body>

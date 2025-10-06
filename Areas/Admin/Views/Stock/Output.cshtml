@@ -1,0 +1,164 @@
+@model Sistema.Data.Entities.StockExit
+
+@{
+    ViewData["Title"] = "Saída de Estoque";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Saída de Estoque</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Estoque</a></li>
+                    <li class="breadcrumb-item active">Saída</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Registrar Saída de Estoque</h3>
+                    </div>
+                    <form asp-action="Output" method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="ProductId" class="control-label">Produto</label>
+                                        <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId" id="productSelect">
+                                            <option value="">Selecione um produto</option>
+                                        </select>
+                                        <span asp-validation-for="ProductId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Quantity" class="control-label">Quantidade</label>
+                                        <input asp-for="Quantity" type="number" min="1" class="form-control" placeholder="Quantidade a retirar" />
+                                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Reason" class="control-label">Motivo</label>
+                                        <select asp-for="Reason" class="form-control">
+                                            <option value="">Selecione um motivo</option>
+                                            <option value="Venda">Venda</option>
+                                            <option value="Uso Interno">Uso Interno</option>
+                                            <option value="Perda">Perda</option>
+                                            <option value="Vencimento">Vencimento</option>
+                                            <option value="Transferência">Transferência</option>
+                                            <option value="Outros">Outros</option>
+                                        </select>
+                                        <span asp-validation-for="Reason" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Date" class="control-label">Data</label>
+                                        <input asp-for="Date" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                        <span asp-validation-for="Date" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label asp-for="Reason" class="control-label">Motivo</label>
+                                        <textarea asp-for="Reason" class="form-control" rows="3" placeholder="Motivo da saída de estoque..."></textarea>
+                                        <span asp-validation-for="Reason" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Informações do produto selecionado -->
+                            <div id="productInfo" class="row" style="display: none;">
+                                <div class="col-12">
+                                    <div class="card card-outline card-warning">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Informações do Produto</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <strong>Estoque Atual:</strong>
+                                                    <span id="currentStock">-</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Estoque Mínimo:</strong>
+                                                    <span id="minimumStock">-</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Disponível:</strong>
+                                                    <span id="availableStock">-</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Status:</strong>
+                                                    <span id="stockStatus">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-minus"></i> Registrar Saída
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Carregar informações do produto quando selecionado
+            $('#productSelect').change(function() {
+                var productId = $(this).val();
+                if (productId) {
+                    loadProductInfo(productId);
+                } else {
+                    $('#productInfo').hide();
+                }
+            });
+            
+            function loadProductInfo(productId) {
+                // Aqui você pode implementar uma chamada AJAX para carregar as informações do produto
+                $('#currentStock').text('Carregando...');
+                $('#minimumStock').text('Carregando...');
+                $('#availableStock').text('Carregando...');
+                $('#stockStatus').text('Carregando...');
+                $('#productInfo').show();
+            }
+        });
+    </script>
+}
+

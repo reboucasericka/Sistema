@@ -8,17 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\Public\**" />
     <Compile Remove="Dashboard\**" />
     <Compile Remove="Views\Layouts\**" />
+    <Compile Remove="Views\Public\**" />
     <Compile Remove="Views\Templates\**" />
+    <Content Remove="Controllers\Public\**" />
     <Content Remove="Dashboard\**" />
     <Content Remove="Views\Layouts\**" />
+    <Content Remove="Views\Public\**" />
     <Content Remove="Views\Templates\**" />
+    <EmbeddedResource Remove="Controllers\Public\**" />
     <EmbeddedResource Remove="Dashboard\**" />
     <EmbeddedResource Remove="Views\Layouts\**" />
+    <EmbeddedResource Remove="Views\Public\**" />
     <EmbeddedResource Remove="Views\Templates\**" />
+    <None Remove="Controllers\Public\**" />
     <None Remove="Dashboard\**" />
     <None Remove="Views\Layouts\**" />
+    <None Remove="Views\Public\**" />
     <None Remove="Views\Templates\**" />
   </ItemGroup>
 
@@ -26,8 +34,13 @@
 
   <ItemGroup>
     <PackageReference Include="bootstrap" Version="5.3.8" />
+    <PackageReference Include="EPPlus" Version="8.2.0" />
     <PackageReference Include="FontAwesome" Version="4.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
@@ -41,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\images\Users\" />
     <Folder Include="wwwroot\images\Products\" />
   </ItemGroup>
 

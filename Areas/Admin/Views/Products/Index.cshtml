@@ -1,0 +1,92 @@
+﻿@model IEnumerable<Sistema.Data.Entities.Product>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Lista de Produtos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Criar novo</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProductCategory.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PurchasePrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SalePrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Stock)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PhotoPath)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MinimumStockLevel)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Supplier)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProductCategory.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PurchasePrice)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SalePrice)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Stock)
+            </td>
+            <td>
+                    @if (!string.IsNullOrEmpty(item.ImageFullPath))
+                {
+                        <img src="@Url.Content(item.ImageFullPath)" alt="Imagem do Produto" style="width:100px; height:auto; max-width: 100px; max-height: 100px;" />
+                }
+            </td> 
+            <td>
+                @Html.DisplayFor(modelItem => item.MinimumStockLevel)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Supplier.Name)
+            </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ProductId" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i> Editar
+                    </a>
+                    <a asp-action="Details" asp-route-id="@item.ProductId" class="btn btn-info">
+                        <i class="fas fa-info-circle me-1"></i> Detalhes
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.ProductId" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> Deletar
+                    </a>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>

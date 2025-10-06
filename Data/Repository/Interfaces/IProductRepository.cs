@@ -9,21 +9,21 @@ namespace Sistema.Data.Repository.Interfaces
     public interface IProductRepository : IGenericRepository<Product>
     {
 
-        public IQueryable GetAllWithUsers(); //metodo novo para incluir o usuário na api
+        public IQueryable<Product> GetAllWithUsers(); //metodo novo para incluir o usuário na api
 
-        // Listar todos os produtos já incluindo categoria e fornecedor
+        // List all products including category and supplier
         IQueryable<Product> GetAllWithIncludes();
 
-        // Buscar 1 produto já com categoria e fornecedor
+        // Get one product with category and supplier
         Task<Product?> GetByIdWithIncludesAsync(int id);
 
-        // Buscar produtos por categoria
-        IQueryable<Product> GetByCategoria(int categoriaProdutoId);
+        // Get products by category
+        IQueryable<Product> GetByCategory(int productCategoryId);
 
-        // Buscar produtos por fornecedor
-        IQueryable<Product> GetByFornecedor(int fornecedorId);
+        // Get products by supplier
+        IQueryable<Product> GetBySupplier(int supplierId);
 
-        // Verificar estoque abaixo do mínimo
-        IQueryable<Product> GetProdutosComEstoqueBaixo();
+        // Get products with low stock
+        IQueryable<Product> GetProductsWithLowStock();
     }
 }

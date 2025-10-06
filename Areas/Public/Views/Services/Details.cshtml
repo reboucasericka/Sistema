@@ -1,0 +1,425 @@
+@model Sistema.Data.Entities.Service
+
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "_PublicLayout";
+}
+
+<div class="service-details">
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="hero-title">@Model.Name</h1>
+                        <p class="hero-subtitle">@Model.Category?.Name</p>
+                        <div class="hero-description">
+                            @Model.Description
+                        </div>
+                        <div class="hero-info">
+                            <div class="info-item">
+                                <i class="fas fa-euro-sign"></i>
+                                <span class="price">€@Model.Price.ToString("F2")</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>@Model.DurationInMinutes minutos</span>
+                            </div>
+                        </div>
+                        <div class="hero-actions">
+                            <a href="#" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-plus"></i> Agendar Serviço
+                            </a>
+                            <a asp-area="Public" asp-controller="Services" asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Voltar aos Serviços
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-image">
+                        @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                        {
+                            <img src="@Url.Content(Model.PhotoPath)" alt="@Model.Name" class="img-fluid rounded">
+                        }
+                        else
+                        {
+                            <div class="placeholder-image">
+                                <i class="fas fa-concierge-bell"></i>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="service-info">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="info-card">
+                        <h3>Detalhes do Serviço</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <i class="fas fa-tag"></i>
+                                <div>
+                                    <strong>Categoria:</strong>
+                                    <span>@Model.Category?.Name</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-euro-sign"></i>
+                                <div>
+                                    <strong>Preço:</strong>
+                                    <span class="price">€@Model.Price.ToString("F2")</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <strong>Duração:</strong>
+                                    <span>@Model.DurationInMinutes minutos</span>
+                                </div>
+                            </div>
+                            @if (Model.Commission > 0)
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-percentage"></i>
+                                    <div>
+                                        <strong>Comissão:</strong>
+                                        <span>@Model.Commission.ToString("P0")</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.ReturnDays > 0)
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-redo"></i>
+                                    <div>
+                                        <strong>Dias para Retorno:</strong>
+                                        <span>@Model.ReturnDays dias</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="booking-card">
+                        <h4>Agendar Este Serviço</h4>
+                        <p>Reserve seu horário para este serviço</p>
+                        <a href="#" class="btn btn-primary btn-block">
+                            <i class="fas fa-calendar-plus"></i> Agendar Agora
+                        </a>
+                        <div class="contact-info">
+                            <p><i class="fas fa-phone"></i> +351 123 456 789</p>
+                            <p><i class="fas fa-envelope"></i> info@ewellinbeauty.com</p>
+                        </div>
+                    </div>
+                    
+                    @if (Model.ProfessionalServices?.Any() == true)
+                    {
+                        <div class="professionals-card">
+                            <h4>Profissionais Disponíveis</h4>
+                            <div class="professionals-list">
+                                @foreach (var ps in Model.ProfessionalServices)
+                                {
+                                    <div class="professional-item">
+                                        <div class="professional-avatar">
+                                            @if (!string.IsNullOrEmpty(ps.Professional.PhotoPath))
+                                            {
+                                                <img src="@Url.Content(ps.Professional.PhotoPath)" alt="@ps.Professional.Name" class="img-fluid">
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-user"></i>
+                                            }
+                                        </div>
+                                        <div class="professional-info">
+                                            <h5>@ps.Professional.Name</h5>
+                                            <p>@ps.Professional.Specialty</p>
+                                            @if (ps.Commission.HasValue)
+                                            {
+                                                <small class="commission">Comissão: @ps.Commission.Value.ToString("P0")</small>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.service-details {
+    font-family: 'Arial', sans-serif;
+}
+
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 100px 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-content {
+    padding-right: 30px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 25px;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: rgba(255,255,255,0.9);
+}
+
+.hero-info {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.info-item i {
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.8);
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.hero-image {
+    text-align: center;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 400px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: rgba(255,255,255,0.5);
+}
+
+.service-info {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.info-card, .booking-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.info-card h3, .booking-card h4 {
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.info-item i {
+    font-size: 1.2rem;
+    color: #667eea;
+    width: 20px;
+    text-align: center;
+}
+
+.info-item strong {
+    color: #333;
+    margin-right: 5px;
+}
+
+.booking-card {
+    text-align: center;
+}
+
+.booking-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.btn-block {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.contact-info {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.contact-info p {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.contact-info i {
+    color: #667eea;
+    margin-right: 10px;
+}
+
+.professionals-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.professionals-card h4 {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.professionals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.professional-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.professional-item:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.professional-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.professional-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.professional-info h5 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.professional-info p {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.commission {
+    color: #667eea;
+    font-weight: 500;
+}
+
+@@media (max-width: 768px) {
+    .hero {
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .hero-content {
+        padding-right: 0;
+        margin-bottom: 40px;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-info {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .hero-actions {
+        justify-content: center;
+    }
+    
+    .service-info {
+        padding: 40px 0;
+    }
+}
+</style>

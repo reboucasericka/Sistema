@@ -1,0 +1,112 @@
+@{
+    ViewData["Title"] = "Ativação de Conta";
+    Layout = "_AuthLayout";
+}
+
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-5">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                            <h3 class="text-success">Conta Ativada com Sucesso!</h3>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <i class="fas fa-info-circle me-2"></i>
+                            @TempData["SuccessMessage"]
+                        </div>
+                        
+                        <div class="mt-4">
+                            <p class="mb-3">Você será redirecionado automaticamente para sua área...</p>
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                        
+                        <script>
+                            // Redirecionamento automático após 3 segundos
+                            setTimeout(function() {
+                                // O redirecionamento será feito pelo controller baseado no role
+                                window.location.href = '@Url.Action("Login", "Account")';
+                            }, 3000);
+                        </script>
+                    }
+                    else if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                            <h3 class="text-danger">Erro na Ativação</h3>
+                        </div>
+                        
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @TempData["ErrorMessage"]
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a asp-action="Login" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Tentar Login
+                            </a>
+                            <a asp-action="Register" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Criar Nova Conta
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-question-circle fa-4x text-warning mb-3"></i>
+                            <h3>Link de Ativação Inválido</h3>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            O link de ativação é inválido ou expirou.
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a asp-action="Login" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Fazer Login
+                            </a>
+                            <a asp-action="Register" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Criar Nova Conta
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>

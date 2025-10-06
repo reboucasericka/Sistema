@@ -1,0 +1,29 @@
+﻿@model Sistema.Data.Entities.ProfessionalSchedule
+
+@{
+    ViewData["Title"] = "Excluir Disponibilidade";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm border-danger">
+        <div class="card-body">
+            <h3 class="text-danger mb-4">⚠️ Confirmar Exclusão</h3>
+
+            <p>Tem certeza de que deseja excluir a disponibilidade abaixo?</p>
+
+            <ul>
+                <li><strong>Profissional:</strong> @Model.Professional?.User</li>
+                <li><strong>Dia:</strong> @Model.DayOfWeek</li>
+                <li><strong>Horário:</strong> @Model.StartTime - @Model.EndTime</li>
+            </ul>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="ScheduleId" />
+                <div class="d-flex justify-content-end">
+                    <a asp-action="Index" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

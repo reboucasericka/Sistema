@@ -13,7 +13,7 @@ namespace Sistema.Data.Repository.Implementations
             _context = context;
         }
 
-        public IQueryable GetAllWithUsers()
+        public IQueryable<Product> GetAllWithUsers()
         {
             return _context.Products.Include(p => p.User);
 
@@ -29,7 +29,7 @@ namespace Sistema.Data.Repository.Implementations
                 .AsNoTracking();
         }
 
-        public IQueryable<Product> GetByCategoria(int productCategoryId)
+        public IQueryable<Product> GetByCategory(int productCategoryId)
         {
             return _context.Products
                 .Include(p => p.ProductCategory)  // navigation
@@ -52,7 +52,7 @@ namespace Sistema.Data.Repository.Implementations
             return await _context.Products
                 .Include(p => p.ProductCategory)
                 //.Include(p => p.Supplier)
-                .FirstOrDefaultAsync(p => p.ProductId == id);
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public IQueryable<Product> GetProductsWithLowStock()
@@ -64,14 +64,5 @@ namespace Sistema.Data.Repository.Implementations
                 .AsNoTracking();
         }
 
-        public IQueryable<Product> GetProdutosComEstoqueBaixo()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IQueryable<Product> GetByFornecedor(int fornecedorId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

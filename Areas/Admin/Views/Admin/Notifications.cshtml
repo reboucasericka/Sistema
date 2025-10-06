@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Sistema.Data.Entities.Notification>
+@{
+    ViewData["Title"] = "Notificações";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="mb-4">🔔 Notificações</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhuma notificação encontrada.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mensagem</th>
+                <th>Data</th>
+                <th>Lida?</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var notif in Model)
+            {
+                <tr>
+                    <td><i class="@notif.Icon mr-2"></i>@notif.Message</td>
+                    <td>@notif.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@(notif.IsRead ? "✅ Sim" : "❌ Não")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(notif.Link))
+                        {
+                            <a href="@notif.Link" class="btn btn-sm btn-primary">Abrir</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

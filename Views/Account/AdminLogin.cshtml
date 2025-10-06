@@ -1,0 +1,126 @@
+@model Sistema.Models.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Acesso Administrativo";
+    Layout = "_AuthLayout";
+}
+<!--Views/Account/AdminLogin.cshtml-->
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="row g-0">
+                    <!-- Imagem esquerda -->
+                    <div class="col-md-6 auth-image d-none d-md-flex align-items-center justify-content-center">
+                        <div class="auth-image-content">
+                            <h3>Painel Administrativo</h3>
+                            <p>Acesse o dashboard para gerenciar seu negócio, clientes e agendamentos.</p>
+                            <div class="mt-4">
+                                <i class="fas fa-chart-line fa-3x mb-3" style="opacity: 0.8;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulário direita -->
+                    <div class="col-md-6 d-flex align-items-center justify-content-center p-4">
+                        <div style="width:100%; max-width:400px;">
+                            <h3 class="mb-4 text-center text-primary-custom">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Acesso Administrativo
+                            </h3>
+
+                            <form asp-controller="Account" asp-action="AdminLogin" method="post" id="adminLoginForm">
+                                @Html.AntiForgeryToken()
+                                
+                                @if (TempData["ErrorMessage"] != null)
+                                {
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        @TempData["ErrorMessage"]
+                                    </div>
+                                }
+
+                                <div class="mb-3">
+                                    <label for="Username" class="form-label">
+                                        <i class="fas fa-user-shield me-2"></i>
+                                        Usuário ou E-mail
+                                    </label>
+                                    <input name="Username" id="Username" class="form-control" placeholder="Digite seu usuário ou e-mail" />
+                                    <div class="form-text">Apenas usuários com permissão administrativa</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="Password" class="form-label">
+                                        <i class="fas fa-lock me-2"></i>
+                                        Senha
+                                    </label>
+                                    <input name="Password" id="Password" type="password" class="form-control" placeholder="Digite sua senha" />
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                                    <label asp-for="RememberMe" class="form-check-label">Lembrar de mim</label>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fas fa-sign-in-alt me-2"></i>
+                                        Entrar no Painel
+                                    </button>
+                                </div>
+                            </form>
+                            
+
+                            <div class="text-center mt-4">
+                                <a asp-action="Login" class="text-link">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Voltar ao Login Cliente
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log("🔍 AdminLogin: Script carregado - DESABILITANDO VALIDAÇÃO COMPLETAMENTE");
+            
+            // Remover todos os atributos de validação dos campos
+            $('#Username').removeAttr('data-val data-val-required data-val-email');
+            $('#Password').removeAttr('data-val data-val-required data-val-minlength data-val-minlength-min');
+            $('#RememberMe').removeAttr('data-val');
+            
+            // Desabilitar completamente a validação client-side
+            $('#adminLoginForm').removeData('validator');
+            $('#adminLoginForm').removeData('unobtrusiveValidation');
+            $('#adminLoginForm').unbind('submit');
+            
+            // Remover validação jQuery completamente
+            if (typeof $.validator !== 'undefined') {
+                $.validator.setDefaults({
+                    ignore: "*"
+                });
+            }
+            
+            // Debug do botão normal
+            $('#submitBtn').on('click', function(e) {
+                console.log("🔍 AdminLogin: Botão clicado");
+                e.preventDefault(); // Prevenir comportamento padrão
+                
+                console.log("🔍 AdminLogin: Enviando formulário manualmente");
+                console.log("   - Username:", $('#Username').val());
+                console.log("   - Password:", $('#Password').val() ? "FORNECIDA" : "VAZIA");
+                console.log("   - RememberMe:", $('#RememberMe').is(':checked'));
+                
+                // Enviar formulário manualmente
+                $('#adminLoginForm')[0].submit();
+            });
+            
+        });
+    </script>
+}
+

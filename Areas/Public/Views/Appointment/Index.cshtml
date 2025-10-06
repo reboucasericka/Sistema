@@ -1,0 +1,198 @@
+﻿@{
+    ViewData["Title"] = "Agendamento Online";
+    var services = ViewBag.Services as List<Sistema.Data.Entities.Service>;
+    var plans = ViewBag.Plans as List<Sistema.Data.Entities.Plan>;
+    var professionals = ViewBag.Professionals as List<Sistema.Data.Entities.Professional>;
+    var reviews = ViewBag.Reviews as List<Sistema.Data.Entities.ServiceReview>;
+}
+
+<div class="container mt-4">
+
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-6">
+            <h1 class="display-5 fw-bold">
+                Agende horários em estabelecimentos
+                <span class="text-warning">perto de você</span>.
+            </h1>
+            <p class="lead">Escolha o serviço, selecione o profissional e garanta já seu horário online.</p>
+
+            <!-- Cliente → vai para login -->
+            <a class="btn btn-warning btn-lg me-2" asp-controller="Account" asp-action="Login" asp-area="">
+                Cadastrar ou Entrar
+            </a>
+        </div>
+        <div class="col-md-6">
+            <img src="/images/Academy/ew1.jpg" class="img-fluid rounded" alt="Agendamento Online" />
+        </div>
+    </div>
+
+
+    <!-- Mais Procurados -->
+    <h3 class="mb-3">Mais Procurados</h3>
+    <div class="row">
+        @foreach (var s in services.Take(4))
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@s.Name</h5>
+                        <p class="card-text">Preço: @s.Price €</p>
+                        <a asp-controller="Account" asp-action="Login" asp-area="" asp-route-returnUrl="/Public/Appointment"
+                           class="btn btn-primary">Agendar</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pacotes -->
+    @if (plans.Any())
+    {
+        <div class="mt-5">
+            <h3 class="mb-3">Pacotes</h3>
+            <div class="accordion" id="accordionPlans">
+                @foreach (var plan in plans)
+                {
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-@plan.PlanId">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-@plan.PlanId"
+                                    aria-expanded="false"
+                                    aria-controls="collapse-@plan.PlanId">
+                                @plan.Name — <span class="text-primary">@plan.Price €</span>
+                            </button>
+                        </h2>
+                        <div id="collapse-@plan.PlanId"
+                             class="accordion-collapse collapse"
+                             aria-labelledby="heading-@plan.PlanId"
+                             data-bs-parent="#accordionPlans">
+                            <div class="accordion-body">
+                                <p>@plan.Description</p>
+                                <a asp-controller="Account" asp-action="Login" asp-area="" asp-route-returnUrl="/Public/Appointment"
+                                   class="btn btn-outline-primary btn-sm">Agendar</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+
+
+    <!-- Todos os Serviços -->
+    <div class="mt-5">
+        <h3 class="mb-3">Todos os Serviços</h3>
+
+        <div class="accordion" id="accordionServices">
+            @foreach (var category in services.GroupBy(s => s.Category.Name))
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-@category.Key">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapse-@category.Key.Replace(" ", "_")"
+                                aria-expanded="false"
+                                aria-controls="collapse-@category.Key.Replace(" ", "_")">
+                            @category.Key
+                        </button>
+                    </h2>
+                    <div id="collapse-@category.Key.Replace(" ", "_")"
+                         class="accordion-collapse collapse"
+                         aria-labelledby="heading-@category.Key"
+                         data-bs-parent="#accordionServices">
+                        <div class="accordion-body">
+                            @foreach (var s in category)
+                            {
+                                <div class="d-flex justify-content-between border-bottom py-2">
+                                    <div>
+                                        <strong>@s.Name</strong>
+                                        <div class="text-muted small">@s.Description</div>
+                                        <span class="badge bg-light text-dark">@s.DurationInMinutes min</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold text-primary">@s.Price €</span><br />
+                                        <a asp-controller="Account" asp-action="Login" asp-area="" asp-route-returnUrl="/Public/Appointment"
+                                           class="btn btn-sm btn-primary mt-2">Agendar</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Nossa Equipa -->
+    <h3 class="mt-5 mb-3">Nossa Equipa</h3>
+    <div class="row">
+        @foreach (var prof in professionals)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm text-center">
+                    <img src="@(string.IsNullOrEmpty(prof.PhotoPath) ? "/images/default-user.png" : prof.PhotoPath)"
+                         class="card-img-top"
+                         alt="@prof.Name"
+                         style="height:200px; object-fit:cover;" />
+                    <div class="card-body">
+                        <h5>@prof.Name</h5>
+                        <p class="text-muted">@prof.Specialty</p>
+                        <button class="btn btn-light">❤️</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+
+
+    <!-- Avaliações -->
+    <h3 class="mt-5 mb-3">⭐ Avaliações dos Clientes</h3>
+    <div class="list-group">
+        @foreach (var r in reviews)
+        {
+            <div class="list-group-item">
+                <strong>@r.Client?.Name</strong> -
+                <span>
+                    @for (int i = 0; i < r.Rating; i++)
+                    {
+                        @:★
+                    }
+                    @for (int i = r.Rating; i < 5; i++)
+                    {
+                        @:☆
+                    }
+                </span>
+                <p>@r.Comments</p>
+                <small class="text-muted">(@r.ReviewDate.ToString("dd/MM/yyyy"))</small>
+            </div>
+        }
+    </div>
+
+    <!-- Rodapé -->
+    <div class="mt-5 p-4 bg-light rounded">
+        <h4>Ewellin Jordao Beauty</h4>
+        <p><strong>Bem-vindo!</strong></p>
+        <p>
+            <strong>Formas de pagamento:</strong> Visa, Mastercard, American Express, Elo, PicPay, Maestro, Visa Electron, Débito, DOC/TED, Transferência, Dinheiro, Vale-Presente, PIX
+        </p>
+        <p><strong>Idiomas:</strong> Português</p>
+        <p><strong>Facilidades:</strong> Estacionamento Pago, Atendemos adultos e crianças, Acesso a Deficientes</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Filtro de planos
+        document.getElementById("searchPlans").addEventListener("input", function () {
+            let search = this.value.toLowerCase();
+            document.querySelectorAll("#plansAccordion .accordion-item").forEach(function (item) {
+                let text = item.innerText.toLowerCase();
+                item.style.display = text.includes(search) ? "" : "none";
+            });
+        });
+    </script>
+}

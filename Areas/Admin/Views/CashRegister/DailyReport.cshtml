@@ -1,0 +1,277 @@
+@model Sistema.Data.Entities.CashRegister
+
+@{
+    ViewData["Title"] = "Daily Cash Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var movements = ViewBag.Movements as List<Sistema.Data.Entities.CashMovement>;
+    var totalEntries = (decimal)ViewBag.TotalEntries;
+    var totalExits = (decimal)ViewBag.TotalExits;
+    var expectedFinal = (decimal)ViewBag.ExpectedFinal;
+    var difference = (decimal)ViewBag.Difference;
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Daily Cash Report</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Cash Register</a></li>
+                    <li class="breadcrumb-item active">Daily Report</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-file-alt"></i> Daily Cash Report - @Model.Date.ToString("dd/MM/yyyy")
+                        </h3>
+                        <div class="card-tools">
+                            <button onclick="window.print()" class="btn btn-primary btn-sm">
+                                <i class="fas fa-print"></i> Print Report
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Cash Register Summary -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-cash-register"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Initial Amount</span>
+                                        <span class="info-box-number">€@Model.InitialValue.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-money-bill-wave"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Final Amount</span>
+                                        <span class="info-box-number">€@Model.FinalValue.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Movement Summary -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-arrow-up"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Entries</span>
+                                        <span class="info-box-number">€@totalEntries.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-danger"><i class="fas fa-arrow-down"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Exits</span>
+                                        <span class="info-box-number">€@totalExits.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon @(difference == 0 ? "bg-success" : "bg-warning")">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Difference</span>
+                                        <span class="info-box-number">€@difference.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expected vs Actual -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card card-outline card-info">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Expected Final Amount</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <h4>€@expectedFinal.ToString("N2")</h4>
+                                        <small class="text-muted">Initial + Entries - Exits</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card card-outline card-success">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Actual Final Amount</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <h4>€@Model.FinalValue.ToString("N2")</h4>
+                                        <small class="text-muted">Counted amount</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Movements Detail -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Cash Movements Detail</h3>
+                            </div>
+                            <div class="card-body">
+                                @if (movements.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Type</th>
+                                                    <th>Amount</th>
+                                                    <th>Description</th>
+                                                    <th>Reference</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var movement in movements)
+                                                {
+                                                    <tr>
+                                                        <td>@movement.Date.ToString("HH:mm")</td>
+                                                        <td>
+                                                            <span class="badge @(movement.Type == "entry" ? "badge-success" : "badge-danger")">
+                                                                @(movement.Type == "entry" ? "Entry" : "Exit")
+                                                            </span>
+                                                        </td>
+                                                        <td class="@(movement.Type == "entry" ? "text-success" : "text-danger")">
+                                                            @(movement.Type == "entry" ? "+" : "-") €@movement.Amount.ToString("N2")
+                                                        </td>
+                                                        <td>@movement.Description</td>
+                                                        <td>@(movement.Reference ?? "-")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        No movements recorded for this cash register.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Cash Register Info -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Cash Register Information</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Date:</dt>
+                                            <dd class="col-sm-8">@Model.Date.ToString("dd/MM/yyyy")</dd>
+                                            
+                                            <dt class="col-sm-4">Status:</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge @(Model.Status == "aberto" ? "badge-success" : "badge-danger")">
+                                                    @(Model.Status == "aberto" ? "Open" : "Closed")
+                                                </span>
+                                            </dd>
+                                            
+                                            <dt class="col-sm-4">Opened by:</dt>
+                                            <dd class="col-sm-8">@(Model.OpeningUser?.FirstName ?? "Unknown") @(Model.OpeningUser?.LastName ?? "")</dd>
+                                            
+                                            @if (Model.ClosingUser != null)
+                                            {
+                                                <dt class="col-sm-4">Closed by:</dt>
+                                                <dd class="col-sm-8">@Model.ClosingUser.FirstName @Model.ClosingUser.LastName</dd>
+                                            }
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Summary</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="description-block">
+                                                    <span class="description-text">Initial Amount</span>
+                                                    <span class="description-number">€@Model.InitialValue.ToString("N2")</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="description-block">
+                                                    <span class="description-text">Final Amount</span>
+                                                    <span class="description-number">€@Model.FinalValue.ToString("N2")</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="description-block">
+                                                    <span class="description-text">Total Entries</span>
+                                                    <span class="description-number text-success">€@totalEntries.ToString("N2")</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="description-block">
+                                                    <span class="description-text">Total Exits</span>
+                                                    <span class="description-number text-danger">€@totalExits.ToString("N2")</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="description-block">
+                                                    <span class="description-text">Difference</span>
+                                                    <span class="description-number @(difference == 0 ? "text-success" : "text-warning")">
+                                                        €@difference.ToString("N2")
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @@media print {
+        .card-tools, .breadcrumb, .content-header {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>

@@ -13,10 +13,10 @@ namespace Sistema.Data.Entities
         [Required, StringLength(100)]
         public string Name { get; set; }
 
-        // 🔗 relação 1:N (uma categoria pode ter vários produtos)
+        // 🔗 1:N relationship (one category can have multiple products)
         public ICollection<Product> Products { get; set; }
 
-        // ✅ Implementação da interface IEntity
+        // ✅ IEntity interface implementation
         public int Id
         {
             get => ProductCategoryId;

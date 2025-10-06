@@ -1,0 +1,181 @@
+﻿@{
+    Layout = null; // este é um layout base
+}
+
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Sistema</title>
+    <link rel="icon" type="image/png" href="~/img/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS globais -->
+    <link rel="stylesheet" href="~/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/font-awesome.css" />
+    <link rel="stylesheet" href="~/css/SidebarNav.min.css" />
+    <link rel="stylesheet" href="~/css/custom.css" />
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+
+    @RenderSection("Styles", required: false)
+</head>
+<body class="cbp-spmenu-push">
+    <div class="main-content">
+        <!-- ========== MENU LATERAL ========== -->
+        <div class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
+            <aside class="sidebar-left">
+                <nav class="navbar navbar-inverse">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".collapse" aria-expanded="false">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <h1>
+                            <a class="navbar-brand" asp-controller="Painel" asp-action="Index">
+                                <span class="fa fa-area-chart"></span> Sistema
+                            </a>
+                        </h1>
+                    </div>
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="sidebar-menu">
+                            <li class="header">MENU DE NAVEGAÇÃO</li>
+                            <li class="treeview">
+                                <a asp-controller="Painel" asp-action="Index">
+                                    <i class="fa fa-dashboard"></i> <span>Home</span>
+                                </a>
+                            </li>
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-users"></i>
+                                    <span>Pessoas</span>
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a asp-controller="Usuarios" asp-action="Index"><i class="fa fa-angle-right"></i> Usuários</a></li>
+                                    <li><a asp-controller="Funcionarios" asp-action="Index"><i class="fa fa-angle-right"></i> Funcionários</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </aside>
+        </div>
+        <!-- ========== /MENU LATERAL ========== -->
+        <!-- ========== HEADER SUPERIOR ========== -->
+        <div class="sticky-header header-section">
+            <div class="header-left">
+                <button id="showLeftPush"><i class="fa fa-bars"></i></button>
+                <div class="profile_details_left">
+                    <!-- notifications -->
+                    <ul class="nofitications-dropdown">
+                        <li class="dropdown head-dpdn">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-envelope"></i><span class="badge">4</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <div class="notification_header">
+                                        <h3>Você tem 3 novas mensagens</h3>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <div class="user_img"><img src="~/images/1.jpg" alt=""></div>
+                                        <div class="notification_desc">
+                                            <p>Lorem ipsum dolor amet</p>
+                                            <p><span>1 hora atrás</span></p>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- outras notificações podem ir aqui -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="profile_details">
+                    <ul>
+                        <li class="dropdown profile_details_drop">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <div class="profile_img">
+                                    <span class="prfil-img">
+                                        <img src="~/img/perfil/@ViewBag.FotoUsuario" alt="perfil" width="50" height="50" />
+                                    </span>
+                                    <div class="user-name">
+                                        <p>@ViewBag.NomeUsuario</p>
+                                        <span>@ViewBag.NivelUsuario</span>
+                                    </div>
+                                    <i class="fa fa-angle-down lnr"></i>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu drp-mnu">
+                                <li><a asp-controller="Perfil" asp-action="Editar"><i class="fa fa-suitcase"></i> Editar Perfil</a></li>
+                                <li><a asp-controller="Authentication" asp-action="Logout"><i class="fa fa-sign-out"></i> Sair</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="clearfix"> </div>
+        </div>
+        <!-- ========== /HEADER SUPERIOR ========== -->
+        <!-- ========== CONTEÚDO DA PÁGINA ========== -->
+        <div id="page-wrapper">
+            @RenderBody()
+        </div>
+        <!-- ========== /CONTEÚDO ========== -->
+        <!-- Rodapé -->
+        <footer class="bg-light text-center text-muted py-4 border-top">
+            <div class="container">
+                <p class="mb-1">&copy; @DateTime.Now.Year - Sistema de Gestão para Estética</p>
+                <p class="mb-0">
+                    Desenvolvido por
+                    <a href="https://reboucasericka.github.io/portfolio/" target="_blank" class="text-decoration-none fw-bold text-dark">
+                        Ericka Rebouças
+                    </a>                     
+                </p>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- JS globais -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Scripts locais -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+    <script src="~/js/pie-chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/metismenu@3.0.7/dist/metismenu.min.js"></script>
+    <script src="~/js/custom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"></script>
+    <script src="~/js/scripts.js"></script>
+    <script src="~/js/SidebarNav.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
+    <script src="~/js/mascaras.js"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

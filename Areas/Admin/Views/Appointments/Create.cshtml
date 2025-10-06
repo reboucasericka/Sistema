@@ -1,0 +1,162 @@
+﻿@model Sistema.Data.Entities.Appointment
+
+@{
+    ViewData["Title"] = "Novo Agendamento";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Novo Agendamento</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Agendamentos</a></li>
+                    <li class="breadcrumb-item active">Novo</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Dados do Agendamento</h3>
+                    </div>
+                    <form asp-action="Create" method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="CustomerId" class="control-label">Cliente</label>
+                                        <select asp-for="CustomerId" class="form-control" asp-items="ViewBag.CustomerId">
+                                            <option value="">Selecione um cliente</option>
+                                        </select>
+                                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="ProfessionalId" class="control-label">Profissional</label>
+                                        <select asp-for="ProfessionalId" class="form-control" asp-items="ViewBag.ProfessionalId" id="professionalSelect">
+                                            <option value="">Selecione um profissional</option>
+                                        </select>
+                                        <span asp-validation-for="ProfessionalId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="ServiceId" class="control-label">Serviço</label>
+                                        <select asp-for="ServiceId" class="form-control" asp-items="ViewBag.ServiceId">
+                                            <option value="">Selecione um serviço</option>
+                                        </select>
+                                        <span asp-validation-for="ServiceId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Status" class="control-label">Status</label>
+                                        <select asp-for="Status" class="form-control">
+                                            <option value="scheduled">Agendado</option>
+                                            <option value="completed">Realizado</option>
+                                            <option value="canceled">Cancelado</option>
+                                        </select>
+                                        <span asp-validation-for="Status" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Date" class="control-label">Data</label>
+                                        <input asp-for="Date" type="date" class="form-control" id="appointmentDate" />
+                                        <span asp-validation-for="Date" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Time" class="control-label">Horário</label>
+                                        <select asp-for="Time" class="form-control" id="timeSelect">
+                                            <option value="">Selecione um horário</option>
+                                        </select>
+                                        <span asp-validation-for="Time" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label asp-for="Notes" class="control-label">Observações</label>
+                                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Observações sobre o agendamento..."></textarea>
+                                        <span asp-validation-for="Notes" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Carregar horários disponíveis quando profissional e data forem selecionados
+            $('#professionalSelect, #appointmentDate').change(function() {
+                var professionalId = $('#professionalSelect').val();
+                var date = $('#appointmentDate').val();
+                
+                if (professionalId && date) {
+                    loadAvailableTimes(professionalId, date);
+                }
+            });
+            
+            function loadAvailableTimes(professionalId, date) {
+                $.ajax({
+                    url: '@Url.Action("GetAvailableTimes")',
+                    type: 'GET',
+                    data: { professionalId: professionalId, date: date },
+                    success: function(times) {
+                        $('#timeSelect').empty();
+                        $('#timeSelect').append('<option value="">Selecione um horário</option>');
+                        
+                        times.forEach(function(time) {
+                            $('#timeSelect').append('<option value="' + time + '">' + time + '</option>');
+                        });
+                    },
+                    error: function() {
+                        $('#timeSelect').empty();
+                        $('#timeSelect').append('<option value="">Erro ao carregar horários</option>');
+                    }
+                });
+            }
+        });
+    </script>
+}

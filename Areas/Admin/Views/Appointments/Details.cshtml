@@ -1,0 +1,148 @@
+﻿@model Sistema.Data.Entities.Appointment
+
+@{
+    ViewData["Title"] = "Detalhes do Agendamento";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Detalhes do Agendamento</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Agendamentos</a></li>
+                    <li class="breadcrumb-item active">Detalhes</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Informações do Agendamento</h3>
+                        <div class="card-tools">
+                            <a href="@Url.Action("Edit", new { id = Model.AppointmentId })" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-user"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Cliente</span>
+                                        <span class="info-box-number">@Model.Client.Name</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-user-md"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Profissional</span>
+                                        <span class="info-box-number">@Model.Professional.Name</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-warning"><i class="fas fa-calendar"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Data</span>
+                                        <span class="info-box-number">@Model.Date.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-primary"><i class="fas fa-clock"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Horário</span>
+                                        <span class="info-box-number">@Model.Time.ToString(@"hh\:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-secondary"><i class="fas fa-spa"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Serviço</span>
+                                        <span class="info-box-number">@Model.Service.Name</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-@(Model.Status == "completed" ? "success" : Model.Status == "canceled" ? "danger" : "warning")">
+                                        <i class="fas fa-@(Model.Status == "completed" ? "check" : Model.Status == "canceled" ? "times" : "clock")"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Status</span>
+                                        <span class="info-box-number">
+                                            @switch (Model.Status)
+                                            {
+                                                case "scheduled":
+                                                    <span class="badge badge-warning">Agendado</span>
+                                                    break;
+                                                case "completed":
+                                                    <span class="badge badge-success">Realizado</span>
+                                                    break;
+                                                case "canceled":
+                                                    <span class="badge badge-danger">Cancelado</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge badge-secondary">@Model.Status</span>
+                                                    break;
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card card-outline card-info">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Observações</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>@Model.Notes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                        <a href="@Url.Action("Edit", new { id = Model.AppointmentId })" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,122 @@
+@model IEnumerable<Sistema.Data.Entities.Professional>
+
+@{
+    ViewData["Title"] = "Profissionais";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Profissionais</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Profissionais</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Lista de Profissionais</h3>
+                        <div class="card-tools">
+                            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Novo Profissional
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="professionalsTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Foto</th>
+                                        <th>Nome</th>
+                                        <th>Especialidade</th>
+                                        <th>Email</th>
+                                        <th>Comissão</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var professional in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(professional.PhotoPath))
+                                                {
+                                                    <img src="@professional.PhotoPath" alt="@professional.Name" class="img-circle img-size-32">
+                                                }
+                                                else
+                                                {
+                                                    <div class="img-circle img-size-32 bg-secondary d-flex align-items-center justify-content-center">
+                                                        <i class="fas fa-user text-white"></i>
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>@professional.Name</td>
+                                            <td>@professional.Specialty</td>
+                                            <td>@professional.User?.Email</td>
+                                            <td>@professional.DefaultCommission.ToString("C")</td>
+                                            <td>
+                                                @if (professional.IsActive)
+                                                {
+                                                    <span class="badge badge-success">Ativo</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger">Inativo</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("Details", new { id = professional.ProfessionalId })" 
+                                                       class="btn btn-info btn-sm" title="Visualizar">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Edit", new { id = professional.ProfessionalId })" 
+                                                       class="btn btn-warning btn-sm" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Delete", new { id = professional.ProfessionalId })" 
+                                                       class="btn btn-danger btn-sm" title="Excluir">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#professionalsTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                }
+            });
+        });
+    </script>
+}

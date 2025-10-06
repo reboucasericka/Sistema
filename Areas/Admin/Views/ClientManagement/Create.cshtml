@@ -1,0 +1,141 @@
+@model Sistema.Data.Entities.Customer
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Novo Cliente";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Novo Cliente</h1>
+            <p class="text-muted">Cadastre um novo cliente no sistema</p>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informações do Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Name" class="control-label">Nome *</label>
+                                    <input asp-for="Name" class="form-control" placeholder="Nome completo do cliente" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="control-label">Email</label>
+                                    <input asp-for="Email" class="form-control" placeholder="email@exemplo.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Phone" class="control-label">Telefone</label>
+                                    <input asp-for="Phone" class="form-control" placeholder="(11) 99999-9999" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="BirthDate" class="control-label">Data de Nascimento</label>
+                                    <input asp-for="BirthDate" type="date" class="form-control" />
+                                    <span asp-validation-for="BirthDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Address" class="control-label">Endereço</label>
+                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Endereço completo"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="AllergyHistory" class="control-label">Histórico de Alergias</label>
+                            <textarea asp-for="AllergyHistory" class="form-control" rows="3" placeholder="Informe qualquer alergia conhecida"></textarea>
+                            <span asp-validation-for="AllergyHistory" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Notes" class="control-label">Observações</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Observações adicionais sobre o cliente"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    Cliente ativo
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Cliente
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informações</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Dica:</strong> Preencha pelo menos o nome do cliente. Os outros campos são opcionais e podem ser preenchidos posteriormente.
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção:</strong> O email deve ser único no sistema. Se o cliente já tiver uma conta, use o mesmo email.
+                    </div>
+
+                    <h6 class="font-weight-bold">Campos obrigatórios:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Nome</li>
+                    </ul>
+
+                    <h6 class="font-weight-bold mt-3">Campos opcionais:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope text-muted"></i> Email</li>
+                        <li><i class="fas fa-phone text-muted"></i> Telefone</li>
+                        <li><i class="fas fa-map-marker-alt text-muted"></i> Endereço</li>
+                        <li><i class="fas fa-birthday-cake text-muted"></i> Data de Nascimento</li>
+                        <li><i class="fas fa-allergies text-muted"></i> Histórico de Alergias</li>
+                        <li><i class="fas fa-sticky-note text-muted"></i> Observações</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

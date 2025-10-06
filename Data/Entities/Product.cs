@@ -5,7 +5,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Sistema.Data.Entities
 {
-    [Table("Produtos")]
+    [Table("Products")]
     public class Product : IEntity
     {
         [Key]
@@ -42,7 +42,7 @@ namespace Sistema.Data.Entities
 
         [MaxLength(200)]
         [Display(Name = "Foto do Produto")]
-        public Guid ImageId { get; set; }  //ImageProductFile
+        public string? PhotoPath { get; set; } // Foto do produto (caminho da imagem)
 
         public int MinimumStockLevel { get; set; } = 0; //StockMinimo
 
@@ -54,9 +54,9 @@ namespace Sistema.Data.Entities
 
         public User User { get; set; }
 
-        public string ImageFullPath => ImageId == Guid.Empty
+        public string ImageFullPath => string.IsNullOrEmpty(PhotoPath)
             ? $"https://sistema.azurewebsites.net/images/noimage.png"
-            : $"https://sistemacontaarmazenamen.blob.core.windows.net/images/Products/{ImageId}";       
+            : PhotoPath;       
 
 
     }

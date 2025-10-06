@@ -1,0 +1,121 @@
+@model Sistema.Data.Entities.Payable
+
+@{
+    ViewData["Title"] = "Excluir Conta a Pagar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Excluir Conta a Pagar</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Contas a Pagar</a></li>
+                    <li class="breadcrumb-item active">Excluir</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Confirmar Exclusão</h3>
+                        <div class="card-tools">
+                            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h4><i class="icon fas fa-exclamation-triangle"></i> Atenção!</h4>
+                            Tem certeza que deseja excluir esta conta a pagar? Esta ação não pode ser desfeita.
+                        </div>
+
+                        <dl class="row">
+                            <dt class="col-sm-3">ID:</dt>
+                            <dd class="col-sm-9">@Model.PayableId</dd>
+
+                            <dt class="col-sm-3">Descrição:</dt>
+                            <dd class="col-sm-9">@Model.Description</dd>
+
+                            <dt class="col-sm-3">Type:</dt>
+                            <dd class="col-sm-9">@Model.Type</dd>
+
+                            <dt class="col-sm-3">Value:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge badge-primary" style="font-size: 1.1em;">
+                                    €@Model.Value.ToString("N2")
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-3">Data de Lançamento:</dt>
+                            <dd class="col-sm-9">@Model.LaunchDate.ToString("dd/MM/yyyy")</dd>
+
+                            <dt class="col-sm-3">Data de Vencimento:</dt>
+                            <dd class="col-sm-9">@Model.DueDate.ToString("dd/MM/yyyy")</dd>
+
+                            <dt class="col-sm-3">Data de Pagamento:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.PaymentDate.HasValue)
+                                {
+                                    @Model.PaymentDate.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Não pago</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Status:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.IsPaid)
+                                {
+                                    <span class="badge badge-success badge-lg">Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning badge-lg">Pendente</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Usuário que Lançou:</dt>
+                            <dd class="col-sm-9">@(Model.LaunchUser != null ? $"{Model.LaunchUser.FirstName} {Model.LaunchUser.LastName}" : "N/A")</dd>
+
+                            @if (Model.ClearUser != null)
+                            {
+                                <dt class="col-sm-3">User who Paid:</dt>
+                                <dd class="col-sm-9">@($"{Model.ClearUser.FirstName} {Model.ClearUser.LastName}")</dd>
+                            }
+
+                            <dt class="col-sm-3">Installment:</dt>
+                            <dd class="col-sm-9">@Model.Installment of @Model.TotalInstallments</dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer">
+                        <form asp-action="Delete">
+                            <input type="hidden" asp-for="PayableId" />
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta conta a pagar?')">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

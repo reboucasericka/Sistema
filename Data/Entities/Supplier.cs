@@ -3,45 +3,44 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sistema.Data.Entities
 {
-    [Table("Fornecedores")]
+    [Table("Suppliers")]
     public class Supplier : IEntity
     {
         [Key]
-        public int SupplierId { get; set; } //FornecedorId
+        public int SupplierId { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } //Nome
+        public string Name { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string? Phone { get; set; } //Telefone
+        public string? Phone { get; set; }
 
         [MaxLength(100)]
-        public string? Email { get; set; } //Email
+        public string? Email { get; set; }
 
         [MaxLength(20)]
-        public string? Nif { get; set; } //NIF
+        public string? TaxId { get; set; }
 
         [MaxLength(200)]
-        public string? Address { get; set; } //Morada
+        public string? Address { get; set; }
 
-        public int? DeliveryTime { get; set; } //PrazoEntrega (em dias)
+        public int? DeliveryTime { get; set; } // in days
 
-        public string? Notes { get; set; } //Notas
+        public string? Notes { get; set; }
 
-        [Column(TypeName = "datetime2")] // Para precisão maior que datetime padrão
-        public DateTime RegistrationDate { get; set; } = DateTime.Now; //DataRegisto
+        [Column(TypeName = "datetime2")]
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
-        // 🔗 relação 1:N (um fornecedor pode fornecer vários produtos)
-        public ICollection<Product> Products { get; set; } //Produtos fornecidos
+        // 🔗 1:N relationship (one supplier can provide multiple products)
+        public ICollection<Product> Products { get; set; }
 
-
-        // ✅ Implementação da interface IEntity
+        // ✅ IEntity interface implementation
         public int Id
         {
-            get => SupplierId; //retorna o valor da PK
-            set => SupplierId = value; //define o valor da PK
+            get => SupplierId; // returns PK value
+            set => SupplierId = value; // sets PK value
         }
     }
 }

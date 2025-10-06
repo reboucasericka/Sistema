@@ -1,0 +1,144 @@
+@model Sistema.Data.Entities.PaymentMethod
+
+@{
+    ViewData["Title"] = "Detalhes do Método de Pagamento";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-credit-card mr-2"></i>
+                        Detalhes do Método de Pagamento
+                    </h3>
+                    <div class="card-tools">
+                        <a asp-action="Index" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.PaymentMethodId" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <dl class="row">
+                                <dt class="col-sm-3">ID:</dt>
+                                <dd class="col-sm-9">@Model.PaymentMethodId</dd>
+
+                                <dt class="col-sm-3">Descrição:</dt>
+                                <dd class="col-sm-9">@Model.Description</dd>
+
+                                <dt class="col-sm-3">Status:</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge badge-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Inativo</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Can Pay:</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.Payables.Any())
+                                    {
+                                        <span class="badge badge-success">Sim</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Não</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Can Receive:</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.Receivables.Any())
+                                    {
+                                        <span class="badge badge-success">Sim</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Não</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Estatísticas</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="border-right">
+                                                <h4 class="text-primary mb-0">@ViewBag.PaymentCount</h4>
+                                                <small class="text-muted">Pagamentos</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h4 class="text-success mb-0">@ViewBag.ReceiptCount</h4>
+                                            <small class="text-muted">Recebimentos</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Transações Recentes</h5>
+                            @if (ViewBag.RecentTransactions != null && ((List<dynamic>)ViewBag.RecentTransactions).Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Tipo</th>
+                                                <th>Valor</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var transaction in (List<dynamic>)ViewBag.RecentTransactions)
+                                            {
+                                                <tr>
+                                                    <td>@transaction.Data.ToString("dd/MM/yyyy")</td>
+                                                    <td>@transaction.Tipo</td>
+                                                    <td>@transaction.Valor.ToString("C")</td>
+                                                    <td>
+                                                        @if (transaction.Status == "Pago")
+                                                        {
+                                                            <span class="badge badge-success">Pago</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Pendente</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Nenhuma transação encontrada para este método de pagamento.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

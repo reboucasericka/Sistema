@@ -1,0 +1,78 @@
+@model Sistema.Models.Public.ProfessionalProfileEditViewModel
+@{
+    ViewData["Title"] = "Edit Professional Profile";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-edit me-2"></i>Edit Professional Profile
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input asp-for="ProfessionalId" type="hidden" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label"></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter full name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Specialty" class="form-label"></label>
+                                    <input asp-for="Specialty" class="form-control" placeholder="Enter specialty" />
+                                    <span asp-validation-for="Specialty" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="DefaultCommission" class="form-label"></label>
+                                    <div class="input-group">
+                                        <input asp-for="DefaultCommission" class="form-control" placeholder="0.00" />
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <span asp-validation-for="DefaultCommission" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PhotoPath" class="form-label"></label>
+                                    <input asp-for="PhotoPath" class="form-control" placeholder="Enter photo URL (optional)" />
+                                    <span asp-validation-for="PhotoPath" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

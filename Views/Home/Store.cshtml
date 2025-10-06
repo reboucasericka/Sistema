@@ -15,7 +15,7 @@
                     <img src="@item.ImageFullPath" alt="@item.Name" />
                     <h3>@item.Name</h3>
                     <p>@item.Description</p>
-                    <span class="price">@item.SalePrice.ToString("C")</span>
+                    <span class="price">@item.SalePrice.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</span>
                     <a href="#" class="btn btn-primary">Comprar</a>
                 </div>
             }
