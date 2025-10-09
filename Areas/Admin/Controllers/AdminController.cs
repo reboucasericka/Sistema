@@ -1,12 +1,14 @@
- using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
+using Sistema.Data.Entities;
 using Sistema.Models.Admin;
 
 namespace Sistema.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly SistemaDbContext _context;
@@ -23,7 +25,7 @@ namespace Sistema.Areas.Admin.Controllers
             ViewData["Title"] = "Dashboard";
 
             // Monta o modelo tipado
-            var model = new DashboardViewModel
+            var model = new AdminDashboardViewModel
             {
                 TotalAppointments = await _context.Appointments.CountAsync(),
                 TotalClients = await _context.Customers.CountAsync(),
@@ -59,13 +61,13 @@ namespace Sistema.Areas.Admin.Controllers
             };
 
             // 🔔 Preenche notificações
-            var notifications = new List<Notification>();
+            var notifications = new List<AdminNotification>();
 
             // Exemplo: novos agendamentos
             var upcomingCount = model.UpcomingAppointmentsList.Count;
             if (upcomingCount > 0)
             {
-                notifications.Add(new Notification
+                notifications.Add(new AdminNotification
                 {
                     Message = $"{upcomingCount} novos agendamentos",
                     Icon = "fas fa-calendar-alt",
@@ -76,7 +78,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             // Exemplo: clientes cadastrados
             var clientCount = await _context.Customers.CountAsync();
-            notifications.Add(new Notification
+            notifications.Add(new AdminNotification
             {
                 Message = $"{clientCount} clientes cadastrados",
                 Icon = "fas fa-users",
@@ -86,7 +88,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             // Exemplo: serviços cadastrados
             var serviceCount = await _context.Service.CountAsync();
-            notifications.Add(new Notification
+            notifications.Add(new AdminNotification
             {
                 Message = $"{serviceCount} serviços disponíveis",
                 Icon = "fas fa-concierge-bell",
@@ -107,7 +109,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             if (nextAppointment != null)
             {
-                notifications.Add(new Notification
+                notifications.Add(new AdminNotification
                 {
                     Message = $"Agendamento às {nextAppointment.Time:hh\\:mm} com {nextAppointment.Client?.Name}",
                     Icon = "fas fa-clock",
@@ -126,7 +128,7 @@ namespace Sistema.Areas.Admin.Controllers
             if (busyProfessionals.Any())
             {
                 var names = string.Join(", ", busyProfessionals.Select(p => p.Name));
-                notifications.Add(new Notification
+                notifications.Add(new AdminNotification
                 {
                     Message = $"Sem disponibilidade hoje: {names}",
                     Icon = "fas fa-user-times",

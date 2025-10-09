@@ -1,7 +1,9 @@
-@model Sistema.Models.Admin.DashboardViewModel
+@model Sistema.Models.Admin.AdminDashboardViewModel
 @{
+    
     ViewData["Title"] = "Dashboard - @ewellinjordaobeauty";
-    Layout = "_AdminLayout";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
 }
 
 <!-- Content Header -->
@@ -264,7 +266,7 @@
 </div>
 
 <!-- Notificações -->
-@if (ViewBag.Notifications != null && ((List<Sistema.Models.Admin.Notification>)ViewBag.Notifications).Any())
+@if (ViewBag.Notifications != null && ((List<Sistema.Models.Admin.AdminNotification>)ViewBag.Notifications).Any())
 {
     <div class="row">
         <div class="col-12">
@@ -277,7 +279,7 @@
                 </div>
                 <div class="card-body">
                     <div class="timeline">
-                        @foreach (var notification in (List<Sistema.Models.Admin.Notification>)ViewBag.Notifications)
+                        @foreach (var notification in (List<Sistema.Models.Admin.AdminNotification>)ViewBag.Notifications)
                         {
                             <div class="time-label">
                                 <span class="bg-primary">@notification.Time</span>

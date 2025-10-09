@@ -1,0 +1,258 @@
+@model IEnumerable<Sistema.Data.Entities.Service>
+
+@{
+    ViewData["Title"] = "Agendar Serviço";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="booking-container">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="booking-header text-center mb-5">
+                    <h1 class="display-4 fw-bold text-primary">Agendar Serviço</h1>
+                    <p class="lead text-muted">Escolha o serviço que deseja agendar</p>
+                </div>
+
+                <!-- Progress Steps -->
+                <div class="booking-steps mb-5">
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="step active">
+                                <div class="step-number">1</div>
+                                <div class="step-title">Serviço</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-title">Profissional</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-title">Horário</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div class="step-title">Confirmar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Grid -->
+                <div class="row">
+                    @foreach (var service in Model)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="service-card h-100">
+                                <div class="service-image">
+                                    @if (service.ImageId != Guid.Empty)
+                                    {
+                                        <img src="@service.ImageFullPath" alt="@service.Name" class="img-fluid">
+                                    }
+                                    else
+                                    {
+                                        <div class="service-placeholder">
+                                            <i class="fas fa-concierge-bell"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="service-content">
+                                    <h5 class="service-title">@service.Name</h5>
+                                    <p class="service-description">@service.Description</p>
+                                    <div class="service-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>@service.DurationInMinutes min</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-euro-sign"></i>
+                                            <span>€@service.Price.ToString("F2")</span>
+                                        </div>
+                                    </div>
+                                    <a asp-action="SelectProfessional" asp-route-serviceId="@service.Id" 
+                                       class="btn btn-primary btn-block">
+                                        <i class="fas fa-calendar-plus"></i> Agendar Este Serviço
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.booking-container {
+    padding: 60px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.booking-header h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.booking-steps {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.step {
+    text-align: center;
+    position: relative;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 10px;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+    background: #007bff;
+    color: white;
+}
+
+.step-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.step.active .step-title {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.service-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.service-image {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-image img {
+    transform: scale(1.1);
+}
+
+.service-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.service-content {
+    padding: 25px;
+}
+
+.service-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.service-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.service-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.detail-item i {
+    color: #007bff;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+@@media (max-width: 768px) {
+    .booking-container {
+        padding: 40px 0;
+    }
+    
+    .booking-header h1 {
+        font-size: 2rem;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+    
+    .step-title {
+        font-size: 0.8rem;
+    }
+}
+</style>

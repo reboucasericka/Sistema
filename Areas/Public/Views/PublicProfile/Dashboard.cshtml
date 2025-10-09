@@ -1,0 +1,243 @@
+@model Sistema.Models.Public.PublicCustomerDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-tachometer-alt me-2"></i>Welcome back, @Model.Profile.Name!
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.TotalAppointments</h4>
+                                            <p class="mb-0">Total Appointments</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-calendar fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.CompletedAppointments</h4>
+                                            <p class="mb-0">Completed</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.PendingAppointments</h4>
+                                            <p class="mb-0">Pending</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-clock fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">@Model.UpcomingAppointments.Count</h4>
+                                            <p class="mb-0">Upcoming</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-calendar-plus fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Upcoming Appointments -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-calendar-check me-2"></i>Upcoming Appointments
+                                    </h5>
+                                    <a asp-action="Appointments" class="btn btn-sm btn-outline-primary">View All</a>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.UpcomingAppointments.Any())
+                                    {
+                                        @foreach (var appointment in Model.UpcomingAppointments)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                                <div>
+                                                    <h6 class="mb-1">@appointment.Service.Name</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-calendar me-1"></i>@appointment.Date.ToString("MMM dd, yyyy")
+                                                        <i class="fas fa-clock ms-2 me-1"></i>@appointment.Time.ToString(@"hh\:mm")
+                                                    </small>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user me-1"></i>@appointment.Professional.Name
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-@(appointment.Status == "Confirmado" ? "success" : "warning")">
+                                                        @appointment.Status
+                                                    </span>
+                                                    @if (appointment.Status == "Pendente")
+                                                    {
+                                                        <button class="btn btn-sm btn-success ms-1" 
+                                                                onclick="confirmAppointment(@appointment.AppointmentId)">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                            <h6 class="text-muted">No upcoming appointments</h6>
+                                            <a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index" class="btn btn-primary">
+                                                <i class="fas fa-plus me-2"></i>Book New Appointment
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Appointments -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-history me-2"></i>Recent Appointments
+                                    </h5>
+                                    <a asp-action="History" class="btn btn-sm btn-outline-primary">View All</a>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.RecentAppointments.Any())
+                                    {
+                                        @foreach (var appointment in Model.RecentAppointments)
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                                <div>
+                                                    <h6 class="mb-1">@appointment.Service.Name</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-calendar me-1"></i>@appointment.Date.ToString("MMM dd, yyyy")
+                                                        <i class="fas fa-clock ms-2 me-1"></i>@appointment.Time.ToString(@"hh\:mm")
+                                                    </small>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user me-1"></i>@appointment.Professional.Name
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-@(appointment.Status == "Concluído" ? "success" : appointment.Status == "Cancelado" ? "danger" : "warning")">
+                                                        @appointment.Status
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                                            <h6 class="text-muted">No recent appointments</h6>
+                                            <a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index" class="btn btn-primary">
+                                                <i class="fas fa-plus me-2"></i>Book Your First Appointment
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index" class="btn btn-primary w-100 mb-2">
+                                                <i class="fas fa-plus me-2"></i>Book Appointment
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Appointments" class="btn btn-info w-100 mb-2">
+                                                <i class="fas fa-calendar me-2"></i>My Appointments
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Edit" class="btn btn-warning w-100 mb-2">
+                                                <i class="fas fa-edit me-2"></i>Edit Profile
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-area="Public" asp-controller="PublicServices" asp-action="Index" class="btn btn-success w-100 mb-2">
+                                                <i class="fas fa-list me-2"></i>View Services
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmAppointment(appointmentId) {
+            if (confirm('Are you sure you want to confirm this appointment?')) {
+                $.post('@Url.Action("ConfirmAppointment", "Profile")', 
+                    { id: appointmentId }, 
+                    function(data) {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+            }
+        }
+    </script>
+}

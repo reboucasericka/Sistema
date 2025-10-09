@@ -42,9 +42,11 @@ namespace Sistema.Data.Entities
 
         [MaxLength(200)]
         [Display(Name = "Foto do Produto")]
-        public string? PhotoPath { get; set; } // Foto do produto (caminho da imagem)
+        public Guid ImageId { get; set; } // Foto do produto (caminho da imagem)
 
         public int MinimumStockLevel { get; set; } = 0; //StockMinimo
+
+        public bool IsActive { get; set; } = true; // Indica se o produto está ativo
 
         // 🔗 FK → Suppliers (optional)
         [ForeignKey("Supplier")]
@@ -54,9 +56,9 @@ namespace Sistema.Data.Entities
 
         public User User { get; set; }
 
-        public string ImageFullPath => string.IsNullOrEmpty(PhotoPath)
-            ? $"https://sistema.azurewebsites.net/images/noimage.png"
-            : PhotoPath;       
+        public string ImageFullPath => ImageId == Guid.Empty
+            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
+            : $"https://supershopcontaarmazename.blob.core.windows.net/products/{ImageId}.png";
 
 
     }

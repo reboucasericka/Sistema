@@ -7,30 +7,30 @@ namespace Sistema.Helpers
     public interface IConverterHelper
     {
         // Product mappings
-        Sistema.Data.Entities.Product ToProduct(ProductViewModel model, string photoPath, bool isNew);
-        ProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product);
-        
+        Product ToProduct(AdminProductViewModel model,Guid imageId, bool isNew);
+        AdminProductViewModel ToProductViewModel(Product product);
+
         // Customer mappings
-        Customer ToCustomer(CustomerCreateViewModel model);
-        Customer ToCustomer(CustomerEditViewModel model);
-        CustomerViewModel ToCustomerViewModel(Customer customer);
-        CustomerCreateViewModel ToCustomerCreateViewModel(Customer customer);
-        CustomerEditViewModel ToCustomerEditViewModel(Customer customer);
+        Customer ToCustomer(AdminCustomerCreateViewModel model);
+        Customer ToCustomer(AdminCustomerEditViewModel model);
+        AdminCustomerViewModel ToCustomerViewModel(Customer customer);
+        AdminCustomerCreateViewModel ToCustomerCreateViewModel(Customer customer);
+        AdminCustomerEditViewModel ToCustomerEditViewModel(Customer customer);
         
         // Profile mappings
-        CustomerProfileViewModel ToCustomerProfileViewModel(Customer customer);
-        CustomerProfileEditViewModel ToCustomerProfileEditViewModel(Customer customer);
-        Customer ToCustomer(CustomerProfileEditViewModel model);
+        PublicCustomerProfileViewModel ToCustomerProfileViewModel(Customer customer);
+        PublicCustomerProfileEditViewModel ToCustomerProfileEditViewModel(Customer customer);
+        Customer ToCustomer(PublicCustomerProfileEditViewModel model);
         
         // Professional mappings
-        Professional ToProfessional(ProfessionalCreateViewModel model);
-        Professional ToProfessional(ProfessionalEditViewModel model);
-        ProfessionalViewModel ToProfessionalViewModel(Professional professional);
-        ProfessionalCreateViewModel ToProfessionalCreateViewModel(Professional professional);
-        ProfessionalEditViewModel ToProfessionalEditViewModel(Professional professional);
+        Professional ToProfessional(AdminProfessionalCreateViewModel model);
+        Professional ToProfessional(AdminProfessionalEditViewModel model);
+        AdminProfessionalViewModel ToProfessionalViewModel(Professional professional);
+        AdminProfessionalCreateViewModel ToProfessionalCreateViewModel(Professional professional);
+        AdminProfessionalEditViewModel ToProfessionalEditViewModel(Professional professional);
         
         // Professional Profile mappings
-        ProfessionalProfileViewModel ToProfessionalProfileViewModel(Professional professional);
+        PublicProfessionalProfileViewModel ToProfessionalProfileViewModel(Professional professional);
         ProfessionalProfileEditViewModel ToProfessionalProfileEditViewModel(Professional professional);
         Professional ToProfessional(ProfessionalProfileEditViewModel model);
     }

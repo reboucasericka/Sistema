@@ -17,8 +17,7 @@ namespace Sistema.Data.Entities
         [MaxLength(100)]
         public string Name { get; set; } // Nome do profissional
 
-        [MaxLength(200)]
-        public string? PhotoPath { get; set; } // Foto de perfil (caminho da imagem)
+        public Guid ImageId { get; set; } // Foto de perfil (ID da imagem no blob)
 
         [Required]
         [MaxLength(100)]
@@ -39,5 +38,10 @@ namespace Sistema.Data.Entities
         public ICollection<ProfessionalService> ProfessionalServices { get; set; }
         public ICollection<Appointment> Appointments { get; set; }
         public ICollection<Schedule> Schedules { get; set; }
+
+        // Propriedade calculada para o caminho completo da imagem
+        public string ImageFullPath => ImageId == Guid.Empty
+            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
+            : $"https://supershopcontaarmazename.blob.core.windows.net/professionals/{ImageId}.png";
     }
 }

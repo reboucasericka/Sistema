@@ -4,10 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Billings")]
-    public class Billing
+    public class Billing :IEntity
     {
         [Key]
-        public int BillingId { get; set; }
+        [Column("BillingId")]  //  coluna real no SQL
+        public int Id { get; set; }   // cumpre IEntity, mas mapeia pra BillingId
 
         [Column(TypeName = "date")]
         public DateTime Date { get; set; }

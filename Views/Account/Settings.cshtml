@@ -1,4 +1,4 @@
-@model Sistema.Models.Admin.SettingsViewModel
+@model Sistema.Models.Admin.AdminSettingsViewModel
 
 @{
     ViewData["Title"] = "Configurações";
@@ -27,7 +27,7 @@
                     }
                     else
                     {
-                        <li class="breadcrumb-item"><a asp-area="Public" asp-controller="Appointment" asp-action="Index">Home</a></li>
+                        <li class="breadcrumb-item"><a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index">Home</a></li>
                     }
                     <li class="breadcrumb-item active">Configurações</li>
                 </ol>

@@ -3,405 +3,91 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Sistema Administrativo</title>
-
-    <!-- AdminLTE CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>@ViewData["Title"] - Painel Administrativo</title>
     
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <!-- Bootstrap 5.3.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS Local -->
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-    <div class="wrapper">
-        <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-            <!-- Left navbar links -->
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#" role="button">
-                        <i class="fas fa-bars"></i>
-                    </a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="/" class="nav-link">Sistema</a>
-                </li>
-            </ul>
-
-            <!-- Right navbar links -->
-            <ul class="navbar-nav ml-auto">
-                <!-- Notifications Dropdown Menu -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="far fa-bell"></i>
-                        @if (ViewBag.Notifications != null && ViewBag.Notifications.Count > 0)
-                        {
-                            <span class="badge badge-warning navbar-badge">@ViewBag.Notifications.Count</span>
-                        }
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        @if (ViewBag.Notifications != null && ViewBag.Notifications.Count > 0)
-                        {
-                            <span class="dropdown-item dropdown-header">@ViewBag.Notifications.Count Notificações</span>
-                            <div class="dropdown-divider"></div>
-                            @foreach (var notif in ViewBag.Notifications)
-                            {
-                                <a href="@notif.Link" class="dropdown-item">
-                                    <i class="@notif.Icon mr-2"></i> @notif.Message
-                                    <span class="float-right text-muted text-sm">@notif.Time</span>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                            }
-                            <a href="/Admin/Notifications" class="dropdown-item dropdown-footer">Ver todas</a>
-                        }
-                        else
-                        {
-                            <span class="dropdown-item">Sem notificações</span>
-                        }
-                    </div>
-                </li>
-
-                <!-- Fullscreen -->
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-                        <i class="fas fa-expand-arrows-alt"></i>
-                    </a>
-                </li>
-
-                <!-- Usuário -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
-                        <i class="fas fa-user"></i> @User.Identity.Name
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fas fa-user mr-2"></i> Perfil</a>
-                        <a class="dropdown-item" asp-controller="Account" asp-action="Settings"><i class="fas fa-cog mr-2"></i> Configurações</a>
-                        <div class="dropdown-divider"></div>
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="dropdown-item p-0">
-                            <button type="submit" class="btn btn-link text-dark w-100 text-left">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sair
-                            </button>
-                        </form>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Sidebar -->
-        <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <!-- Brand Logo -->
-            <a asp-controller="Admin" asp-action="Index" class="brand-link">
-                <img src="~/images/p1.png" alt="Logo" class="brand-image img-circle elevation-3">
-                <span class="brand-text font-weight-light">Admin</span>
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Admin/Admin">
+                <i class="fas fa-tachometer-alt me-2"></i>Painel Administrativo
             </a>
-
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Sidebar user panel -->
-                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                    <div class="image">
-                        <img src="~/images/p2.png" class="img-circle elevation-2" alt="User Image">
-                    </div>
-                    <div class="info">
-                        <a href="#" class="d-block">@User.Identity.Name</a>
-                    </div>
-                </div>
-
-                <!-- Sidebar Menu -->
-                <nav class="mt-2">
-                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <!-- Dashboard -->
-                        <li class="nav-item">
-                            <a asp-controller="Admin" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Admin" ? "active" : "")">
-                                <i class="nav-icon fas fa-tachometer-alt"></i>
-                                <p>Dashboard</p>
-                            </a>
-                        </li>
-
-                        <!-- Agendamentos -->
-                        <li class="nav-item">
-                            <a asp-controller="Appointments" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Appointments" ? "active" : "")">
-                                <i class="nav-icon fas fa-calendar-alt"></i>
-                                <p>Agendamentos</p>
-                            </a>
-                        </li>
-
-                        <!-- Profissionais -->
-                        <li class="nav-item">
-                            <a asp-controller="Professionals" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Professionals" ? "active" : "")">
-                                <i class="nav-icon fas fa-user-md"></i>
-                                <p>Profissionais</p>
-                            </a>
-                        </li>
-
-                        <!-- Agendas -->
-                        <li class="nav-item">
-                            <a asp-controller="ProfessionalSchedules" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "ProfessionalSchedules" ? "active" : "")">
-                                <i class="nav-icon fas fa-clock"></i>
-                                <p>Agendas</p>
-                            </a>
-                        </li>
-
-                        <!-- Clientes -->
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-users"></i>
-                                <p>
-                                    Clientes
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a asp-controller="ClientManagement" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Gestão de Clientes</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Clients" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Lista de Clientes</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Serviços -->
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-concierge-bell"></i>
-                                <p>
-                                    Serviços
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a asp-controller="ServiceCategories" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Categorias</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Services" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Lista de Serviços</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Produtos -->
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-box"></i>
-                                <p>
-                                    Produtos
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a asp-controller="ProductCategories" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Categorias</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Products" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Lista de Produtos</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Caixa -->
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                    <i class="nav-icon fas fa-cash-register"></i>
-                    <p>
-                        Caixa
-                        <i class="right fas fa-angle-left"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a asp-controller="CashRegister" asp-action="Index" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Caixa Diário</p>
+                        <a class="nav-link" href="/Admin/Admin">
+                            <i class="fas fa-home me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a asp-controller="CashMovements" asp-action="Index" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Movimentações</p>
+                        <a class="nav-link" href="/Admin/AdminClients">
+                            <i class="fas fa-users me-1"></i>Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Admin/AdminAppointments">
+                            <i class="fas fa-calendar-alt me-1"></i>Agendamentos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Admin/AdminServices">
+                            <i class="fas fa-concierge-bell me-1"></i>Serviços
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Admin/AdminCashRegister">
+                            <i class="fas fa-cash-register me-1"></i>Caixa
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Admin/AdminReports">
+                            <i class="fas fa-chart-bar me-1"></i>Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Admin/AdminSettings">
+                            <i class="fas fa-cog me-1"></i>Configurações
                         </a>
                     </li>
                 </ul>
-            </li>
-
-                        <!-- Financeiro -->
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-money-bill-wave"></i>
-                                <p>
-                                    Financeiro
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a asp-controller="CashRegister" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Caixa</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Receivables" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Contas a Receber</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Payables" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Contas a Pagar</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="PaymentMethod" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Métodos de Pagamento</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Relatórios -->
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-chart-bar"></i>
-                                <p>
-                                    Relatórios
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="Index" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Dashboard</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="Sales" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Vendas</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="Appointments" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Agendamentos</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="Finance" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Financeiro</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="Clients" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Clientes</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a asp-controller="Reports" asp-action="MonthlyTrialBalance" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Balanço Mensal</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Configurações -->
-                        <li class="nav-item">
-                            <a asp-controller="Settings" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Settings" ? "active" : "")">
-                                <i class="nav-icon fas fa-cog"></i>
-                                <p>Configurações</p>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </aside>
-
-        <!-- Content Wrapper -->
-        <div class="content-wrapper">
-            <!-- Content Header -->
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1 class="m-0">@ViewData["Title"]</h1>
-                        </div>
-                        <div class="col-sm-6">
-                            <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Index">Home</a></li>
-                                <li class="breadcrumb-item active">@ViewData["Title"]</li>
-                            </ol>
-                        </div>
-                    </div>
+                
+                <div class="d-flex align-items-center">
+                    <span class="navbar-text text-white me-3">
+                        <i class="fas fa-user me-1"></i>@User.Identity?.Name
+                    </span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-sign-out-alt me-1"></i>Sair
+                        </button>
+                    </form>
                 </div>
             </div>
-
-            <!-- Main content -->
-            <section class="content">
-                <div class="container-fluid">
-                    @RenderBody()
-                </div>
-            </section>
         </div>
+    </nav>
 
-        <!-- Footer -->     
-
-        <footer class="bg-light text-center text-muted py-4 border-top">
-            <div class="container">
-                <p class="mb-1">&copy; @DateTime.Now.Year - Sistema de Gestão para Estética</p>
-                <p class="mb-0">
-                    Desenvolvido por
-                    <a href="https://reboucasericka.github.io/portfolio/" target="_blank" class="text-decoration-none fw-bold text-dark">
-                        Ericka Rebouças
-                    </a>
-                </p>
-            </div>
-        </footer>
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        @RenderBody()
     </div>
 
     <!-- Scripts -->
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Bootstrap 5 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- AdminLTE -->
-    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

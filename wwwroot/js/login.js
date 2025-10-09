@@ -1,12 +1,8 @@
 ﻿$(document).ready(function () {
+    // Efeito de parallax simples sem dependências externas
     $(document).mousemove(function (e) {
-        TweenLite.to($('body'),
-            .5,
-            {
-                css:
-                {
-                    backgroundPosition: "" + parseInt(event.pageX / 8) + "px " + parseInt(event.pageY / '12') + "px, " + parseInt(event.pageX / '15') + "px " + parseInt(event.pageY / '15') + "px, " + parseInt(event.pageX / '30') + "px " + parseInt(event.pageY / '30') + "px"
-                }
-            });
+        var x = e.pageX / 8;
+        var y = e.pageY / 12;
+        $('body').css('background-position', x + 'px ' + y + 'px');
     });
 });

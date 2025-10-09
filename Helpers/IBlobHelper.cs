@@ -1,4 +1,8 @@
-﻿namespace Sistema.Helpers
+﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Threading.Tasks;
+
+namespace Sistema.Helpers
 {
     public interface IBlobHelper
     {

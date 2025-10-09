@@ -1,4 +1,4 @@
-// menu-hamburguer.js
+// menu-hamburguer.js - Otimizado e unificado
 $(document).ready(function () {
     
     // Toggle do menu hambúrguer

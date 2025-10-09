@@ -8,7 +8,7 @@ namespace Sistema.Helpers
     public class ConverterHelper : IConverterHelper
     {
         // Product mappings
-        public Sistema.Data.Entities.Product ToProduct(ProductViewModel model, string photoPath, bool isNew)
+        public Sistema.Data.Entities.Product ToProduct(AdminProductViewModel model, Guid imageId, bool isNew)
         {
             return new Sistema.Data.Entities.Product
             {
@@ -19,15 +19,15 @@ namespace Sistema.Helpers
                 PurchasePrice = model.PurchasePrice,
                 SalePrice = model.SalePrice,
                 Stock = model.Stock,
-                PhotoPath = photoPath,
+                ImageId = imageId,
                 MinimumStockLevel = model.MinimumStockLevel,
                 SupplierId = model.SupplierId
             };
         }
 
-        public ProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product)
+        public AdminProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product)
         {
-            return new ProductViewModel
+            return new AdminProductViewModel
             {
                 ProductId = product.ProductId,
                 Name = product.Name,
@@ -38,12 +38,12 @@ namespace Sistema.Helpers
                 Stock = product.Stock,
                 MinimumStockLevel = product.MinimumStockLevel,
                 SupplierId = product.SupplierId,
-                PhotoPath = product.PhotoPath
+                ImageId = product.ImageId
             };
         }
 
         // Customer mappings
-        public Customer ToCustomer(CustomerCreateViewModel model)
+        public Customer ToCustomer(AdminCustomerCreateViewModel model)
         {
             return new Customer
             {
@@ -56,11 +56,11 @@ namespace Sistema.Helpers
                 IsActive = model.IsActive,
                 Notes = model.Notes,
                 AllergyHistory = model.AllergyHistory,
-                PhotoPath = model.PhotoPath
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString())
             };
         }
 
-        public Customer ToCustomer(CustomerEditViewModel model)
+        public Customer ToCustomer(AdminCustomerEditViewModel model)
         {
             return new Customer
             {
@@ -74,13 +74,13 @@ namespace Sistema.Helpers
                 IsActive = model.IsActive,
                 Notes = model.Notes,
                 AllergyHistory = model.AllergyHistory,
-                PhotoPath = model.PhotoPath
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString())
             };
         }
 
-        public CustomerViewModel ToCustomerViewModel(Customer customer)
+        public AdminCustomerViewModel ToCustomerViewModel(Customer customer)
         {
-            return new CustomerViewModel
+            return new AdminCustomerViewModel
             {
                 CustomerId = customer.CustomerId,
                 Name = customer.Name,
@@ -92,14 +92,14 @@ namespace Sistema.Helpers
                 IsActive = customer.IsActive,
                 Notes = customer.Notes,
                 AllergyHistory = customer.AllergyHistory,
-                PhotoPath = customer.PhotoPath,
+                ImageId = customer.ImageId,
                 Appointments = customer.Appointments?.ToList()
             };
         }
 
-        public CustomerCreateViewModel ToCustomerCreateViewModel(Customer customer)
+        public AdminCustomerCreateViewModel ToCustomerCreateViewModel(Customer customer)
         {
-            return new CustomerCreateViewModel
+            return new AdminCustomerCreateViewModel
             {
                 Name = customer.Name,
                 Email = customer.Email,
@@ -109,13 +109,13 @@ namespace Sistema.Helpers
                 IsActive = customer.IsActive,
                 Notes = customer.Notes,
                 AllergyHistory = customer.AllergyHistory,
-                PhotoPath = customer.PhotoPath
+                ImageId = customer.ImageId.ToString()
             };
         }
 
-        public CustomerEditViewModel ToCustomerEditViewModel(Customer customer)
+        public AdminCustomerEditViewModel ToCustomerEditViewModel(Customer customer)
         {
-            return new CustomerEditViewModel
+            return new AdminCustomerEditViewModel
             {
                 CustomerId = customer.CustomerId,
                 Name = customer.Name,
@@ -127,16 +127,16 @@ namespace Sistema.Helpers
                 IsActive = customer.IsActive,
                 Notes = customer.Notes,
                 AllergyHistory = customer.AllergyHistory,
-                PhotoPath = customer.PhotoPath
+                ImageId = customer.ImageId.ToString()
             };
         }
 
         // Profile mappings
-        public CustomerProfileViewModel ToCustomerProfileViewModel(Customer customer)
+        public PublicCustomerProfileViewModel ToCustomerProfileViewModel(Customer customer)
         {
             var appointments = customer.Appointments?.ToList() ?? new List<Appointment>();
             
-            return new CustomerProfileViewModel
+            return new PublicCustomerProfileViewModel
             {
                 CustomerId = customer.CustomerId,
                 Name = customer.Name,
@@ -147,16 +147,16 @@ namespace Sistema.Helpers
                 RegistrationDate = customer.RegistrationDate,
                 Notes = customer.Notes,
                 AllergyHistory = customer.AllergyHistory,
-                PhotoPath = customer.PhotoPath,
+                ImageId = customer.ImageId.ToString(),
                 Appointments = appointments,
                 UpcomingAppointments = appointments.Where(a => a.Date >= DateTime.Today && a.Status != "Cancelado").ToList(),
                 PastAppointments = appointments.Where(a => a.Date < DateTime.Today).ToList()
             };
         }
 
-        public CustomerProfileEditViewModel ToCustomerProfileEditViewModel(Customer customer)
+        public PublicCustomerProfileEditViewModel ToCustomerProfileEditViewModel(Customer customer)
         {
-            return new CustomerProfileEditViewModel
+            return new PublicCustomerProfileEditViewModel
             {
                 CustomerId = customer.CustomerId,
                 Name = customer.Name,
@@ -166,11 +166,11 @@ namespace Sistema.Helpers
                 BirthDate = customer.BirthDate,
                 Notes = customer.Notes,
                 AllergyHistory = customer.AllergyHistory,
-                PhotoPath = customer.PhotoPath
+                ImageId = customer.ImageId.ToString()
             };
         }
 
-        public Customer ToCustomer(CustomerProfileEditViewModel model)
+        public Customer ToCustomer(PublicCustomerProfileEditViewModel model)
         {
             return new Customer
             {
@@ -182,47 +182,47 @@ namespace Sistema.Helpers
                 BirthDate = model.BirthDate,
                 Notes = model.Notes,
                 AllergyHistory = model.AllergyHistory,
-                PhotoPath = model.PhotoPath
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString())
             };
         }
 
         // Professional mappings
-        public Professional ToProfessional(ProfessionalCreateViewModel model)
+        public Professional ToProfessional(AdminProfessionalCreateViewModel model)
         {
             return new Professional
             {
                 Name = model.Name,
                 UserId = model.UserId,
-                PhotoPath = model.PhotoPath,
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString()),
                 Specialty = model.Specialty,
                 DefaultCommission = model.DefaultCommission,
                 IsActive = model.IsActive
             };
         }
 
-        public Professional ToProfessional(ProfessionalEditViewModel model)
+        public Professional ToProfessional(AdminProfessionalEditViewModel model)
         {
             return new Professional
             {
                 ProfessionalId = model.ProfessionalId,
                 Name = model.Name,
                 UserId = model.UserId,
-                PhotoPath = model.PhotoPath,
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString()),
                 Specialty = model.Specialty,
                 DefaultCommission = model.DefaultCommission,
                 IsActive = model.IsActive
             };
         }
 
-        public ProfessionalViewModel ToProfessionalViewModel(Professional professional)
+        public AdminProfessionalViewModel ToProfessionalViewModel(Professional professional)
         {
-            return new ProfessionalViewModel
+            return new AdminProfessionalViewModel
             {
                 ProfessionalId = professional.ProfessionalId,
                 Name = professional.Name,
                 UserId = professional.UserId,
                 UserEmail = professional.User?.Email,
-                PhotoPath = professional.PhotoPath,
+                ImageId = professional.ImageId.ToString().ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission,
                 IsActive = professional.IsActive,
@@ -232,27 +232,27 @@ namespace Sistema.Helpers
             };
         }
 
-        public ProfessionalCreateViewModel ToProfessionalCreateViewModel(Professional professional)
+        public AdminProfessionalCreateViewModel ToProfessionalCreateViewModel(Professional professional)
         {
-            return new ProfessionalCreateViewModel
+            return new AdminProfessionalCreateViewModel
             {
                 Name = professional.Name,
                 UserId = professional.UserId,
-                PhotoPath = professional.PhotoPath,
+                ImageId = professional.ImageId.ToString().ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission,
                 IsActive = professional.IsActive
             };
         }
 
-        public ProfessionalEditViewModel ToProfessionalEditViewModel(Professional professional)
+        public AdminProfessionalEditViewModel ToProfessionalEditViewModel(Professional professional)
         {
-            return new ProfessionalEditViewModel
+            return new AdminProfessionalEditViewModel
             {
                 ProfessionalId = professional.ProfessionalId,
                 Name = professional.Name,
                 UserId = professional.UserId,
-                PhotoPath = professional.PhotoPath,
+                ImageId = professional.ImageId.ToString().ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission,
                 IsActive = professional.IsActive
@@ -260,14 +260,14 @@ namespace Sistema.Helpers
         }
 
         // Professional Profile mappings
-        public ProfessionalProfileViewModel ToProfessionalProfileViewModel(Professional professional)
+        public PublicProfessionalProfileViewModel ToProfessionalProfileViewModel(Professional professional)
         {
-            return new ProfessionalProfileViewModel
+            return new PublicProfessionalProfileViewModel
             {
                 ProfessionalId = professional.ProfessionalId,
                 Name = professional.Name,
                 UserId = professional.UserId,
-                PhotoPath = professional.PhotoPath,
+                ImageId = professional.ImageId.ToString().ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission,
                 ProfessionalServices = professional.ProfessionalServices?.ToList() ?? new List<ProfessionalService>(),
@@ -282,7 +282,7 @@ namespace Sistema.Helpers
             {
                 ProfessionalId = professional.ProfessionalId,
                 Name = professional.Name,
-                PhotoPath = professional.PhotoPath,
+                ImageId = professional.ImageId.ToString().ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission
             };
@@ -294,10 +294,20 @@ namespace Sistema.Helpers
             {
                 ProfessionalId = model.ProfessionalId,
                 Name = model.Name,
-                PhotoPath = model.PhotoPath,
+                ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString()),
                 Specialty = model.Specialty,
                 DefaultCommission = model.DefaultCommission
             };
+        }
+
+        public Data.Entities.Product ToProduct(AdminProductViewModel model, bool isNew)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Data.Entities.Product ToProduct(AdminProductViewModel model, string path, bool isNew)
+        {
+            throw new NotImplementedException();
         }
     }
 }

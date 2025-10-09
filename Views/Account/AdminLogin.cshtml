@@ -28,32 +28,32 @@
                                 Acesso Administrativo
                             </h3>
 
-                            <form asp-controller="Account" asp-action="AdminLogin" method="post" id="adminLoginForm">
+                            @if (!ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <form asp-controller="Account" asp-action="AdminLogin" asp-area="" method="post">
                                 @Html.AntiForgeryToken()
-                                
-                                @if (TempData["ErrorMessage"] != null)
-                                {
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        @TempData["ErrorMessage"]
-                                    </div>
-                                }
 
                                 <div class="mb-3">
-                                    <label for="Username" class="form-label">
-                                        <i class="fas fa-user-shield me-2"></i>
-                                        Usuário ou E-mail
-                                    </label>
-                                    <input name="Username" id="Username" class="form-control" placeholder="Digite seu usuário ou e-mail" />
+                                    <label for="Username" class="form-label"><i class="fas fa-user-shield me-2"></i>Usuário ou E-mail</label>
+                                    <input asp-for="Username" id="Username" class="form-control" placeholder="Digite seu usuário ou e-mail" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
                                     <div class="form-text">Apenas usuários com permissão administrativa</div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="Password" class="form-label">
-                                        <i class="fas fa-lock me-2"></i>
-                                        Senha
-                                    </label>
-                                    <input name="Password" id="Password" type="password" class="form-control" placeholder="Digite sua senha" />
+                                    <label for="Password" class="form-label"><i class="fas fa-lock me-2"></i>Senha</label>
+                                    <input asp-for="Password" id="Password" type="password" class="form-control" placeholder="Digite sua senha" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
                                 </div>
 
                                 <div class="form-check mb-3">
@@ -62,9 +62,8 @@
                                 </div>
 
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                                        <i class="fas fa-sign-in-alt me-2"></i>
-                                        Entrar no Painel
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Entrar no Painel
                                     </button>
                                 </div>
                             </form>
@@ -83,44 +82,4 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            console.log("🔍 AdminLogin: Script carregado - DESABILITANDO VALIDAÇÃO COMPLETAMENTE");
-            
-            // Remover todos os atributos de validação dos campos
-            $('#Username').removeAttr('data-val data-val-required data-val-email');
-            $('#Password').removeAttr('data-val data-val-required data-val-minlength data-val-minlength-min');
-            $('#RememberMe').removeAttr('data-val');
-            
-            // Desabilitar completamente a validação client-side
-            $('#adminLoginForm').removeData('validator');
-            $('#adminLoginForm').removeData('unobtrusiveValidation');
-            $('#adminLoginForm').unbind('submit');
-            
-            // Remover validação jQuery completamente
-            if (typeof $.validator !== 'undefined') {
-                $.validator.setDefaults({
-                    ignore: "*"
-                });
-            }
-            
-            // Debug do botão normal
-            $('#submitBtn').on('click', function(e) {
-                console.log("🔍 AdminLogin: Botão clicado");
-                e.preventDefault(); // Prevenir comportamento padrão
-                
-                console.log("🔍 AdminLogin: Enviando formulário manualmente");
-                console.log("   - Username:", $('#Username').val());
-                console.log("   - Password:", $('#Password').val() ? "FORNECIDA" : "VAZIA");
-                console.log("   - RememberMe:", $('#RememberMe').is(':checked'));
-                
-                // Enviar formulário manualmente
-                $('#adminLoginForm')[0].submit();
-            });
-            
-        });
-    </script>
-}
 

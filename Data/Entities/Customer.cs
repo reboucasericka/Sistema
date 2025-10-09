@@ -37,8 +37,7 @@ namespace Sistema.Data.Entities
         [StringLength(255)]
         public string? AllergyHistory { get; set; } // Histórico de alergias
 
-        [MaxLength(200)]
-        public string? PhotoPath { get; set; } // Foto do cliente (caminho da imagem)
+        public Guid ImageId { get; set; } // Foto do cliente (ID da imagem no blob)
 
         // 🔗 FK → User
         public string? UserId { get; set; }
@@ -46,5 +45,10 @@ namespace Sistema.Data.Entities
 
         // Navigation properties
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+        // Propriedade calculada para o caminho completo da imagem
+        public string ImageFullPath => ImageId == Guid.Empty
+            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
+            : $"https://supershopcontaarmazename.blob.core.windows.net/customers/{ImageId}.png";
     }
 }

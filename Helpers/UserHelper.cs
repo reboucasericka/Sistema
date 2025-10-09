@@ -21,18 +21,21 @@ namespace Sistema.Helpers
             return await _userManager.CreateAsync(user, Password);
         }
 
-        public async Task AddUserToRoleAsync(User user, string roleName)
+        public async Task AddUserToRoleAsync(User user, string roleName) //ok
         {
             await _userManager.AddToRoleAsync(user, roleName);
         }
 
         public async Task<IdentityResult> ChangePasswordAsync(
-            User user, string oldPassword, string newPassword)
+            User user, string currentPassword, string newPassword)
         {
-            return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
-        }
+            return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        }//ok
 
-        public async Task CheckRoleAsync(string roleName)
+
+
+
+        public async Task CheckRoleAsync(string roleName) //ok
         {
             var roleExists = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExists)
@@ -42,46 +45,64 @@ namespace Sistema.Helpers
                     Name = roleName
                 });
             }
-        }
+        } 
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<bool> IsUserInRoleAsync(User user, string roleName)
+        public async Task<bool> IsUserInRoleAsync(User user, string roleName) //ok
         {
             return await _userManager.IsInRoleAsync(user, roleName);//verifica se o user esta na role retorna um boolean
         }
 
+
+
         public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
-            Console.WriteLine($"🔍 UserHelper.LoginAsync: Tentando login para '{model.Username}'");
-            
-            // Primeiro, tentar encontrar o usuário por email, depois por username
-            var user = await _userManager.FindByEmailAsync(model.Username) 
-                      ?? await _userManager.FindByNameAsync(model.Username);
-            
-            if (user == null)
-            {
-                Console.WriteLine($"❌ UserHelper.LoginAsync: Usuário não encontrado para '{model.Username}'");
-                return SignInResult.Failed;
-            }
+            return await _signInManager.PasswordSignInAsync(
+                model.Username, 
+                model.Password, 
+                model.RememberMe, 
+                false);
 
-            Console.WriteLine($"✅ UserHelper.LoginAsync: Usuário encontrado - Email: {user.Email}, UserName: {user.UserName}");
 
-            // Usar o UserName para PasswordSignInAsync (não email)
-            // Isso garante que o User.Identity.Name seja consistente
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
-            
-            Console.WriteLine($"🔍 UserHelper.LoginAsync: Resultado do login - Succeeded: {result.Succeeded}, IsLockedOut: {result.IsLockedOut}, IsNotAllowed: {result.IsNotAllowed}");
-            
-            return result;
+
+
+
+
+
+
+            /* Console.WriteLine($"🔍 UserHelper.LoginAsync: Tentando login para '{model.Username}'");
+
+             // Primeiro, tentar encontrar o usuário por email, depois por username
+             var user = await _userManager.FindByEmailAsync(model.Username) 
+                       ?? await _userManager.FindByNameAsync(model.Username);
+
+             if (user == null)
+             {
+                 Console.WriteLine($"❌ UserHelper.LoginAsync: Usuário não encontrado para '{model.Username}'");
+                 return SignInResult.Failed;
+             }
+
+             Console.WriteLine($"✅ UserHelper.LoginAsync: Usuário encontrado - Email: {user.Email}, UserName: {user.UserName}");
+
+             // Usar o UserName para PasswordSignInAsync (não email)
+             // Isso garante que o User.Identity.Name seja consistente
+             var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
+
+             Console.WriteLine($"🔍 UserHelper.LoginAsync: Resultado do login - Succeeded: {result.Succeeded}, IsLockedOut: {result.IsLockedOut}, IsNotAllowed: {result.IsNotAllowed}");
+
+             return result;*/
         }
 
         public async Task LogoutAsync()
         {
-            try
+
+
+            await _signInManager.SignOutAsync();
+            /*try
             {
                 Console.WriteLine("🔓 UserHelper: Iniciando SignOut...");
                 await _signInManager.SignOutAsync();
@@ -91,7 +112,7 @@ namespace Sistema.Helpers
             {
                 Console.WriteLine($"❌ UserHelper: Erro no SignOut: {ex.Message}");
                 throw;
-            }
+            }*/
         }
 
         public async Task<IdentityResult> UpdateUserAsync(User user)

@@ -23,7 +23,7 @@ namespace Sistema.Controllers
         private readonly SistemaDbContext _context;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        
+
 
         public AccountController(IUserHelper userHelper, IEmailService emailService, SistemaDbContext context, UserManager<User> userManager, SignInManager<User> signInManager)
         {
@@ -32,8 +32,13 @@ namespace Sistema.Controllers
             _context = context;
             _signInManager = signInManager;
             _userManager = userManager;
-            
+
         }
+
+
+
+
+
 
         // Helper method to get user by email or username
         private async Task<User?> GetCurrentUserAsync()
@@ -88,107 +93,137 @@ namespace Sistema.Controllers
                 Console.WriteLine($"Erro ao registrar log de acesso: {ex.Message}");
             }
         }
+
+
+
+
         // =======================
-        // LOGIN CLIENTE
+        // LOGIN CLIENTE AdminController, dentro da área "Admin", com um método Index()
         // =======================
         [HttpGet]
-        public async Task<IActionResult> Login(string refresh = null)
+        public IActionResult Login(string? returnUrl = null)
         {
             if (User.Identity.IsAuthenticated)
-            {
-                // Redirect authenticated users to appropriate area based on role
-                var user = await GetCurrentUserAsync();
-                if (user != null)
-                {
-                    var roles = await _userHelper.GetUserRolesAsync(user);
-                    var role = roles.FirstOrDefault() ?? "Unknown";
-                    Console.WriteLine($"🔄 Usuário já autenticado: {user.Email} (Role: {role})");
-                    
-                    if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                    {
-                        Console.WriteLine($"🔄 Redirecionando Admin autenticado para: /Admin/Admin/Index");
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-                    }
-                    else if (await _userHelper.IsUserInRoleAsync(user, "Customer"))
-                    {
-                        Console.WriteLine($"🔄 Redirecionando Customer autenticado para: /Public/Appointment/Index");
-                        return RedirectToAction("Index", "Appointment", new { area = "Public" });
-                    }
-                }
-                Console.WriteLine($"🔄 Redirecionando para área padrão: /Home/Index");
                 return RedirectToAction("Index", "Home");
-            }
-            
-            // Se veio do logout, adicionar headers para limpar cache
-            if (!string.IsNullOrEmpty(refresh))
-            {
-                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-                Response.Headers.Add("Pragma", "no-cache");
-                Response.Headers.Add("Expires", "0");
-            }
-            
-            return View(new LoginViewModel());
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _userHelper.LoginAsync(model);
+
+            if (result.Succeeded)
             {
-                // Log da tentativa de login
-                Console.WriteLine($"🔍 Tentativa de login: {model.Username}");
-                
-                var result = await _userHelper.LoginAsync(model);
-                if (result.Succeeded)
-                {
-                    // Resolver usuário após login bem-sucedido
-                    var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                               ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+                var user = await _userHelper.GetUserByEmailAsync(model.Username)
+                          ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+                // Se existir ReturnUrl, respeita
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return LocalRedirect(returnUrl);
 
-                    if (user != null)
-                    {
-                        // Log successful login
-                        await LogAccess(user, "Login");
-                        
-                        // Log do usuário e role
-                        var roles = await _userHelper.GetUserRolesAsync(user);
-                        var role = roles.FirstOrDefault() ?? "Unknown";
-                        Console.WriteLine($"✅ Login bem-sucedido para: {user.Email} (Role: {role})");
+                // Caso contrário, decide pela role
+                if (user != null && await _userHelper.IsUserInRoleAsync(user, "Admin"))
+                    return RedirectToAction("Index", "Admin", new { area = "Admin" });
 
-                        // If there's a valid returnUrl, redirect there
-                        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                        {
-                            Console.WriteLine($"🔄 Redirecionando para returnUrl: {returnUrl}");
-                            return Redirect(returnUrl);
-                        }
-
-                        // Redirecionamento baseado em role
-                        if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                        {
-                            Console.WriteLine($"🔄 Redirecionando Admin para: /Admin/Admin/Index");
-                            return RedirectToAction("Index", "Admin", new { area = "Admin" });
-                        }
-                        else if (await _userHelper.IsUserInRoleAsync(user, "Customer"))
-                        {
-                            Console.WriteLine($"🔄 Redirecionando Customer para: /Public/Appointment/Index");
-                            return RedirectToAction("Index", "Appointment", new { area = "Public" });
-                        }
-                        else
-                        {
-                            Console.WriteLine($"🔄 Redirecionando para área padrão: /Public/Appointment/Index");
-                            return RedirectToAction("Index", "Appointment", new { area = "Public" });
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"❌ Login falhou para: {model.Username}");
-                }
+                return RedirectToAction("Index", "Home");
             }
 
             ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
             return View(model);
+        }/*
+    
+                if (user != null)
+                {
+                    // Respeita o ReturnUrl se for válido
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        return LocalRedirect(returnUrl);
+
+                    // Caso contrário, decide pela role
+                    if (user != null && await _userHelper.IsUserInRoleAsync(user, "Admin"))
+                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
+
+                    // Senão, redireciona com base na role
+                    //if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
+                       // return RedirectToAction("Index", "Admin", new { area = "Admin" });
+
+                    return RedirectToAction("Index", "Home");
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
+            return View(model);
+        }*/
+
+
+        // =======================
+        // LOGIN ADMINISTRATIVO
+        // =======================
+        [HttpGet]
+        public async Task<IActionResult> AdminLogin()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    var isAdmin = await _userHelper.IsUserInRoleAsync(user, "Admin");
+                    if (isAdmin)
+                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
+
+                    await _userHelper.LogoutAsync();
+                    TempData["ErrorMessage"] = "Acesso restrito a administradores.";
+                }
+            }
+
+            return View(new LoginViewModel());
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminLogin(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _userHelper.LoginAsync(model);
+
+            if (result.Succeeded)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(model.Username)
+                          ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    await LogAccess(user, "AdminLogin");
+                    return RedirectToAction("Index", "Admin", new { area = "Admin" });
+                }
+
+                await _userHelper.LogoutAsync();
+                ModelState.AddModelError(string.Empty, "Acesso restrito a administradores.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
+            }
+
+            return View(model);
+        }
+
+
+
+
+
+
+
+
 
         // =======================
         // LOGIN VIA FACEBOOK E GOOGLE
@@ -209,14 +244,14 @@ namespace Sistema.Controllers
             if (remoteError != null)
             {
                 ModelState.AddModelError(string.Empty, $"Erro do provedor externo: {remoteError}");
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             // Pega as informações do login externo
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             // Tenta autenticar com login externo
@@ -254,7 +289,7 @@ namespace Sistema.Controllers
 
                 // Não conseguiu autenticar
                 ModelState.AddModelError(string.Empty, "Não foi possível autenticar com Google ou Facebook");
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
         }
 
@@ -267,46 +302,13 @@ namespace Sistema.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            try
-            {
-                Console.WriteLine("🔓 Iniciando logout...");
-                
-                // Get current user before logout to log the action
-                var currentUser = await GetCurrentUserAsync();
-                if (currentUser != null)
-                {
-                    // Log logout action
-                    await LogAccess(currentUser, "Logout");
-                }
-                
-                // Fazer logout do Identity
-                await _userHelper.LogoutAsync();
-                
-                // Clear all authentication cookies
-                foreach (var cookie in Request.Cookies.Keys)
-                {
-                    if (cookie.StartsWith(".AspNetCore."))
-                    {
-                        Response.Cookies.Delete(cookie);
-                    }
-                }
-                
-                // Adicionar headers para prevenir cache
-                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-                Response.Headers.Add("Pragma", "no-cache");
-                Response.Headers.Add("Expires", "0");
-                
-                Console.WriteLine("✅ Logout realizado com sucesso");
-                
-                // Redirect to login with parameter to force refresh
-                return RedirectToAction("Login", "Account", new { refresh = DateTime.Now.Ticks });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Erro no logout: {ex.Message}");
-                return RedirectToAction("Login", "Account", new { refresh = DateTime.Now.Ticks });
-            }
+            await _signInManager.SignOutAsync();
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            return RedirectToAction("Login", "Account");
+
         }
+
+
 
         // =======================
         // REGISTRO CLIENTE
@@ -314,18 +316,18 @@ namespace Sistema.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            return View(new RegisterNewUserViewModel());
+            return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterNewUserViewModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) //verifica se o modelo e valido
             {
-                var user = await _userHelper.GetUserByEmailAsync(model.Email);
-                if (user == null)
+                var user = await _userHelper.GetUserByEmailAsync(model.Email); //verifica se o user ja existe
+                if (user == null) //se nao existir cria um novo user
                 {
-                    user = new User
+                    user = new User //cria um novo user
                     {
                         FirstName = model.FirstName,
                         LastName = model.LastName,
@@ -335,27 +337,51 @@ namespace Sistema.Controllers
                     };
 
                     var result = await _userHelper.AddUserAsync(user, model.Password);
-                    if (result != IdentityResult.Success)
+                    if (result != IdentityResult.Success)  //se nao for possivel criar o user
                     {
                         ModelState.AddModelError(string.Empty, "Não foi possível criar o usuário. Tente novamente.");
-                        return View(model);
+                        return View(model); //retorna a view com o modelo
+                    }
+                    // Log do novo registro
+                    var loginViewModel = new LoginViewModel
+                    {
+                        Password = model.Password, //do utilizador que ja esta criado
+                        RememberMe = false, //nao se lembra do user deixar false
+                        Username = model.Username //do utilizador que ja esta criado
+                    };
+                    var result2 = await _userHelper.LoginAsync(loginViewModel); //faz o login do user que acabou de criar
+                    if (result2.Succeeded) //se ele conseguiu logar retorna de uma pagina para a home
+                    {
+                        return Redirect("/Home/Index");
                     }
 
-                    // Role Customer
-                    await _userHelper.AddUserToRoleAsync(user, "Customer");
+                    ModelState.AddModelError(string.Empty, "The user couldn't be logged in."); //se ele nao conseguir logar da mensagem de erro
 
-                    // Send activation email
-                    var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                    var activationLink = Url.Action("ActivateAccount", "Account", new { userId = user.Id, token }, Request.Scheme);
 
-                    await _emailService.SendActivationEmailAsync(user.Email, user.FirstName, activationLink);
+                }
+            }
+            return View(model); //se o modelo nao for valido retorna a view com o modelo
+        }
 
-                    TempData["ShowActivationPopup"] = true;
-                    TempData["UserEmail"] = user.Email;
-                    TempData["UserName"] = user.FirstName;
 
-                    // Redireciona para Login
-                    return RedirectToAction("Login", "Account");
+                        /*
+                        // Role Customer
+                        await _userHelper.AddUserToRoleAsync(user, "Customer");
+
+                        // Send activation email
+                        var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
+                        var activationLink = Url.Action("ActivateAccount", "Account", new { userId = user.Id, token }, Request.Scheme);
+
+                        await _emailService.SendActivationEmailAsync(user.Email, user.FirstName, activationLink);
+
+                        TempData["ShowActivationPopup"] = true;
+                        TempData["UserEmail"] = user.Email;
+                        TempData["UserName"] = user.FirstName;
+                        
+
+
+                        // Redireciona para Login
+                        return Redirect("/Account/Login");
                 }
 
                 ModelState.AddModelError(string.Empty, "Já existe um usuário com este e-mail.");
@@ -363,7 +389,7 @@ namespace Sistema.Controllers
 
             return View(model);
         }
-
+*/
 
 
         // =======================
@@ -374,14 +400,14 @@ namespace Sistema.Controllers
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
                 TempData["ErrorMessage"] = "Link de ativação inválido.";
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             var user = await _userHelper.GetUserByIdAsync(userId);
             if (user == null)
             {
                 TempData["ErrorMessage"] = "Usuário não encontrado.";
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             var result = await _userHelper.ConfirmEmailAsync(user, token);
@@ -394,15 +420,15 @@ namespace Sistema.Controllers
                 
                 // Redirect based on user role
                 if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                    return RedirectToAction("Index", "Admin", new { area = "Admin" });
+                    return Redirect("/Admin/Admin");
                 else if (await _userHelper.IsUserInRoleAsync(user, "Customer"))
-                    return RedirectToAction("Index", "Appointment", new { area = "Public" });
+                    return Redirect("/Public/PublicAppointment/Index");
                 else
-                    return RedirectToAction("Index", "Appointment", new { area = "Public" }); // Default to Customer area
+                    return Redirect("/Public/PublicAppointment/Index"); // Default to Customer area
             }
 
             TempData["ErrorMessage"] = "Erro ao ativar a conta. Link pode ter expirado.";
-            return RedirectToAction("Login");
+            return Redirect("/Account/Login");
         }
 
         // =======================
@@ -463,243 +489,7 @@ namespace Sistema.Controllers
             return Content("Diagnóstico concluído. Verifique o console para detalhes.");
         }
 
-        // =======================
-        // LOGIN ADMINISTRATIVO
-        // =======================
-        [HttpGet]
-        public async Task<IActionResult> AdminLogin()
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                // Verificar se o usuário autenticado é Admin
-                var user = await GetCurrentUserAsync();
-                if (user != null)
-                {
-                    var isAdmin = await _userHelper.IsUserInRoleAsync(user, "Admin");
-                    Console.WriteLine($"🔍 Usuário já autenticado: {user.Email} (Admin: {isAdmin})");
-                    
-                    if (isAdmin)
-                    {
-                        Console.WriteLine($"🔄 Redirecionando Admin autenticado para: /Admin/Admin/Index");
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-                    }
-                    else
-                    {
-                        Console.WriteLine($"❌ Usuário autenticado não é Admin: {user.Email}");
-                        // Fazer logout do usuário não-admin
-                        await _userHelper.LogoutAsync();
-                        TempData["ErrorMessage"] = "Acesso restrito a administradores.";
-                    }
-                }
-            }
-            return View(new LoginViewModel());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdminLogin(LoginViewModel model)
-        {
-            Console.WriteLine($"🔍 AdminLogin POST - Iniciando processo");
-            Console.WriteLine($"   - Username: {model.Username}");
-            Console.WriteLine($"   - Password: {(string.IsNullOrEmpty(model.Password) ? "VAZIA" : "FORNECIDA")}");
-            Console.WriteLine($"   - RememberMe: {model.RememberMe}");
-            Console.WriteLine($"   - ModelState.IsValid: {ModelState.IsValid}");
-            
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    Console.WriteLine($"🔍 Tentando login com UserHelper.LoginAsync...");
-                    
-                    // Usar UserHelper.LoginAsync para autenticação
-                    var result = await _userHelper.LoginAsync(model);
-                    
-                    Console.WriteLine($"🔍 Resultado do login:");
-                    Console.WriteLine($"   - Succeeded: {result.Succeeded}");
-                    Console.WriteLine($"   - IsLockedOut: {result.IsLockedOut}");
-                    Console.WriteLine($"   - IsNotAllowed: {result.IsNotAllowed}");
-                    Console.WriteLine($"   - RequiresTwoFactor: {result.RequiresTwoFactor}");
-                    
-                    if (result.Succeeded)
-                    {
-                        Console.WriteLine($"✅ Login bem-sucedido, resolvendo usuário...");
-                        
-                        // Resolver usuário após login bem-sucedido
-                        var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                                  ?? await _userHelper.GetUserByUsernameAsync(model.Username);
-                        
-                        if (user != null)
-                        {
-                            Console.WriteLine($"✅ Usuário encontrado: {user.Email}");
-                            
-                            // Verificar se o usuário tem a role Admin
-                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                            Console.WriteLine($"🔍 Verificação de role Admin: {isAdmin}");
-                            
-                            if (isAdmin)
-                            {
-                                Console.WriteLine($"✅ Usuário é Admin - redirecionando para /Admin/Admin/Index");
-                                
-                                // Log successful admin login
-                                await LogAccess(user, "AdminLogin");
-                                
-                                // Redirecionar para área Admin
-                                return RedirectToAction("Index", "Admin", new { area = "Admin" });
-                            }
-                            else
-                            {
-                                Console.WriteLine($"❌ Usuário não é Admin - fazendo logout");
-                                
-                                // Fazer logout do usuário não-admin
-                                await _userHelper.LogoutAsync();
-                                ModelState.AddModelError(string.Empty, "Acesso restrito a administradores.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"❌ Usuário não encontrado após login");
-                            ModelState.AddModelError(string.Empty, "Erro interno. Tente novamente.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"❌ Login falhou");
-                        
-                        // Tratar diferentes tipos de falha
-                        if (result.IsLockedOut)
-                        {
-                            Console.WriteLine($"   - Motivo: Conta bloqueada");
-                            ModelState.AddModelError(string.Empty, "Conta bloqueada. Tente novamente mais tarde.");
-                        }
-                        else if (result.IsNotAllowed)
-                        {
-                            Console.WriteLine($"   - Motivo: Conta não confirmada");
-                            ModelState.AddModelError(string.Empty, "Conta não confirmada. Verifique seu email.");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"   - Motivo: Credenciais inválidas");
-                            ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log do erro para debugging
-                    Console.WriteLine($"❌ Erro no AdminLogin: {ex.Message}");
-                    Console.WriteLine($"❌ StackTrace: {ex.StackTrace}");
-                    ModelState.AddModelError(string.Empty, "Erro interno. Tente novamente.");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"❌ ModelState inválido:");
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine($"   - {error.ErrorMessage}");
-                }
-            }
-
-            Console.WriteLine($"🔄 Retornando View com ModelState");
-            return View(model);
-        }
-
-        // =======================
-        // SETTINGS (CONFIGURAÇÕES)
-        // =======================
-        [HttpGet]
-        public async Task<IActionResult> Settings()
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var user = await GetCurrentUserAsync();
-            if (user == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var model = new SettingsViewModel
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber
-            };
-
-            return View(model);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Settings(SettingsViewModel model)
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login");
-            }
-
-            if (ModelState.IsValid)
-            {
-                var user = await GetCurrentUserAsync();
-                if (user != null)
-                {
-                    user.FirstName = model.FirstName;
-                    user.LastName = model.LastName;
-                    user.PhoneNumber = model.PhoneNumber;
-
-                    var result = await _userHelper.UpdateUserAsync(user);
-                    if (result.Succeeded)
-                    {
-                        TempData["SuccessMessage"] = "Configurações atualizadas com sucesso!";
-                        return RedirectToAction("Settings");
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        }
-                    }
-                }
-            }
-
-            return View(model);
-        }
-
-        [HttpGet]
-        public IActionResult ChangePassword()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await GetCurrentUserAsync();
-                if (user != null)
-                {
-                    var result = await _userHelper.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-                    if (result.Succeeded)
-                    {
-                        TempData["SuccessMessage"] = "Senha alterada com sucesso!";
-                        return RedirectToAction("Settings");
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        }
-                    }
-                }
-            }
-            return View(model);
-        }
-
+        
         // =======================
         // PROFILE
         // =======================
@@ -708,16 +498,16 @@ namespace Sistema.Controllers
         {
             if (!User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
-            var model = new ProfileViewModel
+            var model = new AdminProfileViewModel
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -776,7 +566,7 @@ namespace Sistema.Controllers
         {
             if (token == null)
             {
-                return RedirectToAction("Login");
+                return Redirect("/Account/Login");
             }
 
             var model = new ResetPasswordViewModel { Token = token };
@@ -818,7 +608,146 @@ namespace Sistema.Controllers
         {
             return View();
         }
+
+
+        // =======================
+        // CHANGE USER
+        // =======================
+        public async Task<IActionResult> ChangeUser()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //vai buscar o user pelo email
+            var model = new ChangeUserViewModel(); //cria um novo modelo
+            if (user == null) //se o user for nulo
+            {
+                model.FirstName = user.FirstName;
+                model.LastName = user.LastName;
+            }
+            return View(model); //retorna a view com o modelo
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
+        {
+            if (ModelState.IsValid) //verifica se o modelo e valido
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //vai buscar o user pelo email
+                if (user != null) //se o user for nulo
+                {
+                    user.FirstName = model.FirstName; //atualiza o primeiro nome
+                    user.LastName = model.LastName; //atualiza o ultimo nome
+                    var response = await _userHelper.UpdateUserAsync(user); //atualiza o user
+
+                    if (response.Succeeded) //se o resultado for sucesso
+                    {
+                        ViewBag.UserMessage = "User updated!";
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault().Description); //se nao conseguir atualizar o user da mensagem de erro
+                    }
+                }
+            }
+            return View(model); //retorna a view com o modelo
+        }
+
+
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    var result = await _userHelper.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        TempData["SuccessMessage"] = "Senha alterada com sucesso!";
+                        return RedirectToAction("Settings");
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
+                    }
+                }
+            }
+            return View(model);
+        }
+
+
+
+        // =======================
+        // SETTINGS (CONFIGURAÇÕES)
+        // =======================
+        [HttpGet]
+        public async Task<IActionResult> Settings()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Redirect("/Account/Login");
+            }
+
+            var user = await GetCurrentUserAsync();
+            if (user == null)
+            {
+                return Redirect("/Account/Login");
+            }
+
+            var model = new AdminSettingsViewModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Settings(AdminSettingsViewModel model)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Redirect("/Account/Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    user.FirstName = model.FirstName;
+                    user.LastName = model.LastName;
+                    user.PhoneNumber = model.PhoneNumber;
+
+                    var result = await _userHelper.UpdateUserAsync(user);
+                    if (result.Succeeded)
+                    {
+                        TempData["SuccessMessage"] = "Configurações atualizadas com sucesso!";
+                        return RedirectToAction("Settings");
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
+                    }
+                }
+            }
+
+            return View(model);
+        }
     }
 }
-
-

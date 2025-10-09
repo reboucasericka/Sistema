@@ -1,0 +1,191 @@
+@model Sistema.Models.Public.PublicProfessionalProfileViewModel
+@{
+    ViewData["Title"] = "My Professional Profile";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-md me-2"></i>My Professional Profile
+                    </h3>
+                    <div>
+                        <a asp-action="Edit" class="btn btn-primary me-2">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a asp-action="Dashboard" class="btn btn-info">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Information -->
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Full Name</label>
+                                        <p class="form-control-plaintext">@Model.Name</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Specialty</label>
+                                        <p class="form-control-plaintext">
+                                            <span class="badge bg-info">@Model.Specialty</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Default Commission</label>
+                                        <p class="form-control-plaintext">@Model.DefaultCommission%</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Photo</label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.ImageId))
+                                            {
+                                                <img src="@Model.ImageId" alt="@Model.Name" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                                    <i class="fas fa-user fa-2x text-white"></i>
+                                                </div>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-chart-bar me-2"></i>My Statistics
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-primary">@Model.TotalServices</h4>
+                                                <small class="text-muted">Services</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-success">@Model.TotalAppointments</h4>
+                                                <small class="text-muted">Total Appointments</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-warning">@Model.ActiveAppointments</h4>
+                                                <small class="text-muted">Active</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <h4 class="text-info">@Model.CompletedAppointments</h4>
+                                                <small class="text-muted">Completed</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <a asp-action="Dashboard" class="btn btn-primary w-100 mb-2">
+                                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Schedule" class="btn btn-info w-100 mb-2">
+                                                <i class="fas fa-calendar me-2"></i>My Schedule
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="History" class="btn btn-secondary w-100 mb-2">
+                                                <i class="fas fa-history me-2"></i>Appointment History
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a asp-action="Edit" class="btn btn-warning w-100 mb-2">
+                                                <i class="fas fa-edit me-2"></i>Edit Profile
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Appointments -->
+                    @if (Model.TodayAppointments > 0)
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-calendar-day me-2"></i>Today's Appointments (@Model.TodayAppointments)
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            You have @Model.TodayAppointments appointment(s) scheduled for today. 
+                                            <a asp-action="Schedule" class="alert-link">View your schedule</a> for details.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                @TempData["SuccessMessage"]
+            </div>
+        </div>
+    </div>
+}

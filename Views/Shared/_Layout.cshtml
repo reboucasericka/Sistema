@@ -1,6 +1,4 @@
-﻿
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8" />
@@ -51,69 +49,88 @@
 
             <!-- Menu Desktop -->
             <nav class="nav-desktop">
-                <ul>
+                <ul class="d-flex justify-content-end align-items-center gap-3">
                     <li><a asp-controller="Home" asp-action="Index" asp-area="">Início</a></li>
 
                     <li class="dropdown">
                         <a href="javascript:void(0)" class="dropbtn">Ewellin</a>
                         <div class="dropdown-content">
-                            <a asp-area="Public" asp-controller="Institutional" asp-action="About">Sobre nós</a>
-                            <a asp-area="Public" asp-controller="Institutional" asp-action="Academy">Academia</a>
+                            <a asp-area="Public" asp-controller="PublicInstitutional" asp-action="About">Sobre nós</a>
+                            <a asp-area="Public" asp-controller="PublicInstitutional" asp-action="Academy">Academia</a>
                         </div>
                     </li>
+                    <li><a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index">Agendamento Online</a></li>
+                    <li><a asp-area="Public" asp-controller="PublicPrice" asp-action="Index">Tabela de preços</a></li>
+                    <li><a asp-area="Public" asp-controller="PublicServices" asp-action="Index">Serviços</a></li>
+                    <li><a asp-area="Public" asp-controller="PublicProducts" asp-action="Index">Produtos</a></li>
+                    <li><a asp-area="Public" asp-controller="PublicRecrutamento" asp-action="Index">Recrutamento</a></li>
 
-                    <li>
-                        <a asp-area="Public" asp-controller="Appointment" asp-action="Index">Agendamento Online</a>
-                    </li>
-                    <li>
-                        <a asp-area="Public" asp-controller="Price" asp-action="Index">Tabela de preços</a>                       
-                    </li>
-                    <li>
-                        <a asp-area="Public" asp-controller="Service" asp-action="Index">Serviços</a>
-                    </li>
+                    <!-- 🔧 Ícone de engrenagem à direita -->
+                    <div>
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                        <li class="ms-auto">
+                            <a asp-controller="Account" asp-action="Login">
+                                <i class="fas fa-cog fa-lg"></i>
+                            </a>
+                        </li>
+                    }
+                    else if (User.IsInRole("Admin") && ViewContext.RouteData.Values["area"]?.ToString() != "Admin")
+                    {
+                        <li class="dropdown ms-auto">
+                            <a href="javascript:void(0)" class="dropbtn">
+                                <i class="fas fa-cog fa-lg"></i>
+                            </a>
+                            <div class="dropdown-content dropdown-end">
+                                <a asp-area="Admin" asp-controller="Admin" asp-action="Index">Painel</a>
+                                <a asp-area="Admin" asp-controller="AdminClients" asp-action="Index">Clientes</a>
+                                <a asp-area="Admin" asp-controller="AdminAppointments" asp-action="Index">Agendamentos</a>
+                                <a asp-area="Admin" asp-controller="AdminServices" asp-action="Index">Serviços</a>
+                                <a asp-area="Admin" asp-controller="AdminReports" asp-action="Index">Relatórios</a>
+                                <a asp-controller="Account" asp-action="Logout">Sair</a>
+                            </div>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="dropdown ms-auto">
+                            <a href="javascript:void(0)" class="dropbtn">
+                                <i class="fas fa-cog fa-lg"></i>
+                            </a>
+                            <div class="dropdown-content dropdown-end">
+                                <a asp-area="Public" asp-controller="PublicProfile" asp-action="Index">Perfil</a>
+                                <a asp-controller="Account" asp-action="Settings">Configurações</a>
+                                <a asp-controller="Account" asp-action="Logout">Sair</a>
+                            </div>
+                        </li>
+                    }
+                </div>
+            </ul>
+        </nav>
 
-                    <li>
-                        <a asp-area="Public" asp-controller="Product" asp-action="Index">Produtos</a>
-                    </li>
+        <!-- Menu Mobile -->
+        <nav class="nav-mobile">
+            <a asp-controller="Home" asp-action="Index" asp-area="">Início</a>
+            <a asp-area="Public" asp-controller="PublicInstitutional" asp-action="About">Sobre nós</a>
+            <a asp-area="Public" asp-controller="PublicInstitutional" asp-action="Academy">Academia</a>
+            <a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index">Agendamento Online</a>
+            <a asp-area="Public" asp-controller="PublicPrice" asp-action="Index">Tabela de preços</a>
+            <a asp-area="Public" asp-controller="PublicServices" asp-action="Index">Serviços</a>
+            <a asp-area="Public" asp-controller="PublicProducts" asp-action="Index">Produtos</a>
+        </nav>
 
-                    <li class="dropdown">
-                        <a href="javascript:void(0)" class="dropbtn">Contatos</a>
-                        <div class="dropdown-content">                            
-                            <a asp-area="Public" asp-controller="Recrutamento" asp-action="Index">Recrutamento</a>                            
-                        </div>
-                    </li>
-
-
-                </ul>
-            </nav>
-
-            <!-- Menu Mobile -->
-            <nav class="nav-mobile">
-                <a asp-controller="Home" asp-action="Index" asp-area="">Início</a>
-                <a asp-area="Public" asp-controller="Institutional" asp-action="About">Sobre nós</a>
-                <a asp-area="Public" asp-controller="Institutional" asp-action="Academy">Academia</a>
-                <a asp-area="Public" asp-controller="Appointment" asp-action="Index">Agendamento Online</a>
-                <a asp-area="Public" asp-controller="Price" asp-action="Index">Tabela de preços</a>
-                <a asp-area="Public" asp-controller="Service" asp-action="Index">Serviços</a>
-                <a asp-area="Public" asp-controller="Product" asp-action="Index">Produtos</a>
-            </nav>
-
-            <!-- Menu Hambúrguer -->
-            <div class="menu-hamburguer">
-                <div class="bar1"></div>
-                <div class="bar2"></div>
-                <div class="bar3"></div>
-            </div>
+        <!-- Menu Hambúrguer -->
+        <div class="menu-hamburguer">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+        </div>
         </div>
     </header>
-
     <!-- CONTEÚDO DAS PÁGINAS -->
     <main role="main">
         @RenderBody()
     </main>
-
-
-
     <!-- FOOTER -->
     <footer>
         <div class="wrapper">

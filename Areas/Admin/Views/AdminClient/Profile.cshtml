@@ -1,0 +1,167 @@
+@model Sistema.Models.Admin.AdminClientProfileViewModel
+@{
+    ViewData["Title"] = "Meu Cadastro";
+
+}
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Menu lateral -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group shadow-sm">
+                <a href="#profile" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user-circle me-2"></i> Meu cadastro
+                </a>
+                <a href="#appointments" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-alt me-2"></i> Meus compromissos
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-store me-2"></i> Onde sou cliente
+                </a>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <div class="col-md-9">
+
+            <!-- ========== DADOS DO CLIENTE ========== -->
+            <div id="profile" class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2 text-primary"></i> Dados Gerais
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="row mb-3">
+                            <div class="col-md-3 text-center">
+                                <img src="~/images/default-avatar.png" class="img-thumbnail rounded-circle mb-2" style="width:120px;height:120px;" />
+                                <button class="btn btn-sm btn-outline-secondary w-100">Adicionar nova foto</button>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Nome</label>
+                                        <input type="text" class="form-control" value="@Model.User.FirstName" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Apelido</label>
+                                        <input type="text" class="form-control" value="@Model.User.LastName" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Telefone</label>
+                                        <input type="text" class="form-control" value="@Model.User.PhoneNumber" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5><i class="fas fa-envelope me-2 text-primary"></i> Dados de Acesso</h5>
+                        <div class="mb-3">
+                            <label class="form-label">E-mail</label>
+                            <input type="email" class="form-control" value="@Model.User.Email" readonly />
+                            <small class="text-success">Validado</small>
+                        </div>
+                        <div class="mb-3">
+                            <a href="@Url.Action("ChangePassword", "Account", new { area = "" })" class="btn btn-link">Alterar senha</a>
+                        </div>
+
+                        <hr />
+                        <h5><i class="fas fa-info-circle me-2 text-primary"></i> Dados Adicionais</h5>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="newsletter">
+                            <label class="form-check-label" for="newsletter">
+                                Quero receber newsletters com notícias, eventos e informações
+                            </label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ========== AGENDAMENTOS ========== -->
+            <div id="appointments" class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i> Meus Compromissos
+                    </h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- Pendentes -->
+                    <h5 class="text-warning"><i class="fas fa-hourglass-half me-2"></i> Pendentes</h5>
+                    @if (Model.PendingAppointments.Any())
+                    {
+                        <ul class="list-group mb-3">
+                            @foreach (var item in Model.PendingAppointments)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.Service?.Name</strong> com @item.Professional?.Name <br />
+                                        <small>@item.Date.ToShortDateString() às @item.Time</small>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum agendamento pendente.</p>
+                    }
+
+                    <!-- Confirmados -->
+                    <h5 class="text-success"><i class="fas fa-check-circle me-2"></i> Confirmados</h5>
+                    @if (Model.ConfirmedAppointments.Any())
+                    {
+                        <ul class="list-group mb-3">
+                            @foreach (var item in Model.ConfirmedAppointments)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.Service?.Name</strong> com @item.Professional?.Name <br />
+                                        <small>@item.Date.ToShortDateString() às @item.Time</small>
+                                    </div>
+                                    <span class="badge bg-success">Confirmado</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum agendamento confirmado.</p>
+                    }
+
+                    <!-- Concluídos -->
+                    <h5 class="text-secondary"><i class="fas fa-history me-2"></i> Concluídos</h5>
+                    @if (Model.PastAppointments.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var item in Model.PastAppointments)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.Service?.Name</strong> com @item.Professional?.Name <br />
+                                        <small>@item.Date.ToShortDateString() às @item.Time</small>
+                                    </div>
+                                    <span class="badge bg-secondary">Concluído</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum agendamento concluído.</p>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

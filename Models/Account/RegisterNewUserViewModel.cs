@@ -17,6 +17,7 @@ namespace Sistema.Models.Account
 
         [Required(ErrorMessage = "O e-mail é obrigatório")]
         [EmailAddress(ErrorMessage = "Digite um e-mail válido")]
+        [DataType(DataType.EmailAddress)]
         [Display(Name = "E-mail")]
         public string? Email { get; set; }
 

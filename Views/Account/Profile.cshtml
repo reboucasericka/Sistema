@@ -1,4 +1,4 @@
-@model Sistema.Models.Admin.ProfileViewModel
+@model Sistema.Models.Admin.AdminProfileViewModel
 
 @{
     ViewData["Title"] = "Perfil";
@@ -27,7 +27,7 @@
                     }
                     else
                     {
-                        <li class="breadcrumb-item"><a asp-area="Public" asp-controller="Appointment" asp-action="Index">Home</a></li>
+                        <li class="breadcrumb-item"><a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index">Home</a></li>
                     }
                     <li class="breadcrumb-item active">Perfil</li>
                 </ol>
@@ -112,7 +112,7 @@
                         <h3 class="card-title">Informações da Sessão</h3>
                     </div>
                     <div class="card-body">
-                        <p><strong>Usuário:</strong> @User.Identity.Name</p>
+                        <p><strong>Usuário:</strong> @User?.Identity?.Name</p>
                         <p><strong>Último acesso:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
                     </div>
                 </div>

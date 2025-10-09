@@ -1,13 +1,17 @@
-﻿
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Sistema.Helpers
 {
     public class BlobHelper : IBlobHelper
     {
         private readonly CloudBlobClient _blobClient;//ligar ao contentor
-        private readonly IConfiguration _configuration;
+       
 
         public BlobHelper(IConfiguration configuration)
         {
@@ -39,7 +43,7 @@ namespace Sistema.Helpers
         {
             Guid name = Guid.NewGuid();
             CloudBlobContainer container = _blobClient.GetContainerReference(containerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference($"{name}");
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference($"{name}.png");
             await blockBlob.UploadFromStreamAsync(stream);
             return name;
         }

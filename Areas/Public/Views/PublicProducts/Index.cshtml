@@ -1,0 +1,61 @@
+﻿@model IEnumerable<Sistema.Data.Entities.Product>
+@{
+    ViewData["Title"] = "Produtos";
+}
+
+
+<section class="produtos-section container mt-5">
+
+<div class="container tabela-precos">
+    <h2 class="titulo">Produtos</h2>
+    <p class="subtitulo">Conheça os produtos disponíveis no nosso espaço</p>
+</div>
+
+    @foreach (var categoria in Model.GroupBy(p => p.ProductCategory.Name))
+    {
+    <div class="categoria mb-3">
+        <div class="categoria">@categoria.Key</div>
+        <div class="linha-categoria">
+
+        @foreach (var item in categoria)
+        {
+                <div class="linha-preco d-flex justify-content-between align-items-center border-bottom py-2">
+                    <span class="servico fw-semibold">@item.Name</span>
+                    <span class="preco text-muted">@item.SalePrice.ToString("C")</span>
+                </div>
+            }
+        </div>
+    </div>
+}
+</section>
+
+<style>
+    .titulo {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        margin-bottom: .5rem;
+    }
+
+    .subtitulo {
+        color: #888;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .categoria-nome {
+        font-weight: 600;
+        color: #c48ba4;
+        border-bottom: 2px solid #f7d7e0;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+
+    .linha-preco {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+    }
+
+    .preco {
+        color: #444;
+    }
+</style>

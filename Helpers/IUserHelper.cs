@@ -19,18 +19,19 @@ namespace Sistema.Helpers
         Task<IdentityResult> CreateEmployeeUserAsync(User user, string password);
         
         // Authentication methods
-        Task<SignInResult> LoginAsync(LoginViewModel model);
-        Task LogoutAsync();
+        Task<SignInResult> LoginAsync(LoginViewModel model); //ok
+        Task LogoutAsync(); //ok
         
         // Password methods
-        Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword);
+        Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
         Task<string> GeneratePasswordResetTokenAsync(User user);
         Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
         
         // Role management methods
-        Task CheckRoleAsync(string roleName);
-        Task AddUserToRoleAsync(User user, string roleName);
-        Task<bool> IsUserInRoleAsync(User user, string roleName);
+        Task CheckRoleAsync(string roleName); //ok
+        Task AddUserToRoleAsync(User user, string roleName); //ok
+        Task<bool> IsUserInRoleAsync(User user, string roleName); //ok
+
         Task<IList<string>> GetUserRolesAsync(User user);
         Task<IList<User>> GetUsersInRoleAsync(string roleName);
         

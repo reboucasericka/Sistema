@@ -1,0 +1,137 @@
+﻿@{
+    ViewData["Title"] = "Academia";
+}
+
+<section class="academia py-5">
+    <div class="container">      
+
+        <!-- ================== SLIDER DE FOTOS ================== -->
+        <div id="academyCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="~/images/Academy/ew1.jpg" class="d-block w-100" alt="Ewellin ensinando 1">
+                </div>
+                <div class="carousel-item">
+                    <img src="~/images/Academy/ew2.jpg" class="d-block w-100" alt="Ewellin ensinando 2">
+                </div>
+                <div class="carousel-item">
+                    <img src="~/images/Academy/ew3.jpg" class="d-block w-100" alt="Ewellin ensinando 3">
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#academyCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#academyCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+
+        <!-- ================== TÍTULO ================== -->
+        <h2 class="academia-title text-center mb-4">Academia Ewellin Jordão</h2>
+        <p class="text-center mb-5">
+            Invista no seu futuro! Aprenda as técnicas mais avançadas de extensão de pestanas
+            e torne-se uma profissional de sucesso com os nossos cursos exclusivos.
+        </p>
+
+
+        <!-- ================== CARDS DE CURSOS ================== -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/classic.jpg" class="card-img-top" alt="Extensão Clássica">
+                    <div class="card-body text-center">
+                        <h4>Extensão Clássica</h4>
+                        <p>Curso completo para iniciantes.</p>
+                        <p>O pilar. Foco em saúde das pestanas e isolamento perfeito</p>
+                        <p>Kit Inicial Incluído: Garantir que o preço (€250) inclua um kit inicial de materiais de alta qualidade.</p>
+                        <h5>€250</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/russian.jpg" class="card-img-top" alt="Volume Russo">
+                    <div class="card-body text-center">
+                        <h4>Volume Russo</h4>
+                        <p>Técnicas avançadas de volume.</p>
+                        <p>Aumento da densidade e técnica de fanning (criação de leques).</p>
+                        <p>Módulo de Marketing: Adicionar um módulo rápido sobre como fotografar o trabalho e gerir o Instagram profissional.</p>
+                        <h5>€350</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/mega.jpeg" class="card-img-top" alt="Mega Volume">
+                    <div class="card-body text-center">
+                        <h4>Mega Volume</h4>
+                        <p>Formação intensiva para experts.</p>
+                        <p>"Formação Intensiva para Masters. Foco em densidade, retenção e técnicas avançadas de styling."</p>
+                        <h5>€450</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/ew4.jpg" class="card-img-top" alt="Extensão Clássica">
+                    <div class="card-body text-center">
+                        <h4>Lash Lifting & Tinting</h4>
+                        <p>Curso completo para iniciantes.</p>
+                        <p>Técnicas Naturais: Aprenda a curvar e pintar as pestanas naturais. Ideal para complementar serviços ou iniciar com baixo investimento.</p>
+                        <h5>€250</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/ew5.jpg" class="card-img-top" alt="Extensão Clássica">
+                    <div class="card-body text-center">
+                        <h4>Dermo Labial</h4>
+                        <p>Curso completo para iniciantes.</p>
+                        <p>Especialização Facial: Curso avançado de micropigmentação labial. Aumente o leque de serviços da sua cliente e a sua rentabilidade.</p>
+                        <h5>€650</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/Academy/ew6.jpg" class="card-img-top" alt="Extensão Clássica">
+                    <div class="card-body text-center">
+                        <h4>Master Pack - Volume</h4>
+                        <p>Curso completo para iniciantes.</p>
+                        <p>Volume Russo + Mega Volume. Desconto exclusivo! Formação completa para se tornar uma especialista em todas as técnicas de volume. (\€50 de desconto se comprados separadamente)</p>
+                        <h5>€750</h5>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================== FORMULÁRIO ================== -->
+        <div class="formulario-academia mt-5">
+            <h2 class="formulario-title text-center mb-4">Gostaria de saber mais informações?</h2>
+            <p class="text-center mb-5">Preencha o formulário abaixo e entraremos em contato.</p>
+
+            <form>
+                <input type="text" class="form-control" placeholder="Nome completo" required>
+                <input type="email" class="form-control" placeholder="Email" required>
+                <input type="text" class="form-control" placeholder="Telefone">
+                <input type="text" class="form-control" placeholder="Cidade">
+                <textarea class="form-control" rows="4" placeholder="Mensagem (opcional)"></textarea>
+
+                
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn-enviar">Enviar Mensagem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

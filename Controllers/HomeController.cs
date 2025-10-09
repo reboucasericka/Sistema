@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
-using Sistema.Models.Shared;
+using Sistema.Models.Account;
 using System.Diagnostics;
 
 namespace Sistema.Controllers
@@ -30,6 +30,7 @@ namespace Sistema.Controllers
             // Busca produtos em destaque
             var featuredProducts = await _context.Products
                 .Include(p => p.ProductCategory)
+                .Where(p => p.IsActive)
                 .Take(6)
                 .ToListAsync();
 
@@ -44,6 +45,7 @@ namespace Sistema.Controllers
                 var products = await _context.Products
                 .Include(p => p.ProductCategory)
                 .Include(p => p.Supplier)
+                .Where(p => p.IsActive)
                 .ToListAsync();
 
             return View(products); // procura Views/Home/S

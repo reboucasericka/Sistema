@@ -7,7 +7,8 @@ namespace Sistema.Data.Entities
     public class Service : IEntity
     {
         [Key]
-        public int Id { get; set; }
+        [Column("ServiceId")]   //  nome real da coluna no banco
+        public int Id { get; set; }  //  continua cumprindo a interface
 
         [Required, StringLength(100)]
         public string Name { get; set; }
@@ -28,8 +29,7 @@ namespace Sistema.Data.Entities
         public decimal Commission { get; set; } = 0; // Comissão do profissional
         public int ReturnDays { get; set; } = 0; // Dias para retorno
 
-        [StringLength(255)]
-        public string? PhotoPath { get; set; }
+        public Guid ImageId { get; set; } // ID da imagem no blob
 
         // FK
         public int CategoryId { get; set; }
@@ -44,5 +44,10 @@ namespace Sistema.Data.Entities
 
         // Relacionamento
         public ICollection<Professional>? Professionals { get; set; }
+
+        // Propriedade calculada para o caminho completo da imagem
+        public string ImageFullPath => ImageId == Guid.Empty
+            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
+            : $"https://supershopcontaarmazename.blob.core.windows.net/services/{ImageId}.png";
     }
 }

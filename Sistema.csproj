@@ -7,27 +7,41 @@
     <UserSecretsId>b9627ff1-0543-4563-b856-530da8c1169f</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Controllers\Public\**" />
     <Compile Remove="Dashboard\**" />
     <Compile Remove="Views\Layouts\**" />
     <Compile Remove="Views\Public\**" />
     <Compile Remove="Views\Templates\**" />
+    <Compile Remove="wwwroot\NewFolder\**" />
     <Content Remove="Controllers\Public\**" />
     <Content Remove="Dashboard\**" />
     <Content Remove="Views\Layouts\**" />
     <Content Remove="Views\Public\**" />
     <Content Remove="Views\Templates\**" />
+    <Content Remove="wwwroot\NewFolder\**" />
     <EmbeddedResource Remove="Controllers\Public\**" />
     <EmbeddedResource Remove="Dashboard\**" />
     <EmbeddedResource Remove="Views\Layouts\**" />
     <EmbeddedResource Remove="Views\Public\**" />
     <EmbeddedResource Remove="Views\Templates\**" />
+    <EmbeddedResource Remove="wwwroot\NewFolder\**" />
     <None Remove="Controllers\Public\**" />
     <None Remove="Dashboard\**" />
     <None Remove="Views\Layouts\**" />
     <None Remove="Views\Public\**" />
     <None Remove="Views\Templates\**" />
+    <None Remove="wwwroot\NewFolder\**" />
   </ItemGroup>
 
   

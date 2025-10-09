@@ -1,6 +1,5 @@
 ﻿@{
     ViewData["Title"] = "Ewellin Jordão Beauty Academy | Extensão de pestanas | Sobrancelhas | Maquilhagem | Labios e Facial em Coimbra";
-    Layout = "_Layout";
 }
 
 <div class="home">
@@ -42,7 +41,7 @@
                     <h3 class="title">Serviços</h3>
                     <span class="subtitle">Extensões & Lifting</span>
                     <p class="text">Transforme o seu olhar com Volume Russo ou Clássico..</p>
-                    <div class="more"> <a asp-controller="Services" asp-action="Index">saiba mais</a></div>
+                    <div class="more"> <a asp-area="Public" asp-controller="PublicServices" asp-action="Index">saiba mais</a></div>
                 </div>
             </div>
             <div class="item black">
@@ -50,7 +49,7 @@
                     <h3 class="title">Estética Facial</h3>
                     <span class="subtitle">Sobrancelhas & Lábios</span>
                     <p class="text">Design, Lamination e Micropigmentação para o seu rosto.</p>
-                    <div class="more"> <a asp-controller="Services" asp-action="Index">saiba mais</a></div>
+                    <div class="more"> <a asp-area="Public" asp-controller="PublicServices" asp-action="Index">saiba mais</a></div>
                 </div>
             </div>
             <div class="item bg_full academy-bg">
