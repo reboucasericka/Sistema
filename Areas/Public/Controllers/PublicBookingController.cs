@@ -39,7 +39,7 @@ namespace Sistema.Areas.Public.Controllers
                 .Include(s => s.Category)
                 .Include(s => s.ProfessionalServices)
                     .ThenInclude(ps => ps.Professional)
-                .FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
+                .FirstOrDefaultAsync(s => s.ServiceId == id && s.IsActive);
 
             if (service == null)
             {
@@ -48,7 +48,7 @@ namespace Sistema.Areas.Public.Controllers
 
             var viewModel = new PublicBookingViewModel
             {
-                ServiceId = service.Id,
+                ServiceId = service.ServiceId,
                 ServiceName = service.Name,
                 Price = service.Price,
                 Duration = service.Duration,
@@ -78,7 +78,7 @@ namespace Sistema.Areas.Public.Controllers
                 
                 var service = await _context.Service
                     .Include(s => s.Category)
-                    .FirstOrDefaultAsync(s => s.Id == model.ServiceId);
+                    .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
                 if (service == null)
                 {
@@ -99,7 +99,7 @@ namespace Sistema.Areas.Public.Controllers
                 .Include(s => s.Category)
                 .Include(s => s.ProfessionalServices)
                     .ThenInclude(ps => ps.Professional)
-                .FirstOrDefaultAsync(s => s.Id == model.ServiceId);
+                .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
             if (serviceForView != null)
             {

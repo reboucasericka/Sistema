@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Tasks.Deployment.Bootstrapper;
+﻿using System;
 using Sistema.Data.Entities;
 using Sistema.Models.Admin;
 using Sistema.Models.Public;
@@ -8,29 +8,33 @@ namespace Sistema.Helpers
     public class ConverterHelper : IConverterHelper
     {
         // Product mappings
-        public Sistema.Data.Entities.Product ToProduct(AdminProductViewModel model, Guid imageId, bool isNew)
+        // ViewModel → Entidade
+        public Product ToProduct(AdminProductViewModel model, Guid imageId, bool isNew, string? userId = null)
         {
-            return new Sistema.Data.Entities.Product
+            return new Product
             {
                 ProductId = isNew ? 0 : model.ProductId,
-                Name = model.Name,
+                Name = model.Name ?? string.Empty,
                 Description = model.Description,
                 ProductCategoryId = model.ProductCategoryId,
                 PurchasePrice = model.PurchasePrice,
                 SalePrice = model.SalePrice,
                 Stock = model.Stock,
-                ImageId = imageId,
+                ImageId = imageId == Guid.Empty ? null : imageId,
                 MinimumStockLevel = model.MinimumStockLevel,
-                SupplierId = model.SupplierId
+                SupplierId = model.SupplierId > 0 ? model.SupplierId : null, // Garantir que seja null se <= 0
+                UserId = userId, // Adicionar UserId
+                IsActive = model.IsActive
             };
         }
-
-        public AdminProductViewModel ToProductViewModel(Sistema.Data.Entities.Product product)
+        
+        // Entidade → ViewModel
+        public AdminProductViewModel ToProductViewModel(Product product)
         {
             return new AdminProductViewModel
             {
                 ProductId = product.ProductId,
-                Name = product.Name,
+                Name = product.Name ?? string.Empty,
                 Description = product.Description,
                 ProductCategoryId = product.ProductCategoryId,
                 PurchasePrice = product.PurchasePrice,
@@ -38,7 +42,8 @@ namespace Sistema.Helpers
                 Stock = product.Stock,
                 MinimumStockLevel = product.MinimumStockLevel,
                 SupplierId = product.SupplierId,
-                ImageId = product.ImageId
+                ImageId = product.ImageId,
+                IsActive = product.IsActive
             };
         }
 
@@ -192,7 +197,7 @@ namespace Sistema.Helpers
             return new Professional
             {
                 Name = model.Name,
-                UserId = model.UserId,
+                UserId = model.ExistingUserId ?? string.Empty,
                 ImageId = Guid.Parse(model.ImageId ?? Guid.Empty.ToString()),
                 Specialty = model.Specialty,
                 DefaultCommission = model.DefaultCommission,
@@ -237,8 +242,8 @@ namespace Sistema.Helpers
             return new AdminProfessionalCreateViewModel
             {
                 Name = professional.Name,
-                UserId = professional.UserId,
-                ImageId = professional.ImageId.ToString().ToString(),
+                ExistingUserId = professional.UserId,
+                ImageId = professional.ImageId.ToString(),
                 Specialty = professional.Specialty,
                 DefaultCommission = professional.DefaultCommission,
                 IsActive = professional.IsActive
@@ -300,14 +305,7 @@ namespace Sistema.Helpers
             };
         }
 
-        public Data.Entities.Product ToProduct(AdminProductViewModel model, bool isNew)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Data.Entities.Product ToProduct(AdminProductViewModel model, string path, bool isNew)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

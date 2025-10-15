@@ -1,59 +1,71 @@
 @model IEnumerable<Sistema.Data.Entities.Setting>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "System Settings";
+    ViewData["Title"] = "Configurações do Sistema";
 }
 
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">System Settings</h1>
-            <p class="text-muted">Manage clinic and system settings</p>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-cog me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Nova Configuração
+            </a>
         </div>
-        <a href="@Url.Action("Create")" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Configuration
-        </a>
+        <div class="card-body">
+            <p class="text-muted mb-0">Gerencie as configurações da clínica e do sistema</p>
+        </div>
     </div>
 
-    <!-- Alerts -->
+    <!-- Alertas -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <!-- Settings List -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Clinic Settings</h6>
+    <!-- Lista de Configurações -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Configurações da Clínica
+            </h5>
         </div>
         <div class="card-body">
             @if (Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
+                    <table class="table table-hover align-middle" id="dataTable">
+                        <thead class="table-light text-uppercase small">
                             <tr>
-                                <th>Clinic Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Actions</th>
+                                <th>
+                                    <i class="fas fa-building me-1"></i>Nome da Clínica
+                                </th>
+                                <th>
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </th>
+                                <th>
+                                    <i class="fas fa-phone me-1"></i>Telefone
+                                </th>
+                                <th>
+                                    <i class="fas fa-map-marker-alt me-1"></i>Endereço
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-cogs me-1"></i>Ações
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,32 +73,40 @@
                             {
                                 <tr>
                                     <td>
-                                        <strong>@setting.ClinicName</strong>
+                                        <div class="fw-bold">@setting.ClinicName</div>
                                     </td>
-                                    <td>@setting.Email</td>
-                                    <td>@setting.LandlinePhone</td>
+                                    <td>
+                                        <small class="text-muted">@setting.Email</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary">@setting.LandlinePhone</span>
+                                    </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(setting.Address) && setting.Address.Length > 30)
                                         {
-                                            <span title="@setting.Address">@setting.Address.Substring(0, 30)...</span>
+                                            <div class="text-truncate" style="max-width: 200px;" title="@setting.Address">
+                                                @setting.Address.Substring(0, 30)...
+                                            </div>
                                         }
                                         else
                                         {
-                                            @setting.Address
+                                            <div class="text-truncate" style="max-width: 200px;" title="@setting.Address">
+                                                @setting.Address
+                                            </div>
                                         }
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="@Url.Action("Details", new { id = setting.SettingId })" 
-                                               class="btn btn-info btn-sm" title="View details">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <a asp-action="Details" asp-route-id="@setting.SettingId" 
+                                               class="btn btn-info btn-sm" title="Visualizar">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="@Url.Action("Edit", new { id = setting.SettingId })" 
-                                               class="btn btn-warning btn-sm" title="Edit">
+                                            <a asp-action="Edit" asp-route-id="@setting.SettingId" 
+                                               class="btn btn-warning btn-sm" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="@Url.Action("Delete", new { id = setting.SettingId })" 
-                                               class="btn btn-danger btn-sm" title="Delete">
+                                            <a asp-action="Delete" asp-route-id="@setting.SettingId" 
+                                               class="btn btn-danger btn-sm" title="Excluir">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
@@ -100,9 +120,12 @@
             else
             {
                 <div class="text-center py-5">
-                    <i class="fas fa-cog fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No settings found</h5>
-                    <p class="text-muted">Click "New Configuration" to add the first setting.</p>
+                    <i class="fas fa-cog fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma configuração encontrada</h5>
+                    <p class="text-muted">Clique em "Nova Configuração" para adicionar a primeira configuração.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Adicionar Primeira Configuração
+                    </a>
                 </div>
             }
         </div>
@@ -117,7 +140,10 @@
                     "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
                 },
                 "pageLength": 25,
-                "order": [[0, "asc"]]
+                "order": [[0, "asc"]],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false
             });
         });
     </script>

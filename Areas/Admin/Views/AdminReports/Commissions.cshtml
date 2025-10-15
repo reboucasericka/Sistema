@@ -1,0 +1,268 @@
+@model IEnumerable<Sistema.Data.Entities.Payable>
+
+@{
+    ViewData["Title"] = "Relatório de Comissões";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Relatório de Comissões</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Relatórios</a></li>
+                    <li class="breadcrumb-item active">Comissões</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Filtros</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="startDate">Data Inicial:</label>
+                            <input type="date" id="startDate" name="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="endDate">Data Final:</label>
+                            <input type="date" id="endDate" name="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                                <a asp-action="Commissions" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Limpar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resumo -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>€@ViewBag.TotalCommissions?.ToString("N2")</h3>
+                        <p>Total de Comissões</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>€@ViewBag.PaidCommissions?.ToString("N2")</h3>
+                        <p>Comissões Pagas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>€@ViewBag.PendingCommissions?.ToString("N2")</h3>
+                        <p>Comissões Pendentes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalProfessionals</h3>
+                        <p>Profissionais</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Comissões por Profissional -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Comissões por Profissional</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="commissionsByProfessionalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Comissões por Dia</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="commissionsByDayChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Comissões -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Comissões Detalhadas</h3>
+                <div class="card-tools">
+                    <a asp-action="Export" asp-route-reportType="commissions" asp-route-startDate="@ViewBag.StartDate" asp-route-endDate="@ViewBag.EndDate" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Profissional</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Venda</th>
+                                <th>Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var commission in Model)
+                            {
+                                <tr>
+                                    <td>@commission.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>@commission.Professional?.Name</td>
+                                    <td>@commission.Description</td>
+                                    <td>€@commission.Amount.ToString("N2")</td>
+                                    <td>
+                                        @if (commission.Status == "Paid")
+                                        {
+                                            <span class="badge badge-success">Pago</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-warning">Pendente</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (commission.Sale != null)
+                                        {
+                                            <a asp-controller="AdminSales" asp-action="Details" asp-route-id="@commission.Sale.SaleId">
+                                                #@commission.Sale.SaleId
+                                            </a>
+                                        }
+                                    </td>
+                                    <td>@commission.Sale?.Customer?.Name</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Gráfico de Comissões por Profissional
+        const commissionsByProfessionalData = @Html.Raw(Json.Serialize(ViewBag.CommissionsByProfessional));
+        const professionalLabels = commissionsByProfessionalData.map(item => item.professional);
+        const professionalValues = commissionsByProfessionalData.map(item => item.total);
+
+        const professionalCtx = document.getElementById('commissionsByProfessionalChart').getContext('2d');
+        new Chart(professionalCtx, {
+            type: 'bar',
+            data: {
+                labels: professionalLabels,
+                datasets: [{
+                    label: 'Comissões (€)',
+                    data: professionalValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '€' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Comissões por Dia
+        const commissionsByDayData = @Html.Raw(Json.Serialize(ViewBag.CommissionsByDay));
+        const dayLabels = commissionsByDayData.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('pt-PT');
+        });
+        const dayValues = commissionsByDayData.map(item => item.total);
+
+        const dayCtx = document.getElementById('commissionsByDayChart').getContext('2d');
+        new Chart(dayCtx, {
+            type: 'line',
+            data: {
+                labels: dayLabels,
+                datasets: [{
+                    label: 'Comissões (€)',
+                    data: dayValues,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '€' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

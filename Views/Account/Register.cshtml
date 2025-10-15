@@ -112,12 +112,14 @@
 
 
                         <div class="d-grid gap-2 mb-3">
-                            <input type="submit" value="Register New User" class="btn btn-primary" />                            
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Criar Conta
+                            </button>
                         </div>
 
                         <!-- Login Social -->
                         <div class="social-login">
-                            <div class="divider">
+                            <div >
                                 <span>ou cadastre-se com</span>
                             </div>
                             <a asp-action="ExternalLogin" asp-route-provider="Facebook" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-facebook social-btn">
@@ -130,9 +132,9 @@
                             </a>
                         </div>
 
-                        <div class="text-center">
+                        <div class="text-center mt-3">
                             <p class="mb-2">Já possui uma conta?</p>
-                            <a asp-action="Login" class="text-link">
+                            <a asp-action="Login" class="btn btn-outline-primary">
                                 <i class="fas fa-sign-in-alt me-1"></i>
                                 Faça login
                             </a>
@@ -230,7 +232,7 @@
             const password = this.value;
             const confirmField = document.querySelector('input[name="Confirm"]');
             
-            if (password.length < 6) {
+            if (password.length < 5) {
                 this.classList.add('is-invalid');
             } else {
                 this.classList.remove('is-invalid');

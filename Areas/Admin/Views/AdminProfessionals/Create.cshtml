@@ -1,127 +1,129 @@
-@model Sistema.Data.Entities.Professional
+@model Sistema.Models.Admin.AdminProfessionalCreateViewModel
 
 @{
     ViewData["Title"] = "Novo Profissional";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Novo Profissional</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Profissionais</a></li>
-                    <li class="breadcrumb-item active">Novo</li>
-                </ol>
-            </div>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-user-plus me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Adicione um novo profissional à equipe</p>
         </div>
     </div>
-</div>
 
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Dados do Profissional</h3>
+    <!-- Formulário -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-user-tie me-2"></i>Dados do Profissional
+            </h5>
+        </div>
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Por favor, corrija os erros abaixo:
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label">
+                            <i class="fas fa-user me-1"></i>Nome Completo
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Digite o nome completo" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
-                    <form asp-action="Create" method="post" enctype="multipart/form-data">
-                        <div class="card-body">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Name" class="control-label">Nome Completo</label>
-                                        <input asp-for="Name" class="form-control" placeholder="Nome completo do profissional" />
-                                        <span asp-validation-for="Name" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Specialty" class="control-label">Especialidade</label>
-                                        <input asp-for="Specialty" class="form-control" placeholder="Ex: Esteticista, Massagista, etc." />
-                                        <span asp-validation-for="Specialty" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="DefaultCommission" class="control-label">Comissão Padrão (%)</label>
-                                        <input asp-for="DefaultCommission" type="number" step="0.01" min="0" max="100" class="form-control" placeholder="0.00" />
-                                        <span asp-validation-for="DefaultCommission" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Foto do Profissional</label>
-                                        <input type="file" name="photoFile" class="form-control" accept="image/*" />
-                                        <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Usuário Existente</label>
-                                        <select asp-for="UserId" class="form-control" asp-items="ViewBag.Id">
-                                            <option value="">Selecione um usuário existente (opcional)</option>
-                                        </select>
-                                        <small class="form-text text-muted">Ou crie um novo usuário abaixo</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                            <label asp-for="IsActive" class="form-check-label">Profissional Ativo</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <hr />
-                            <h5>Criar Novo Usuário (Opcional)</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Email</label>
-                                        <input type="email" name="email" class="form-control" placeholder="email@exemplo.com" />
-                                        <small class="form-text text-muted">Deixe em branco se selecionou um usuário existente</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Senha</label>
-                                        <input type="password" name="password" class="form-control" placeholder="Senha para o usuário" />
-                                        <small class="form-text text-muted">Mínimo 6 caracteres</small>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <label asp-for="Specialty" class="form-label">
+                            <i class="fas fa-star me-1"></i>Especialidade
+                        </label>
+                        <input asp-for="Specialty" class="form-control" placeholder="Digite a especialidade" required />
+                        <span asp-validation-for="Specialty" class="text-danger small"></span>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label asp-for="DefaultCommission" class="form-label">
+                            <i class="fas fa-percentage me-1"></i>Comissão Padrão (%)
+                        </label>
+                        <input asp-for="DefaultCommission" type="number" step="0.01" min="0" max="100" class="form-control" placeholder="0.00" />
+                        <span asp-validation-for="DefaultCommission" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PhotoFile" class="form-label">
+                            <i class="fas fa-camera me-1"></i>Foto do Profissional
+                        </label>
+                        <input asp-for="PhotoFile" type="file" class="form-control" accept="image/*" />
+                        <span asp-validation-for="PhotoFile" class="text-danger small"></span>
+                        <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label asp-for="ExistingUserId" class="form-label">
+                            <i class="fas fa-users me-1"></i>Usuário Existente
+                        </label>
+                        <select asp-for="ExistingUserId" class="form-select" asp-items="ViewBag.ExistingUsers">
+                            <option value="">Selecione um usuário existente</option>
+                        </select>
+                        <small class="form-text text-muted">Ou crie um novo usuário abaixo</small>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                <i class="fas fa-toggle-on me-1"></i>Profissional Ativo
+                            </label>
                         </div>
-                        
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Salvar
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Voltar
-                            </a>
-                        </div>
-                    </form>
+                    </div>
+                </div>
+                
+                <hr class="my-4" />
+                <h5 class="text-primary">
+                    <i class="fas fa-user-plus me-2"></i>Criar Novo Usuário (Opcional)
+                </h5>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email
+                        </label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="email@exemplo.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                        <small class="form-text text-muted">Deixe em branco se selecionou um usuário existente</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Senha
+                        </label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Senha para o usuário" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <small class="form-text text-muted">Mínimo 6 caracteres</small>
+                    </div>
                 </div>
             </div>
-        </div>
+            
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i>Salvar Profissional
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

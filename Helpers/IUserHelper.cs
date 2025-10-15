@@ -8,19 +8,28 @@ namespace Sistema.Helpers
     {
         // User retrieval methods
         Task<User?> GetUserByEmailAsync(string email);
+
+        Task<IdentityResult> AddUserAsync(User user, string password);//ok
+
+        Task<SignInResult> LoginAsync(LoginViewModel model); //ok
+
+        Task LogoutAsync(); //ok
+
+
         Task<User?> GetUserByUsernameAsync(string username);
         Task<User?> GetUserByIdAsync(string userId);
         Task<User?> GetCurrentUserAsync();
+        string GetUserId(System.Security.Claims.ClaimsPrincipal user);
         
         // User management methods
-        Task<IdentityResult> AddUserAsync(User user, string password);
+       
         Task<IdentityResult> UpdateUserAsync(User user);
         Task<IdentityResult> DeleteUserAsync(User user);
         Task<IdentityResult> CreateEmployeeUserAsync(User user, string password);
         
         // Authentication methods
-        Task<SignInResult> LoginAsync(LoginViewModel model); //ok
-        Task LogoutAsync(); //ok
+        
+        
         
         // Password methods
         Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);

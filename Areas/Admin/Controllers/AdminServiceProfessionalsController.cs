@@ -24,7 +24,7 @@ namespace Sistema.Areas.Admin.Controllers
             var service = await _context.Service
                 .Include(s => s.ProfessionalServices)
                 .ThenInclude(ps => ps.Professional)
-                .FirstOrDefaultAsync(s => s.Id == serviceId);
+                .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
 
             if (service == null) return NotFound();
 
@@ -34,7 +34,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             var viewModel = new AdminServiceProfessionalViewModel
             {
-                ServiceId = service.Id,
+                ServiceId = service.ServiceId,
                 ServiceName = service.Name,
                 SelectedProfessionals = service.ProfessionalServices?.Select(ps => ps.ProfessionalId).ToList(),
                 AvailableProfessionals = allProfessionals.Select(p => new SelectListItem
@@ -53,7 +53,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             var service = await _context.Service
                 .Include(s => s.ProfessionalServices)
-                .FirstOrDefaultAsync(s => s.Id == model.ServiceId);
+                .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
             if (service == null) return NotFound();
 

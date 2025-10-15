@@ -84,7 +84,7 @@
                                             <td>
                                                 @if (appointment.Service?.Price != null)
                                                 {
-                                                    <strong>@appointment.Service.Price.ToString("C")</strong>
+                                                    <strong>€@appointment.Service.Price.ToString("N2")</strong>
                                                 }
                                                 else
                                                 {

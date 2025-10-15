@@ -1,93 +1,72 @@
 @model IEnumerable<Sistema.Data.Entities.ProductCategory>
 
 @{
-    ViewData["Title"] = "Product Categories";
+    ViewData["Title"] = "Categorias de Produtos";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
+<div class="content-header mb-4">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Product Categories</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item active">Product Categories</li>
-                </ol>
-            </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="m-0 text-dark">
+                <i class="fas fa-tags me-2 text-primary"></i> Categorias de Produtos
+            </h1>
+            <a asp-action="Create" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-1"></i> Nova Categoria
+            </a>
         </div>
     </div>
 </div>
 
 <section class="content">
-    <div class="container-fluid">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @TempData["SuccessMessage"]
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        }
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Product Categories List</h3>
-                        <div class="card-tools">
-                            <a asp-action="Create" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> New Category
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if (Model != null && Model.Any())
-                        {
-                            <table class="table table-bordered table-striped">
-                                <thead>
+    <div class="container-fluid px-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th class="w-75">Nome</th>
+                                    <th class="text-center" style="width: 180px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model)
-                                    {
-                                        <tr>
-                                            <td>@item.Name</td>
-                                            <td>
-                                                <a asp-action="Details" asp-route-id="@item.ProductCategoryId" class="btn btn-info btn-sm">
+                                        <td class="fw-semibold">@item.Name</td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a asp-action="Details" asp-route-id="@item.ProductCategoryId" class="btn btn-info btn-sm" title="Ver Detalhes">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a asp-action="Edit" asp-route-id="@item.ProductCategoryId" class="btn btn-warning btn-sm">
+                                                <a asp-action="Edit" asp-route-id="@item.ProductCategoryId" class="btn btn-warning btn-sm text-white" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a asp-action="Delete" asp-route-id="@item.ProductCategoryId" class="btn btn-danger btn-sm">
+                                                <a asp-action="Delete" asp-route-id="@item.ProductCategoryId" class="btn btn-danger btn-sm" title="Excluir">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        }
-                        else
-                        {
-                            <div class="text-center py-4">
-                                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-                                <h5 class="text-muted">No product categories found</h5>
-                                <p class="text-muted">Start by adding your first product category.</p>
-                                <a asp-action="Create" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Add First Category
-                                </a>
-                            </div>
-                        }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-tags fa-3x text-secondary mb-3"></i>
+                        <h5 class="text-secondary">Nenhuma categoria cadastrada</h5>
+                        <p class="text-muted">Comece adicionando a primeira categoria de produto.</p>
+                        <a asp-action="Create" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Adicionar Categoria
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     </div>

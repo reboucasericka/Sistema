@@ -1,7 +1,7 @@
 @model IEnumerable<Sistema.Data.Entities.Payable>
 
 @{
-    ViewData["Title"] = "Contas a Pagar";
+    ViewData["Title"] = "Pagamentos";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -9,12 +9,12 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Contas a Pagar</h1>
+                <h1 class="m-0">Pagamentos</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Admin" asp-action="Index">Home</a></li>
-                    <li class="breadcrumb-item active">Contas a Pagar</li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Pagamentos</li>
                 </ol>
             </div>
         </div>
@@ -23,65 +23,155 @@
 
 <section class="content">
     <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Filtros</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" class="row">
+                            <div class="col-md-3">
+                                <label for="status">Status:</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">Todos</option>
+                                    <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pendente</option>
+                                    <option value="Paid" selected="@(ViewBag.Status == "Paid")">Pago</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="type">Tipo:</label>
+                                <select name="type" id="type" class="form-control">
+                                    <option value="">Todos</option>
+                                    <option value="Expense" selected="@(ViewBag.Type == "Expense")">Despesa</option>
+                                    <option value="Commission" selected="@(ViewBag.Type == "Commission")">Comissão</option>
+                                    <option value="Supplier" selected="@(ViewBag.Type == "Supplier")">Fornecedor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="startDate">Data Início:</label>
+                                <input type="date" name="startDate" id="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label for="endDate">Data Fim:</label>
+                                <input type="date" name="endDate" id="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary form-control">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3 id="totalPending">€ 0,00</h3>
+                        <p>Pendentes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3 id="totalPaid">€ 0,00</h3>
+                        <p>Pagos</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3 id="totalExpenses">€ 0,00</h3>
+                        <p>Despesas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3 id="totalCommissions">€ 0,00</h3>
+                        <p>Comissões</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Lista de Contas a Pagar</h3>
+                        <h3 class="card-title">Lista de Pagamentos</h3>
                         <div class="card-tools">
-                            <a asp-action="Create" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Nova Conta a Pagar
+                            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Novo Pagamento
                             </a>
                         </div>
                     </div>
                     <div class="card-body">
-                        @if (TempData["SuccessMessage"] != null)
-                        {
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                @TempData["SuccessMessage"]
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        }
-                        @if (TempData["ErrorMessage"] != null)
-                        {
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                @TempData["ErrorMessage"]
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        }
-
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="payablesTable">
+                            <table id="payablesTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
                                         <th>Descrição</th>
-                                        <th>Type</th>
-                                        <th>Value</th>
-                                        <th>Data Lançamento</th>
-                                        <th>Data Vencimento</th>
-                                        <th>Data Pagamento</th>
+                                        <th>Valor</th>
+                                        <th>Vencimento</th>
+                                        <th>Tipo</th>
+                                        <th>Profissional/Fornecedor</th>
                                         <th>Status</th>
+                                        <th>Data Pagamento</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var item in Model)
+                                    @foreach (var payable in Model)
                                     {
                                         <tr>
-                                            <td>@item.Description</td>
-                                            <td>@item.Type</td>
-                                            <td>€@item.Value.ToString("N2")</td>
-                                            <td>@item.LaunchDate.ToString("dd/MM/yyyy")</td>
-                                            <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
-                                            <td>@(item.PaymentDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@payable.Description</td>
+                                            <td>€@payable.Amount.ToString("N2")</td>
+                                            <td>@payable.DueDate.ToString("dd/MM/yyyy")</td>
                                             <td>
-                                                @if (item.IsPaid)
+                                                <span class="badge badge-info">@payable.Type</span>
+                                            </td>
+                                            <td>
+                                                @if (payable.Professional != null)
                                                 {
-                                                    <span class="badge badge-success">Paid</span>
+                                                    @payable.Professional.Name
+                                                }
+                                                else if (payable.Supplier != null)
+                                                {
+                                                    @payable.Supplier.Name
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (payable.Status == "Paid")
+                                                {
+                                                    <span class="badge badge-success">Pago</span>
                                                 }
                                                 else
                                                 {
@@ -89,23 +179,30 @@
                                                 }
                                             </td>
                                             <td>
-                                                <div class="btn-group" role="group">
-                                                    <a asp-action="Details" asp-route-id="@item.PayableId" class="btn btn-info btn-sm">
+                                                @if (payable.PaymentDate.HasValue)
+                                                {
+                                                    @payable.PaymentDate.Value.ToString("dd/MM/yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Details", new { id = payable.PayableId })" class="btn btn-info btn-sm">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a asp-action="Edit" asp-route-id="@item.PayableId" class="btn btn-warning btn-sm">
+                                                    <a href="@Url.Action("Edit", new { id = payable.PayableId })" class="btn btn-warning btn-sm">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    @if (!item.IsPaid)
+                                                    @if (payable.Status == "Pending")
                                                     {
-                                                        <form asp-action="MarkAsPaid" method="post" style="display: inline;">
-                                                            <input type="hidden" name="id" value="@item.PayableId" />
-                                                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Mark this payable as paid?')">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                        </form>
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="markAsPaid(@payable.PayableId)">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
                                                     }
-                                                    <a asp-action="Delete" asp-route-id="@item.PayableId" class="btn btn-danger btn-sm">
+                                                    <a href="@Url.Action("Delete", new { id = payable.PayableId })" class="btn btn-danger btn-sm">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
@@ -129,8 +226,47 @@
                 "responsive": true,
                 "lengthChange": false,
                 "autoWidth": false,
-                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-            }).buttons().container().appendTo('#payablesTable_wrapper .col-md-6:eq(0)');
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                }
+            });
+
+            // Carregar resumo
+            loadSummary();
         });
+
+        function loadSummary() {
+            $.get('@Url.Action("Summary")', function(data) {
+                $('#totalPending').text('€ ' + data.totalPending.toFixed(2).replace('.', ','));
+                $('#totalPaid').text('€ ' + data.totalPaid.toFixed(2).replace('.', ','));
+                $('#totalExpenses').text('€ ' + data.totalExpenses.toFixed(2).replace('.', ','));
+                $('#totalCommissions').text('€ ' + data.totalCommissions.toFixed(2).replace('.', ','));
+            });
+        }
+
+        function markAsPaid(id) {
+            Swal.fire({
+                title: 'Confirmar Pagamento',
+                text: 'Deseja marcar este pagamento como pago?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sim, marcar como pago!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('@Url.Action("MarkAsPaid")', { id: id }, function(response) {
+                        if (response.success) {
+                            Swal.fire('Sucesso!', 'Pagamento marcado como pago!', 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Erro!', 'Erro ao marcar pagamento como pago.', 'error');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 }

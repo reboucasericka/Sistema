@@ -49,11 +49,36 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Supplier supplier)
         {
+            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE SUPPLIER (POST) ===");
+            Console.WriteLine($"Supplier recebido - Nome: {supplier.Name}, Telefone: {supplier.Phone}");
+
             if (ModelState.IsValid)
             {
-                await _supplierRepository.CreateAsync(supplier);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _supplierRepository.CreateAsync(supplier);
+                    Console.WriteLine("Fornecedor salvo com sucesso no banco de dados!");
+                    TempData["SuccessMessage"] = "Fornecedor criado com sucesso!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERRO ao criar fornecedor: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    }
+                    TempData["ErrorMessage"] = $"Erro ao criar fornecedor: {ex.Message}";
+                }
             }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
+                Console.WriteLine($"Erro de validação: {errorMessage}");
+                TempData["ErrorMessage"] = errorMessage;
+            }
+            
             return View(supplier);
         }
 
@@ -79,9 +104,30 @@ namespace Sistema.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                await _supplierRepository.UpdateAsync(supplier);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _supplierRepository.UpdateAsync(supplier);
+                    TempData["SuccessMessage"] = "Fornecedor atualizado com sucesso!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERRO ao atualizar fornecedor: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    }
+                    TempData["ErrorMessage"] = $"Erro ao atualizar fornecedor: {ex.Message}";
+                }
             }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
+                Console.WriteLine($"Erro de validação: {errorMessage}");
+                TempData["ErrorMessage"] = errorMessage;
+            }
+            
             return View(supplier);
         }
 
@@ -101,8 +147,29 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var supplier = await _supplierRepository.GetByIdAsync(id);
-            await _supplierRepository.DeleteAsync(supplier);
+            try
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(id);
+                if (supplier != null)
+                {
+                    await _supplierRepository.DeleteAsync(supplier);
+                    TempData["SuccessMessage"] = "Fornecedor excluído com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Fornecedor não encontrado.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERRO ao excluir fornecedor: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                TempData["ErrorMessage"] = $"Erro ao excluir fornecedor: {ex.Message}";
+            }
+            
             return RedirectToAction(nameof(Index));
         }
         

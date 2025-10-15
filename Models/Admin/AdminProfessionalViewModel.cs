@@ -3,6 +3,10 @@ using Sistema.Data.Entities;
 
 namespace Sistema.Models.Admin
 {
+    /// <summary>
+    /// ViewModel descontinuado - usar entidade Professional diretamente
+    /// </summary>
+    [Obsolete("Use Sistema.Data.Entities.Professional directly")]
     public class AdminProfessionalViewModel
     {
         public int ProfessionalId { get; set; }

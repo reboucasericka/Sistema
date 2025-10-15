@@ -114,7 +114,7 @@
                                                 <tr>
                                                     <td>@transaction.Data.ToString("dd/MM/yyyy")</td>
                                                     <td>@transaction.Tipo</td>
-                                                    <td>@transaction.Valor.ToString("C")</td>
+                                                    <td>€@transaction.Valor.ToString("N2")</td>
                                                     <td>
                                                         @if (transaction.Status == "Pago")
                                                         {

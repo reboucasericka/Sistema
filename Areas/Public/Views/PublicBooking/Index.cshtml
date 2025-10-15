@@ -122,7 +122,7 @@
             <div class="services-list">
                 @foreach (var service in Model)
                 {
-                    <div class="card mb-3 service-card" data-service-id="@service.Id">
+                    <div class="card mb-3 service-card" data-service-id="@service.ServiceId">
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-md-2">
@@ -150,7 +150,7 @@
                                     <div class="fw-bold text-primary fs-5">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", service.Price)</div>
                                 </div>
                                 <div class="col-md-2 text-center">
-                                    <a asp-action="Schedule" asp-route-id="@service.Id" class="btn btn-primary">
+                                    <a asp-action="Schedule" asp-route-id="@service.ServiceId" class="btn btn-primary">
                                         <i class="fas fa-calendar-plus"></i> Agendar
                                     </a>
                                 </div>

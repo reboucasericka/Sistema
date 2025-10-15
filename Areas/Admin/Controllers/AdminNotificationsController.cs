@@ -40,7 +40,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var notification = await _context.Notifications
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.NotificationId == id);
             if (notification == null)
             {
                 return NotFound();
@@ -98,7 +98,7 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Notification notification)
         {
-            if (id != notification.Id)
+            if (id != notification.NotificationId)
             {
                 return NotFound();
             }
@@ -112,7 +112,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!NotificationExists(notification.Id))
+                    if (!NotificationExists(notification.NotificationId))
                     {
                         return NotFound();
                     }
@@ -135,7 +135,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var notification = await _context.Notifications
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.NotificationId == id);
             if (notification == null)
             {
                 return NotFound();
@@ -213,7 +213,7 @@ namespace Sistema.Areas.Admin.Controllers
                 .Take(count)
                 .Select(n => new
                 {
-                    n.Id,
+                    n.NotificationId,
                     n.Message,
                     n.Type,
                     n.CreatedAt,
@@ -227,7 +227,7 @@ namespace Sistema.Areas.Admin.Controllers
 
         private bool NotificationExists(int id)
         {
-            return _context.Notifications.Any(e => e.Id == id);
+            return _context.Notifications.Any(e => e.NotificationId == id);
         }
 
         private string GetTimeAgo(DateTime dateTime)

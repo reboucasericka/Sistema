@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Helpers;
 using Sistema.Services;
 
 namespace Sistema.Areas.Admin.Controllers
@@ -12,388 +13,513 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminReportsController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly IUserHelper _userHelper;
         private readonly IExcelExportService _excelExportService;
+        private readonly IPdfExportService _pdfExportService;
 
-        public AdminReportsController(SistemaDbContext context, IExcelExportService excelExportService)
+        public AdminReportsController(SistemaDbContext context, IUserHelper userHelper, IExcelExportService excelExportService, IPdfExportService pdfExportService)
         {
             _context = context;
+            _userHelper = userHelper;
             _excelExportService = excelExportService;
+            _pdfExportService = pdfExportService;
         }
 
-        // GET: Dashboard de Relatórios
+        // GET: Admin/Reports
         public IActionResult Index()
         {
-            ViewData["Title"] = "Relatórios";
             return View();
         }
 
-        // GET: Relatório de Vendas
-        public async Task<IActionResult> Sales(DateTime? startDate, DateTime? endDate)
+        // GET: Admin/Reports/SalesReport
+        public async Task<IActionResult> SalesReport(DateTime? startDate, DateTime? endDate)
         {
-            var start = startDate ?? DateTime.Today.AddDays(-30);
-            var end = endDate ?? DateTime.Today;
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
 
-            ViewData["Title"] = "Relatório de Vendas";
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-
-            // Faturação do período
-            var billing = await _context.Billings
-                .Include(b => b.User)
-                .Where(b => b.Date >= start && b.Date <= end)
-                .OrderBy(b => b.Date)
+            var sales = await _context.Sales
+                .Include(s => s.Customer)
+                    .ThenInclude(c => c.User)
+                .Include(s => s.Professional)
+                .Include(s => s.PaymentMethod)
+                .Include(s => s.Items)
+                    .ThenInclude(i => i.Product)
+                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                .OrderByDescending(s => s.SaleDate)
                 .ToListAsync();
 
-            // Detalhes da faturação
-            var billingDetails = await _context.BillingDetails
-                .Include(bd => bd.Billing)
-                .Include(bd => bd.Product)
-                .Include(bd => bd.Service)
-                .Where(bd => bd.Billing.Date >= start && bd.Billing.Date <= end)
-                .ToListAsync();
-
-            // Estatísticas
-            ViewBag.TotalBilling = billing.Sum(b => b.TotalValue);
-            ViewBag.TotalServices = billing.Sum(b => b.ServicesQuantity);
-            ViewBag.TotalProducts = billing.Sum(b => b.ProductsQuantity);
-            ViewBag.TotalTransactions = billing.Count;
-
-            // Vendas por dia
-            var salesByDay = billing
-                .GroupBy(b => b.Date.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Total = g.Sum(b => b.TotalValue),
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToList();
-
-            ViewBag.SalesByDay = salesByDay;
-
-            // Vendas por tipo
-            var salesByType = billingDetails
-                .GroupBy(bd => bd.ItemType)
-                .Select(g => new
-                {
-                    Type = g.Key,
-                    Total = g.Sum(bd => bd.TotalValue),
-                    Count = g.Sum(bd => bd.Quantity)
-                })
-                .ToList();
-
-            ViewBag.SalesByType = salesByType;
-
-            return View(billing);
-        }
-
-        // GET: Relatório de Agendamentos
-        public async Task<IActionResult> Appointments(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Today.AddDays(-30);
-            var end = endDate ?? DateTime.Today;
-
-            ViewData["Title"] = "Relatório de Agendamentos";
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-
-            var appointments = await _context.Appointments
-                .Include(a => a.Customer)
-                .Include(a => a.Professional)
-                .Include(a => a.Service)
-                .Where(a => a.Date >= start && a.Date <= end)
-                .OrderBy(a => a.Date)
-                .ToListAsync();
-
-            // Estatísticas
-            ViewBag.TotalAppointments = appointments.Count;
-            ViewBag.ConfirmedAppointments = appointments.Count(a => a.Status == "Confirmado");
-            ViewBag.PendingAppointments = appointments.Count(a => a.Status == "Pendente");
-            ViewBag.CancelledAppointments = appointments.Count(a => a.Status == "Cancelado");
-            ViewBag.CompletedAppointments = appointments.Count(a => a.Status == "Concluído");
-
-            // Agendamentos por dia
-            var appointmentsByDay = appointments
-                .GroupBy(a => a.StartTime.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Count = g.Count(),
-                    Confirmed = g.Count(a => a.Status == "Confirmado"),
-                    Pending = g.Count(a => a.Status == "Pendente"),
-                    Cancelled = g.Count(a => a.Status == "Cancelado")
-                })
-                .OrderBy(x => x.Date)
-                .ToList();
-
-            ViewBag.AppointmentsByDay = appointmentsByDay;
-
-            // Agendamentos por profissional
-            var appointmentsByProfessional = appointments
-                .GroupBy(a => a.Professional.Name)
-                .Select(g => new
-                {
-                    Professional = g.Key,
-                    Count = g.Count(),
-                    Confirmed = g.Count(a => a.Status == "Confirmado")
-                })
-                .OrderByDescending(x => x.Count)
-                .ToList();
-
-            ViewBag.AppointmentsByProfessional = appointmentsByProfessional;
-
-            return View(appointments);
-        }
-
-        // GET: Relatório Financeiro
-        public async Task<IActionResult> Financial(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Today.AddDays(-30);
-            var end = endDate ?? DateTime.Today;
-
-            ViewData["Title"] = "Relatório Financeiro";
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-
-            // Recebimentos
-            var receivables = await _context.Receivables
-                .Include(r => r.PaymentMethod)
-                .Where(r => r.LaunchDate >= start && r.LaunchDate <= end)
-                .ToListAsync();
-
-            // Pagamentos
-            var payments = await _context.Payables
-                .Include(p => p.PaymentMethod)
-                .Where(p => p.LaunchDate >= start && p.LaunchDate <= end)
-                .ToListAsync();
-
-            // Estatísticas
-            ViewBag.TotalReceivables = receivables.Sum(r => r.Value);
-            ViewBag.TotalPaid = receivables.Where(r => r.IsPaid).Sum(r => r.Value);
-            ViewBag.TotalPending = receivables.Where(r => !r.IsPaid).Sum(r => r.Value);
-
-            ViewBag.TotalPayments = payments.Sum(p => p.Value);
-            ViewBag.TotalPaidOut = payments.Where(p => p.IsPaid).Sum(p => p.Value);
-            ViewBag.TotalPendingPayments = payments.Where(p => !p.IsPaid).Sum(p => p.Value);
-
-            // Saldo
-            ViewBag.Balance = ViewBag.TotalPaid - ViewBag.TotalPaidOut;
-
-            // Recebimentos por forma de pagamento
-            var receivablesByPaymentMethod = receivables
-                .Where(r => r.IsPaid)
-                .GroupBy(r => r.PaymentMethod.Description)
-                .Select(g => new
-                {
-                    PaymentMethod = g.Key,
-                    Total = g.Sum(r => r.Value),
-                    Count = g.Count()
-                })
-                .OrderByDescending(x => x.Total)
-                .ToList();
-
-            ViewBag.ReceivablesByPaymentMethod = receivablesByPaymentMethod;
-
-            // Pagamentos por forma de pagamento
-            var paymentsByPaymentMethod = payments
-                .Where(p => p.IsPaid)
-                .GroupBy(p => p.PaymentMethod.Description)
-                .Select(g => new
-                {
-                    PaymentMethod = g.Key,
-                    Total = g.Sum(p => p.Value),
-                    Count = g.Count()
-                })
-                .OrderByDescending(x => x.Total)
-                .ToList();
-
-            ViewBag.PaymentsByPaymentMethod = paymentsByPaymentMethod;
-
-            return View(new { Receivables = receivables, Payments = payments });
-        }
-
-        // GET: Relatório de Clientes
-        public async Task<IActionResult> Clients()
-        {
-            ViewData["Title"] = "Relatório de Clientes";
-
-            var clients = await _context.Customers
-                .OrderBy(c => c.Name)
-                .ToListAsync();
-
-            // Estatísticas
-            ViewBag.TotalClients = clients.Count;
-            ViewBag.ActiveClients = clients.Count(c => c.IsActive);
-            ViewBag.NewThisMonth = clients.Count(c => c.RegistrationDate >= DateTime.Today.AddDays(-30));
-            ViewBag.NewThisWeek = clients.Count(c => c.RegistrationDate >= DateTime.Today.AddDays(-7));
-
-            // Clientes por mês de cadastro
-            var clientsByMonth = clients
-                .GroupBy(c => new { c.RegistrationDate.Year, c.RegistrationDate.Month })
-                .Select(g => new
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month)
-                .ToList();
-
-            ViewBag.ClientsByMonth = clientsByMonth;
-
-            return View(clients);
-        }
-
-        // GET: Relatório de Produtos
-        public async Task<IActionResult> Products()
-        {
-            ViewData["Title"] = "Relatório de Produtos";
-
-            var products = await _context.Products
-                .Include(p => p.ProductCategory)
-                .Include(p => p.Supplier)
-                .OrderBy(p => p.Name)
-                .ToListAsync();
-
-            // Estatísticas
-            ViewBag.TotalProducts = products.Count;
-            ViewBag.ActiveProducts = products.Count;
-            ViewBag.OutOfStock = products.Count(p => p.Stock <= 0);
-
-            // Produtos por categoria
-            var productsByCategory = products
-                .GroupBy(p => p.ProductCategory.Name)
-                .Select(g => new
-                {
-                    Category = g.Key,
-                    Count = g.Count(),
-                    TotalValue = g.Sum(p => p.SalePrice * p.Stock)
-                })
-                .OrderByDescending(x => x.Count)
-                .ToList();
-
-            ViewBag.ProductsByCategory = productsByCategory;
-
-            return View(products);
-        }
-
-        // GET: Balanço Mensal de Caixa
-        public async Task<IActionResult> MonthlyTrialBalance(int? year, int? month)
-        {
-            var targetYear = year ?? DateTime.Now.Year;
-            var targetMonth = month ?? DateTime.Now.Month;
-            
-            var startDate = new DateTime(targetYear, targetMonth, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
-
-            ViewData["Title"] = "Monthly Trial Balance";
-            ViewBag.Year = targetYear;
-            ViewBag.Month = targetMonth;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
-
-            // Get all cash registers for the month
-            var cashRegisters = await _context.CashRegisters
-                .Include(c => c.OpeningUser)
-                .Include(c => c.ClosingUser)
-                .Where(c => c.Date >= startDate && c.Date <= endDate)
-                .OrderBy(c => c.Date)
-                .ToListAsync();
-
-            // Get all movements for the month
-            var movements = await _context.CashMovements
-                .Include(m => m.CashRegister)
-                .Where(m => m.Date >= startDate && m.Date <= endDate)
-                .OrderBy(m => m.Date)
-                .ToListAsync();
-
-            // Calculate monthly totals
-            var totalInitialAmount = cashRegisters.Sum(c => c.InitialValue);
-            var totalFinalAmount = cashRegisters.Sum(c => c.FinalValue);
-            var totalEntries = movements.Where(m => m.Type == "entry").Sum(m => m.Amount);
-            var totalExits = movements.Where(m => m.Type == "exit").Sum(m => m.Amount);
-            var totalExpected = totalInitialAmount + totalEntries - totalExits;
-            var totalDifference = totalFinalAmount - totalExpected;
-
-            // Group by day
-            var dailySummaries = cashRegisters.Select(cr => new
+            var summary = new
             {
-                Date = cr.Date,
-                InitialAmount = cr.InitialValue,
-                FinalAmount = cr.FinalValue,
-                DayMovements = movements.Where(m => m.CashRegisterId == cr.CashRegisterId).ToList(),
-                DayEntries = movements.Where(m => m.CashRegisterId == cr.CashRegisterId && m.Type == "entry").Sum(m => m.Amount),
-                DayExits = movements.Where(m => m.CashRegisterId == cr.CashRegisterId && m.Type == "exit").Sum(m => m.Amount)
-            }).OrderBy(x => x.Date).ToList();
+                TotalSales = sales.Count,
+                TotalAmount = sales.Sum(s => s.FinalTotal),
+                TotalItems = sales.Sum(s => s.Items.Sum(i => i.Quantity)),
+                AverageTicket = sales.Any() ? sales.Average(s => s.FinalTotal) : 0,
+                SalesByPaymentMethod = sales.GroupBy(s => s.PaymentMethod.Name)
+                    .Select(g => new { Method = g.Key, Count = g.Count(), Total = g.Sum(s => s.FinalTotal) })
+                    .ToList(),
+                SalesByProfessional = sales.GroupBy(s => s.Professional.Name)
+                    .Select(g => new { Professional = g.Key, Count = g.Count(), Total = g.Sum(s => s.FinalTotal) })
+                    .ToList()
+            };
 
-            ViewBag.CashRegisters = cashRegisters;
-            ViewBag.Movements = movements;
-            ViewBag.DailySummaries = dailySummaries;
-            ViewBag.TotalInitialAmount = totalInitialAmount;
-            ViewBag.TotalFinalAmount = totalFinalAmount;
-            ViewBag.TotalEntries = totalEntries;
-            ViewBag.TotalExits = totalExits;
-            ViewBag.TotalExpected = totalExpected;
-            ViewBag.TotalDifference = totalDifference;
+            ViewBag.StartDate = start;
+            ViewBag.EndDate = end;
+            ViewBag.Summary = summary;
+
+            return View(sales);
+        }
+
+        // GET: Admin/Reports/CashFlowReport
+        public async Task<IActionResult> CashFlowReport(DateTime? startDate, DateTime? endDate)
+        {
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
+
+            var receivables = await _context.Receivables
+                .Include(r => r.Customer)
+                    .ThenInclude(c => c.User)
+                .Include(r => r.Professional)
+                .Include(r => r.PaymentMethod)
+                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
+                .ToListAsync();
+
+            var payables = await _context.Payables
+                .Include(p => p.Professional)
+                .Include(p => p.Supplier)
+                .Include(p => p.PaymentMethod)
+                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+
+            var cashMovements = await _context.CashMovements
+                .Include(cm => cm.CashRegister)
+                .Where(cm => cm.Date >= start && cm.Date <= end)
+                .ToListAsync();
+
+            var summary = new
+            {
+                TotalReceivables = receivables.Sum(r => r.Amount),
+                TotalPaidReceivables = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
+                TotalPendingReceivables = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
+                TotalPayables = payables.Sum(p => p.Amount),
+                TotalPaidPayables = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
+                TotalPendingPayables = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
+                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
+                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
+                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount)
+            };
+
+            ViewBag.StartDate = start;
+            ViewBag.EndDate = end;
+            ViewBag.Summary = summary;
+            ViewBag.Receivables = receivables;
+            ViewBag.Payables = payables;
+            ViewBag.CashMovements = cashMovements;
 
             return View();
         }
 
-        // GET: Exportar Relatório
-        public async Task<IActionResult> Export(string reportType, DateTime? startDate, DateTime? endDate)
+        // GET: Admin/Reports/CommissionsReport
+        public async Task<IActionResult> CommissionsReport(DateTime? startDate, DateTime? endDate)
         {
-            var start = startDate ?? DateTime.Today.AddDays(-30);
-            var end = endDate ?? DateTime.Today;
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
 
-            byte[] excelData;
-            string fileName;
+            var commissions = await _context.Payables
+                .Include(p => p.Professional)
+                .Include(p => p.Sale)
+                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
 
-            switch (reportType.ToLower())
+            var summary = new
+            {
+                TotalCommissions = commissions.Sum(p => p.Amount),
+                TotalPaidCommissions = commissions.Where(p => p.IsPaid).Sum(p => p.Amount),
+                TotalPendingCommissions = commissions.Where(p => !p.IsPaid).Sum(p => p.Amount),
+                CommissionsByProfessional = commissions.GroupBy(p => p.Professional.Name)
+                    .Select(g => new { 
+                        Professional = g.Key, 
+                        Total = g.Sum(p => p.Amount),
+                        Paid = g.Where(p => p.IsPaid).Sum(p => p.Amount),
+                        Pending = g.Where(p => !p.IsPaid).Sum(p => p.Amount),
+                        Count = g.Count()
+                    })
+                    .ToList()
+            };
+
+            ViewBag.StartDate = start;
+            ViewBag.EndDate = end;
+            ViewBag.Summary = summary;
+
+            return View(commissions);
+        }
+
+        // GET: Admin/Reports/FinancialSummary
+        public async Task<IActionResult> FinancialSummary(DateTime? startDate, DateTime? endDate)
+        {
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
+
+            // Dados consolidados
+            var receivables = await _context.Receivables
+                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
+                .ToListAsync();
+
+            var payables = await _context.Payables
+                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+
+            var sales = await _context.Sales
+                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                .ToListAsync();
+
+            var cashMovements = await _context.CashMovements
+                .Where(cm => cm.Date >= start && cm.Date <= end)
+                .ToListAsync();
+
+            var summary = new
+            {
+                // Receitas
+                TotalReceitas = receivables.Sum(r => r.Amount),
+                ReceitasPagas = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
+                ReceitasPendentes = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
+
+                // Despesas
+                TotalDespesas = payables.Sum(p => p.Amount),
+                DespesasPagas = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
+                DespesasPendentes = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
+
+                // Vendas
+                TotalVendas = sales.Sum(s => s.FinalTotal),
+                QuantidadeVendas = sales.Count,
+
+                // Caixa
+                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
+                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
+                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+
+                // Comissões
+                TotalComissoes = payables.Where(p => p.Type == "Commission").Sum(p => p.Amount),
+                ComissoesPagas = payables.Where(p => p.Type == "Commission" && p.IsPaid).Sum(p => p.Amount),
+                ComissoesPendentes = payables.Where(p => p.Type == "Commission" && !p.IsPaid).Sum(p => p.Amount)
+            };
+
+            ViewBag.StartDate = start;
+            ViewBag.EndDate = end;
+            ViewBag.Summary = summary;
+
+            return View();
+        }
+
+        // POST: Admin/Reports/ExportToPDF
+        [HttpPost]
+        public async Task<IActionResult> ExportToPDF(string reportType, DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                var start = startDate ?? DateTime.Now.AddDays(-30);
+                var end = endDate ?? DateTime.Now;
+
+                byte[] pdfBytes;
+                string fileName;
+
+                switch (reportType.ToLower())
+                {
+                    case "summary":
+                        var summary = await GetFinancialSummary(start, end);
+                        pdfBytes = _pdfExportService.ExportFinancialSummaryToPdf(summary, start, end);
+                        fileName = $"Resumo_Financeiro_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
+                        break;
+
+                    case "sales":
+                        var sales = await GetSalesData(start, end);
+                        var salesSummary = await GetSalesSummary(start, end);
+                        pdfBytes = _pdfExportService.ExportSalesReportToPdf(sales, salesSummary);
+                        fileName = $"Relatorio_Vendas_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
+                        break;
+
+                    case "cashflow":
+                        var cashFlowSummary = await GetCashFlowSummary(start, end);
+                        var receivables = await GetReceivablesData(start, end);
+                        var payables = await GetPayablesData(start, end);
+                        var cashMovements = await GetCashMovementsData(start, end);
+                        pdfBytes = _pdfExportService.ExportCashFlowReportToPdf(cashFlowSummary, receivables, payables, cashMovements);
+                        fileName = $"Fluxo_Caixa_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
+                        break;
+
+                    case "commissions":
+                        var commissions = await GetCommissionsData(start, end);
+                        var commissionsSummary = await GetCommissionsSummary(start, end);
+                        pdfBytes = _pdfExportService.ExportCommissionsReportToPdf(commissions, commissionsSummary);
+                        fileName = $"Comissoes_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
+                        break;
+
+                    default:
+                        TempData["ErrorMessage"] = "Tipo de relatório não reconhecido.";
+                        return RedirectToAction(nameof(Index));
+                }
+
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao gerar relatório PDF: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Admin/Reports/ExportToExcel
+        [HttpPost]
+        public async Task<IActionResult> ExportToExcel(string reportType, DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                var start = startDate ?? DateTime.Now.AddDays(-30);
+                var end = endDate ?? DateTime.Now;
+
+                byte[] excelBytes;
+                string fileName;
+
+                switch (reportType.ToLower())
+                {
+                    case "summary":
+                        var summary = await GetFinancialSummary(start, end);
+                        excelBytes = _excelExportService.ExportFinancialSummaryToExcel(summary, start, end);
+                        fileName = $"Resumo_Financeiro_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+                        break;
+
+                    case "sales":
+                        var sales = await GetSalesData(start, end);
+                        var salesSummary = await GetSalesSummary(start, end);
+                        excelBytes = _excelExportService.ExportSalesReportToExcel(sales, salesSummary);
+                        fileName = $"Relatorio_Vendas_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+                        break;
+
+                    case "cashflow":
+                        var cashFlowSummary = await GetCashFlowSummary(start, end);
+                        var receivables = await GetReceivablesData(start, end);
+                        var payables = await GetPayablesData(start, end);
+                        var cashMovements = await GetCashMovementsData(start, end);
+                        excelBytes = _excelExportService.ExportCashFlowReportToExcel(cashFlowSummary, receivables, payables, cashMovements);
+                        fileName = $"Fluxo_Caixa_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+                        break;
+
+                    case "commissions":
+                        var commissions = await GetCommissionsData(start, end);
+                        var commissionsSummary = await GetCommissionsSummary(start, end);
+                        excelBytes = _excelExportService.ExportCommissionsReportToExcel(commissions, commissionsSummary);
+                        fileName = $"Comissoes_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+                        break;
+
+                    default:
+                        TempData["ErrorMessage"] = "Tipo de relatório não reconhecido.";
+                        return RedirectToAction(nameof(Index));
+                }
+
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao gerar relatório Excel: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: Admin/Reports/GetChartData
+        public async Task<IActionResult> GetChartData(string chartType, DateTime? startDate, DateTime? endDate)
+        {
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
+
+            switch (chartType.ToLower())
             {
                 case "sales":
-                    var sales = await _context.Billings
-                        .Include(b => b.User)
-                        .Where(b => b.Date >= start && b.Date <= end)
+                    var salesData = await _context.Sales
+                        .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                        .GroupBy(s => s.SaleDate.Date)
+                        .Select(g => new { Date = g.Key, Total = g.Sum(s => s.FinalTotal) })
+                        .OrderBy(x => x.Date)
                         .ToListAsync();
-                    excelData = _excelExportService.ExportSalesToExcel(sales);
-                    fileName = $"Vendas_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                    break;
 
-                case "appointments":
-                    var appointments = await _context.Appointments
-                        .Include(a => a.Customer)
-                        .Include(a => a.Professional)
-                        .Include(a => a.Service)
-                        .Where(a => a.Date >= start && a.Date <= end)
+                    return Json(salesData);
+
+                case "cashflow":
+                    var cashFlowData = await _context.CashMovements
+                        .Where(cm => cm.Date >= start && cm.Date <= end)
+                        .GroupBy(cm => new { cm.Date.Date, cm.Type })
+                        .Select(g => new { 
+                            Date = g.Key.Date, 
+                            Type = g.Key.Type, 
+                            Total = g.Sum(cm => cm.Amount) 
+                        })
+                        .OrderBy(x => x.Date)
                         .ToListAsync();
-                    excelData = _excelExportService.ExportAppointmentsToExcel(appointments);
-                    fileName = $"Agendamentos_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                    break;
 
-                case "clients":
-                    var clients = await _context.Customers.ToListAsync();
-                    excelData = _excelExportService.ExportClientsToExcel(clients);
-                    fileName = $"Clientes_{DateTime.Now:yyyyMMdd}.xlsx";
-                    break;
+                    return Json(cashFlowData);
 
-                case "cash":
-                    var cashRegisters = await _context.CashRegisters
-                        .Include(c => c.OpeningUser)
-                        .Include(c => c.ClosingUser)
-                        .Where(c => c.Date >= start && c.Date <= end)
+                case "commissions":
+                    var commissionsData = await _context.Payables
+                        .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
+                        .GroupBy(p => p.Professional.Name)
+                        .Select(g => new { Professional = g.Key, Total = g.Sum(p => p.Amount) })
                         .ToListAsync();
-                    excelData = _excelExportService.ExportCashRegisterToExcel(cashRegisters);
-                    fileName = $"Caixa_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                    break;
+
+                    return Json(commissionsData);
 
                 default:
-                    TempData["ErrorMessage"] = "Tipo de relatório inválido.";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { error = "Tipo de gráfico não reconhecido" });
             }
+        }
 
-            return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        // Métodos auxiliares para buscar dados
+        private async Task<dynamic> GetFinancialSummary(DateTime start, DateTime end)
+        {
+            var receivables = await _context.Receivables
+                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
+                .ToListAsync();
+
+            var payables = await _context.Payables
+                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+
+            var sales = await _context.Sales
+                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                .ToListAsync();
+
+            var cashMovements = await _context.CashMovements
+                .Where(cm => cm.Date >= start && cm.Date <= end)
+                .ToListAsync();
+
+            return new
+            {
+                TotalReceitas = receivables.Sum(r => r.Amount),
+                ReceitasPagas = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
+                ReceitasPendentes = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
+                TotalDespesas = payables.Sum(p => p.Amount),
+                DespesasPagas = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
+                DespesasPendentes = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
+                TotalVendas = sales.Sum(s => s.FinalTotal),
+                QuantidadeVendas = sales.Count,
+                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
+                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
+                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+                TotalComissoes = payables.Where(p => p.Type == "Commission").Sum(p => p.Amount),
+                ComissoesPagas = payables.Where(p => p.Type == "Commission" && p.IsPaid).Sum(p => p.Amount),
+                ComissoesPendentes = payables.Where(p => p.Type == "Commission" && !p.IsPaid).Sum(p => p.Amount)
+            };
+        }
+
+        private async Task<IEnumerable<dynamic>> GetSalesData(DateTime start, DateTime end)
+        {
+            return await _context.Sales
+                .Include(s => s.Customer)
+                    .ThenInclude(c => c.User)
+                .Include(s => s.Professional)
+                .Include(s => s.PaymentMethod)
+                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                .OrderByDescending(s => s.SaleDate)
+                .ToListAsync();
+        }
+
+        private async Task<dynamic> GetSalesSummary(DateTime start, DateTime end)
+        {
+            var sales = await _context.Sales
+                .Include(s => s.Items)
+                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
+                .ToListAsync();
+
+            return new
+            {
+                TotalSales = sales.Count,
+                TotalAmount = sales.Sum(s => s.FinalTotal),
+                TotalItems = sales.Sum(s => s.Items.Sum(i => i.Quantity)),
+                AverageTicket = sales.Any() ? sales.Average(s => s.FinalTotal) : 0
+            };
+        }
+
+        private async Task<dynamic> GetCashFlowSummary(DateTime start, DateTime end)
+        {
+            var receivables = await _context.Receivables
+                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
+                .ToListAsync();
+
+            var payables = await _context.Payables
+                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+
+            var cashMovements = await _context.CashMovements
+                .Where(cm => cm.Date >= start && cm.Date <= end)
+                .ToListAsync();
+
+            return new
+            {
+                TotalReceivables = receivables.Sum(r => r.Amount),
+                TotalPaidReceivables = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
+                TotalPendingReceivables = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
+                TotalPayables = payables.Sum(p => p.Amount),
+                TotalPaidPayables = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
+                TotalPendingPayables = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
+                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
+                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
+                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
+                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount)
+            };
+        }
+
+        private async Task<IEnumerable<dynamic>> GetReceivablesData(DateTime start, DateTime end)
+        {
+            return await _context.Receivables
+                .Include(r => r.Customer)
+                    .ThenInclude(c => c.User)
+                .Include(r => r.Professional)
+                .Include(r => r.PaymentMethod)
+                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
+                .ToListAsync();
+        }
+
+        private async Task<IEnumerable<dynamic>> GetPayablesData(DateTime start, DateTime end)
+        {
+            return await _context.Payables
+                .Include(p => p.Professional)
+                .Include(p => p.Supplier)
+                .Include(p => p.PaymentMethod)
+                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+        }
+
+        private async Task<IEnumerable<dynamic>> GetCashMovementsData(DateTime start, DateTime end)
+        {
+            return await _context.CashMovements
+                .Include(cm => cm.CashRegister)
+                .Where(cm => cm.Date >= start && cm.Date <= end)
+                .ToListAsync();
+        }
+
+        private async Task<IEnumerable<dynamic>> GetCommissionsData(DateTime start, DateTime end)
+        {
+            return await _context.Payables
+                .Include(p => p.Professional)
+                .Include(p => p.Sale)
+                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        private async Task<dynamic> GetCommissionsSummary(DateTime start, DateTime end)
+        {
+            var commissions = await _context.Payables
+                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
+                .ToListAsync();
+
+            return new
+            {
+                TotalCommissions = commissions.Sum(p => p.Amount),
+                TotalPaidCommissions = commissions.Where(p => p.IsPaid).Sum(p => p.Amount),
+                TotalPendingCommissions = commissions.Where(p => !p.IsPaid).Sum(p => p.Amount)
+            };
         }
     }
 }

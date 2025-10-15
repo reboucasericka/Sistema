@@ -8,8 +8,7 @@ namespace Sistema.Data.Entities
     {
         [Key]
         [Column("NotificationId")]   // 👈 nome real da coluna no banco
-        public int Id { get; set; }  // 👈 continua cumprindo a interface
-        
+        public int NotificationId { get; set; }  // 👈 continua cumprindo a interface
 
         [Required, MaxLength(500)]
         public string Message { get; set; }   // Texto da notificação

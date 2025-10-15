@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Sistema.Data;
+using Microsoft.EntityFrameworkCore;
+using Sistema.Data.Repository.Interfaces;
 using Sistema.Data.Entities;
 
 namespace Sistema.Areas.Admin.Controllers
@@ -10,21 +10,20 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminProductCategoriesController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly IProductCategoryRepository _productCategoryRepository;
 
-        public AdminProductCategoriesController(SistemaDbContext context)
+        public AdminProductCategoriesController(IProductCategoryRepository productCategoryRepository)
         {
-            _context = context;
+            _productCategoryRepository = productCategoryRepository;
         }
 
         // GET: Admin/ProductCategories
         public async Task<IActionResult> Index()
         {
-            var categories = await _context.ProductCategories
-                .OrderBy(c => c.Name)
-                .ToListAsync();
+            var categories = _productCategoryRepository.GetAll()
+                .OrderBy(c => c.Name);
             
-            return View(categories);
+            return View(await categories.ToListAsync());
         }
 
         // GET: Admin/ProductCategories/Details/5
@@ -35,8 +34,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _context.ProductCategories
-                .FirstOrDefaultAsync(m => m.ProductCategoryId == id);
+            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
             
             if (productCategory == null)
             {
@@ -57,13 +55,34 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductCategoryId,Name")] ProductCategory productCategory)
         {
+            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE CATEGORY (POST) ===");
+            Console.WriteLine($"Category recebida - Nome: {productCategory.Name}");
+
             if (ModelState.IsValid)
             {
-                _context.Add(productCategory);
-                await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Product category created successfully!";
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _productCategoryRepository.CreateAsync(productCategory);
+                    Console.WriteLine("Categoria salva com sucesso no banco de dados!");
+                    TempData["SuccessMessage"] = "Categoria de produto criada com sucesso!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERRO ao criar categoria: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    }
+                    TempData["ErrorMessage"] = $"Erro ao criar categoria: {ex.Message}";
+                }
+            }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
+                Console.WriteLine($"Erro de validação: {errorMessage}");
+                TempData["ErrorMessage"] = errorMessage;
             }
             return View(productCategory);
         }
@@ -76,7 +95,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _context.ProductCategories.FindAsync(id);
+            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
             if (productCategory == null)
             {
                 return NotFound();
@@ -98,14 +117,13 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(productCategory);
-                    await _context.SaveChangesAsync();
+                    await _productCategoryRepository.UpdateAsync(productCategory);
                     
-                    TempData["SuccessMessage"] = "Product category updated successfully!";
+                    TempData["SuccessMessage"] = "Categoria de produto atualizada com sucesso!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductCategoryExists(productCategory.ProductCategoryId))
+                    if (!await ProductCategoryExists(productCategory.ProductCategoryId))
                     {
                         return NotFound();
                     }
@@ -127,8 +145,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _context.ProductCategories
-                .FirstOrDefaultAsync(m => m.ProductCategoryId == id);
+            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
             if (productCategory == null)
             {
                 return NotFound();
@@ -142,21 +159,20 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productCategory = await _context.ProductCategories.FindAsync(id);
+            var productCategory = await _productCategoryRepository.GetByIdAsync(id);
             if (productCategory != null)
             {
-                _context.ProductCategories.Remove(productCategory);
-                await _context.SaveChangesAsync();
+                await _productCategoryRepository.DeleteAsync(productCategory);
                 
-                TempData["SuccessMessage"] = "Product category deleted successfully!";
+                TempData["SuccessMessage"] = "Categoria de produto excluída com sucesso!";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductCategoryExists(int id)
+        private async Task<bool> ProductCategoryExists(int id)
         {
-            return _context.ProductCategories.Any(e => e.ProductCategoryId == id);
+            return await _productCategoryRepository.ExistsAsync(id);
         }
     }
 }

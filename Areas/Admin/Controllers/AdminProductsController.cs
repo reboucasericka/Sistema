@@ -18,7 +18,7 @@ namespace Sistema.Areas.Admin.Controllers
         private readonly IProductCategoryRepository _productCategoryRepository;
         private readonly ISupplierRepository _supplierRepository;        
         private readonly IUserHelper _userHelper;
-        private readonly IBlobHelper _blobHelper;        
+        private readonly IStorageHelper _storageHelper;        
         private readonly IConverterHelper _converterHelper;
         
 
@@ -28,7 +28,7 @@ namespace Sistema.Areas.Admin.Controllers
             IProductCategoryRepository productCategoryRepository,
             ISupplierRepository supplierRepository,
             IUserHelper userHelper, 
-            IBlobHelper blobHelper,           
+            IStorageHelper storageHelper,           
             IConverterHelper converterHelper)
         {
 
@@ -36,7 +36,7 @@ namespace Sistema.Areas.Admin.Controllers
             _productCategoryRepository = productCategoryRepository;
             _supplierRepository = supplierRepository;            
             _userHelper = userHelper;
-            _blobHelper = blobHelper;            
+            _storageHelper = storageHelper;            
             _converterHelper = converterHelper;
             
         }
@@ -88,24 +88,162 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminProductViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                Guid imageId = Guid.Empty; // Initialize imageId to an empty GUID
+            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE (POST) ===");
+            Console.WriteLine($"Model recebido - Nome: {model.Name}, CategoriaId: {model.ProductCategoryId}, FornecedorId: {model.SupplierId}");
 
-                if (model.ImageFile != null && model.ImageFile.Length > 0)
+            // Validação básica do ModelState
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
+                Console.WriteLine($"Erro de validação: {errorMessage}");
+                TempData["ErrorMessage"] = errorMessage;
+                
+                // Repopular dropdowns em caso de erro
+                ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                return View(model);
+            }
+
+            // Validação adicional dos campos obrigatórios
+            if (model.ProductCategoryId <= 0)
+            {
+                Console.WriteLine("ERRO: ProductCategoryId é obrigatório e deve ser maior que 0");
+                TempData["ErrorMessage"] = "Por favor, selecione uma categoria válida.";
+                ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                return View(model);
+            }
+
+            try
+            {
+                Console.WriteLine("Iniciando validações de existência...");
+
+                // Verificar se a categoria existe
+                var categoryExists = await _productCategoryRepository.ExistsAsync(model.ProductCategoryId);
+                if (!categoryExists)
                 {
-                    imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "products");
+                    Console.WriteLine($"ERRO: Categoria com ID {model.ProductCategoryId} não existe");
+                    TempData["ErrorMessage"] = "A categoria selecionada não existe. Por favor, selecione uma categoria válida.";
+                    ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                    ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                    return View(model);
                 }
 
-                var product= _converterHelper.ToProduct(model, imageId, true);
+                // Verificar se o fornecedor existe (se fornecido)
+                if (model.SupplierId.HasValue && model.SupplierId.Value > 0)
+                {
+                    var supplierExists = await _supplierRepository.ExistsAsync(model.SupplierId.Value);
+                    if (!supplierExists)
+                    {
+                        Console.WriteLine($"ERRO: Fornecedor com ID {model.SupplierId.Value} não existe");
+                        TempData["ErrorMessage"] = "O fornecedor selecionado não existe. Por favor, selecione um fornecedor válido ou deixe em branco.";
+                        ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                        ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                        return View(model);
+                    }
+                }
 
-                product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
-                await _productRepository.CreateAsync(product); // agora usa método genérico
+                Console.WriteLine("Validações de existência concluídas com sucesso");
+
+                // Processar imagem
+                Guid? imageId = null;
+                if (model.ImageFile != null && model.ImageFile.Length > 0)
+                {
+                    try
+                    {
+                        Console.WriteLine("Iniciando upload da imagem...");
+                        string photoPath = await _storageHelper.UploadAsync(model.ImageFile, "products");
+                        if (!string.IsNullOrEmpty(photoPath))
+                        {
+                            imageId = Guid.Parse(photoPath);
+                            Console.WriteLine($"Upload da imagem concluído. ImageId: {imageId}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Upload falhou, produto será criado sem imagem");
+                            TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERRO no upload da imagem: {ex.Message}");
+                        TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
+                        // Continua o processo mesmo com erro de upload
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Nenhuma imagem fornecida, ImageId será null");
+                }
+
+                // Obter usuário atual
+                var currentUser = await _userHelper.GetUserByEmailAsync(this.User.Identity?.Name);
+                var userId = currentUser?.Id;
+
+                // Converter ViewModel para Entity
+                Console.WriteLine("Convertendo ViewModel para Entity...");
+                var product = _converterHelper.ToProduct(model, imageId ?? Guid.Empty, true, userId);
+                
+                // Garantir que campos obrigatórios estejam corretos
+                product.ProductCategoryId = model.ProductCategoryId;
+                product.SupplierId = model.SupplierId > 0 ? model.SupplierId : null;
+                product.ImageId = imageId; // Pode ser null
+                product.IsActive = model.IsActive;
+
+                Console.WriteLine($"Produto convertido - Nome: {product.Name}, CategoriaId: {product.ProductCategoryId}, FornecedorId: {product.SupplierId}, ImageId: {product.ImageId}, UserId: {product.UserId}");
+
+                if (currentUser != null)
+                {
+                    Console.WriteLine($"Usuário associado: {currentUser.Email}");
+                }
+                else
+                {
+                    Console.WriteLine("AVISO: Usuário atual não encontrado");
+                }
+
+                // Salvar no banco
+                Console.WriteLine("Iniciando salvamento no banco de dados...");
+                await _productRepository.CreateAsync(product);
+                Console.WriteLine("Produto salvo com sucesso no banco de dados!");
+                
+                TempData["SuccessMessage"] = "Produto criado com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
-            // ⚠️ repetir SelectList caso o ModelState seja inválido
-            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model.ProductCategoryId);
-            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model.SupplierId);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERRO GERAL: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                
+                var errorMessage = "Erro ao criar produto. ";
+                
+                // Capturar InnerException do Entity Framework
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    errorMessage += $"Detalhes: {ex.InnerException.Message}";
+                    
+                    // Verificar se é erro de constraint de FK
+                    if (ex.InnerException.Message.Contains("FOREIGN KEY constraint"))
+                    {
+                        errorMessage = "Erro de referência: A categoria ou fornecedor selecionado não existe no sistema.";
+                    }
+                    else if (ex.InnerException.Message.Contains("UNIQUE constraint"))
+                    {
+                        errorMessage = "Erro de duplicação: Já existe um produto com este nome.";
+                    }
+                }
+                else
+                {
+                    errorMessage += ex.Message;
+                }
+                
+                TempData["ErrorMessage"] = errorMessage;
+            }
+            
+            // Repopular dropdowns em caso de erro
+            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
             return View(model);
         }
 
@@ -150,23 +288,38 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    
-                    Guid imageId = model.ImageId;
+
+                    // Garante que existe um GUID válido, mesmo se o model.ImageId for null
+                    Guid imageId = model.ImageId.HasValue && model.ImageId != Guid.Empty
+                        ? model.ImageId.Value
+                        : Guid.NewGuid();
+                    // Se uma nova imagem foi enviada, faz upload e obtém novo GUID
 
                     if (model.ImageFile != null && model.ImageFile.Length > 0) // Check if the ImageFile is not null
                     {
-                        imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "products");
+                        try
+                        {
+                            string photoPath = await _storageHelper.UploadAsync(model.ImageFile, "products");
+                            if (!string.IsNullOrEmpty(photoPath))
+                            {
+                                imageId = Guid.Parse(photoPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"ERRO no upload da imagem: {ex.Message}");
+                            TempData["WarningMessage"] = "Imagem não foi enviada, produto atualizado sem nova foto.";
+                        }
                     }
+                    // Converte e atualiza
+                    var product = _converterHelper.ToProduct(model, imageId, false);                    
+                    product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //Atribuir o usuário logado
 
-                    var product = _converterHelper.ToProduct(model, imageId, false);
-
-                    //Atribuir o usuário logado
-                    product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                     await _productRepository.UpdateAsync(product); //  genérico cobre Update
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!await _productRepository.ExistsAsync(model.Id))
+                    if (!await _productRepository.ExistsAsync(model.ProductId))
                     {
                         return new NotFoundViewResult("ProductNotFound");
                     }

@@ -1,7 +1,7 @@
 @model IEnumerable<Sistema.Data.Entities.CashRegister>
 
 @{
-    ViewData["Title"] = "Cash Register";
+    ViewData["Title"] = "Caixa";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -9,12 +9,12 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Cash Register</h1>
+                <h1 class="m-0">Gestão de Caixa</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item active">Cash Register</li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Caixa</li>
                 </ol>
             </div>
         </div>
@@ -23,90 +23,298 @@
 
 <section class="content">
     <div class="container-fluid">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @TempData["SuccessMessage"]
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+        <!-- Status do Caixa Atual -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card" id="cashStatusCard">
+                    <div class="card-header">
+                        <h3 class="card-title">Status do Caixa</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="cashStatusContent">
+                            <div class="text-center">
+                                <i class="fas fa-spinner fa-spin"></i> Carregando status do caixa...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        }
+        </div>
 
+        <!-- Ações do Caixa -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Ações do Caixa</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-success btn-lg btn-block" id="openCashBtn" onclick="openCash()">
+                                    <i class="fas fa-lock-open"></i> Abrir Caixa
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-warning btn-lg btn-block" id="closeCashBtn" onclick="closeCash()" style="display: none;">
+                                    <i class="fas fa-lock"></i> Fechar Caixa
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-info btn-lg btn-block" onclick="viewSummary()">
+                                    <i class="fas fa-chart-line"></i> Resumo do Caixa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Caixas -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Cash Register Sessions</h3>
-                        <div class="card-tools">
-                            <a asp-controller="CashMovements" asp-action="Index" class="btn btn-info btn-sm">
-                                <i class="fas fa-exchange-alt"></i> Movements
-                            </a>
-                            <a asp-action="Create" class="btn btn-success btn-sm">
-                                <i class="fas fa-plus"></i> Open New Session
-                            </a>
-                        </div>
+                        <h3 class="card-title">Histórico de Caixas</h3>
                     </div>
                     <div class="card-body">
-                        @if (Model != null && Model.Any())
-                        {
-                            <table class="table table-bordered table-striped">
+                        <div class="table-responsive">
+                            <table id="cashRegistersTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Initial Amount</th>
-                                        <th>Final Amount</th>
+                                        <th>Data</th>
+                                        <th>Valor Inicial</th>
+                                        <th>Valor Final</th>
+                                        <th>Usuário Abertura</th>
+                                        <th>Usuário Fechamento</th>
                                         <th>Status</th>
-                                        <th>Actions</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var item in Model)
+                                    @foreach (var cashRegister in Model)
                                     {
                                         <tr>
-                                            <td>@item.Date.ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td>@item.InitialValue.ToString("C")</td>
-                                            <td>@item.FinalValue.ToString("C")</td>
+                                            <td>@cashRegister.Date.ToString("dd/MM/yyyy")</td>
+                                            <td>€@cashRegister.InitialValue.ToString("N2")</td>
+                                            <td>€@cashRegister.FinalValue.ToString("N2")</td>
                                             <td>
-                                                @if (item.Status == "aberto")
+                                                @if (cashRegister.UserAbertura != null)
                                                 {
-                                                    <span class="badge badge-success">Open</span>
+                                                    @cashRegister.UserAbertura.FirstName @cashRegister.UserAbertura.LastName
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge badge-danger">Closed</span>
+                                                    <span class="text-muted">-</span>
                                                 }
                                             </td>
                                             <td>
-                                                <a asp-action="Details" asp-route-id="@item.CashRegisterId" class="btn btn-info btn-sm">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                @if (item.Status == "aberto")
+                                                @if (cashRegister.UserFechamento != null)
                                                 {
-                                                    <a asp-action="Close" asp-route-id="@item.CashRegisterId" class="btn btn-warning btn-sm">
-                                                        <i class="fas fa-lock"></i> Close
-                                                    </a>
+                                                    @cashRegister.UserFechamento.FirstName @cashRegister.UserFechamento.LastName
                                                 }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (cashRegister.IsClosed)
+                                                {
+                                                    <span class="badge badge-danger">Fechado</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-success">Aberto</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Summary", new { id = cashRegister.CashRegisterId })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye"></i> Resumo
+                                                    </a>
+                                                    @if (!cashRegister.IsClosed)
+                                                    {
+                                                        <a href="@Url.Action("Close", new { id = cashRegister.CashRegisterId })" class="btn btn-warning btn-sm">
+                                                            <i class="fas fa-lock"></i> Fechar
+                                                        </a>
+                                                    }
+                                                </div>
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
-                        }
-                        else
-                        {
-                            <div class="text-center py-4">
-                                <i class="fas fa-cash-register fa-3x text-muted mb-3"></i>
-                                <h5 class="text-muted">No cash register sessions found</h5>
-                                <p class="text-muted">Start by opening your first cash register session.</p>
-                                <a asp-action="Create" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Open First Session
-                                </a>
-                            </div>
-                        }
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Modal para Abrir Caixa -->
+<div class="modal fade" id="openCashModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Abrir Caixa</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="openCashForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="initialValue">Valor Inicial do Caixa:</label>
+                        <input type="number" class="form-control" id="initialValue" name="initialValue" step="0.01" min="0" value="0" required>
+                        <small class="form-text text-muted">Digite o valor inicial em dinheiro no caixa.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Abrir Caixa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#cashRegistersTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                },
+                "order": [[0, "desc"]] // Ordenar por data decrescente
+            });
+
+            // Carregar status do caixa
+            loadCashStatus();
+        });
+
+        function loadCashStatus() {
+            $.get('@Url.Action("GetOpenRegister")', function(data) {
+                if (data.exists) {
+                    $('#cashStatusContent').html(`
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-lock-open"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Status</span>
+                                        <span class="info-box-number">Aberto</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Valor Inicial</span>
+                                        <span class="info-box-number">€ ${data.initialValue.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-arrow-up"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Entradas</span>
+                                        <span class="info-box-number">€ ${data.totalEntradas.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-warning"><i class="fas fa-arrow-down"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Saídas</span>
+                                        <span class="info-box-number">€ ${data.totalSaidas.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-primary"><i class="fas fa-balance-scale"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Saldo Atual</span>
+                                        <span class="info-box-number">€ ${data.saldoAtual.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-secondary"><i class="fas fa-user"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Aberto por</span>
+                                        <span class="info-box-number">${data.openingUser}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    $('#openCashBtn').hide();
+                    $('#closeCashBtn').show();
+                } else {
+                    $('#cashStatusContent').html(`
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Nenhum caixa aberto!</strong><br>
+                            Abra um caixa para começar a trabalhar.
+                        </div>
+                    `);
+                    $('#openCashBtn').show();
+                    $('#closeCashBtn').hide();
+                }
+            });
+        }
+
+        function openCash() {
+            $('#openCashModal').modal('show');
+        }
+
+        $('#openCashForm').submit(function(e) {
+            e.preventDefault();
+            var initialValue = $('#initialValue').val();
+            
+            $.post('@Url.Action("Open")', { initialValue: initialValue }, function(response) {
+                if (response.success) {
+                    Swal.fire('Sucesso!', 'Caixa aberto com sucesso!', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Erro!', response.message, 'error');
+                }
+            });
+        });
+
+        function closeCash() {
+            Swal.fire({
+                title: 'Fechar Caixa',
+                text: 'Deseja realmente fechar o caixa atual?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, fechar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Close")';
+                }
+            });
+        }
+
+        function viewSummary() {
+            window.location.href = '@Url.Action("Summary")';
+        }
+    </script>
+}

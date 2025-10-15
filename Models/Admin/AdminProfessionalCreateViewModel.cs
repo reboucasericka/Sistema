@@ -10,12 +10,19 @@ namespace Sistema.Models.Admin
         [Display(Name = "Full Name")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "User is required")]
-        [Display(Name = "User")]
-        public string UserId { get; set; } = string.Empty;
+        [Display(Name = "Usuário Existente")]
+        public string? ExistingUserId { get; set; }
+
+        [Display(Name = "Email para Novo Usuário")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string? Email { get; set; }
+
+        [Display(Name = "Senha para Novo Usuário")]
+        [StringLength(100, ErrorMessage = "A senha deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
+        public string? Password { get; set; }
 
         [Display(Name = "Foto do Profissional")]
-        public IFormFile? file { get; set; }
+        public IFormFile? PhotoFile { get; set; }
 
         public string? ImageId { get; set; }
 

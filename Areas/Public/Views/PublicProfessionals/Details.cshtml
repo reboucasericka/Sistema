@@ -1,0 +1,182 @@
+@model Sistema.Data.Entities.Professional
+
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-5">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-area="Public" asp-controller="Home" asp-action="Index">Início</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Nossa Equipa</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-img-top position-relative overflow-hidden" style="height: 400px;">
+                    <img src="@Model.ImageFullPath" 
+                         class="card-img-top w-100 h-100 object-fit-cover" 
+                         alt="@Model.Name">
+                </div>
+                <div class="card-body text-center">
+                    <h4 class="card-title">@Model.Name</h4>
+                    <p class="card-text text-muted">
+                        <i class="fas fa-user-md me-2"></i>@Model.Specialty
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <p class="card-text">
+                            <i class="fas fa-phone me-2"></i>@Model.Phone
+                        </p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <p class="card-text">
+                            <i class="fas fa-envelope me-2"></i>@Model.Email
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Informações do Profissional
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Nome Completo</h6>
+                            <p class="text-muted">@Model.Name</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Especialidade</h6>
+                            <p class="text-muted">@Model.Specialty</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Contacto</h6>
+                                <p class="text-muted">@Model.Phone</p>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Email</h6>
+                                <p class="text-muted">@Model.Email</p>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.ProfessionalServices != null && Model.ProfessionalServices.Any())
+                    {
+                        <hr>
+                        <h6 class="fw-bold">Serviços Disponíveis</h6>
+                        <div class="row">
+                            @foreach (var service in Model.ProfessionalServices)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>@service.Service?.Name</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.Schedules != null && Model.Schedules.Any())
+                    {
+                        <hr>
+                        <h6 class="fw-bold">Horários de Atendimento</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Dia da Semana</th>
+                                        <th>Horário</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in Model.Schedules.Where(s => s.DayOfWeek.HasValue).OrderBy(s => s.DayOfWeek))
+                                    {
+                                        <tr>
+                                            <td>@GetDayName(schedule.DayOfWeek.Value)</td>
+                                            <td>@schedule.Time.ToString(@"hh\:mm")</td>
+                                            <td>
+                                                <span class="badge @(schedule.Status == "available" ? "bg-success" : "bg-warning")">
+                                                    @(schedule.Status == "available" ? "Disponível" : schedule.Status)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a asp-area="Public" asp-controller="PublicAppointment" asp-action="Index" 
+                       class="btn btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>Agendar Consulta
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar à Equipa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetDayName(int dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            1 => "Segunda-feira",
+            2 => "Terça-feira",
+            3 => "Quarta-feira",
+            4 => "Quinta-feira",
+            5 => "Sexta-feira",
+            6 => "Sábado",
+            7 => "Domingo",
+            _ => "Dia inválido"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .object-fit-cover {
+            object-fit: cover;
+        }
+        
+        .card {
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+}

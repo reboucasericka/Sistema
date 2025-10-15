@@ -1,0 +1,85 @@
+@model IEnumerable<Sistema.Data.Entities.Professional>
+
+@{
+    ViewData["Title"] = "Nossa Equipa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">Nossa Equipa</h1>
+            <p class="lead text-muted">Conheça os nossos profissionais especializados</p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var professional in Model)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-img-top position-relative overflow-hidden" style="height: 300px;">
+                            <img src="@professional.ImageFullPath" 
+                                 class="card-img-top w-100 h-100 object-fit-cover" 
+                                 alt="@professional.Name"
+                                 style="object-fit: cover; transition: transform 0.3s ease;">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-center mb-3">@professional.Name</h5>
+                            <p class="card-text text-center text-muted mb-3">
+                                <i class="fas fa-user-md me-2"></i>@professional.Specialty
+                            </p>
+                            @if (!string.IsNullOrEmpty(professional.Phone))
+                            {
+                                <p class="card-text text-center mb-2">
+                                    <i class="fas fa-phone me-2"></i>@professional.Phone
+                                </p>
+                            }
+                            @if (!string.IsNullOrEmpty(professional.Email))
+                            {
+                                <p class="card-text text-center mb-3">
+                                    <i class="fas fa-envelope me-2"></i>@professional.Email
+                                </p>
+                            }
+                            <div class="mt-auto">
+                                <a asp-action="Details" asp-route-id="@professional.ProfessionalId" 
+                                   class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>Ver Perfil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-user-md fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum profissional disponível</h4>
+                <p class="text-muted">A nossa equipa está em formação. Volte em breve!</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+        
+        .card-img-top:hover img {
+            transform: scale(1.05);
+        }
+        
+        .object-fit-cover {
+            object-fit: cover;
+        }
+    </style>
+}

@@ -1,0 +1,285 @@
+@model IEnumerable<Sistema.Data.Entities.Receivable>
+
+@{
+    ViewData["Title"] = "Recebimentos";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Recebimentos</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Recebimentos</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Filtros</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" class="row">
+                            <div class="col-md-3">
+                                <label for="status">Status:</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">Todos</option>
+                                    <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pendente</option>
+                                    <option value="Paid" selected="@(ViewBag.Status == "Paid")">Pago</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="customerId">Cliente:</label>
+                                <select name="customerId" id="customerId" class="form-control" asp-items="ViewBag.Customers">
+                                    <option value="">Todos os clientes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="startDate">Data Início:</label>
+                                <input type="date" name="startDate" id="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label for="endDate">Data Fim:</label>
+                                <input type="date" name="endDate" id="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary form-control">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3 id="totalPending">€ 0,00</h3>
+                        <p>Pendentes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3 id="totalPaid">€ 0,00</h3>
+                        <p>Recebidos</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3 id="totalServices">€ 0,00</h3>
+                        <p>Serviços</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-concierge-bell"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3 id="totalSales">€ 0,00</h3>
+                        <p>Vendas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Lista de Recebimentos</h3>
+                        <div class="card-tools">
+                            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Novo Recebimento
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="receivablesTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Cliente</th>
+                                        <th>Profissional</th>
+                                        <th>Serviço/Venda</th>
+                                        <th>Status</th>
+                                        <th>Data Pagamento</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var receivable in Model)
+                                    {
+                                        <tr>
+                                            <td>@receivable.Description</td>
+                                            <td>€@receivable.Amount.ToString("N2")</td>
+                                            <td>
+                                                @if (receivable.Customer?.User != null)
+                                                {
+                                                    @receivable.Customer.User.FirstName @receivable.Customer.User.LastName
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (receivable.Professional != null)
+                                                {
+                                                    @receivable.Professional.Name
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (receivable.Service != null)
+                                                {
+                                                    <span class="badge badge-info">@receivable.Service.Name</span>
+                                                }
+                                                else if (receivable.Sale != null)
+                                                {
+                                                    <span class="badge badge-success">Venda #@receivable.Sale.SaleId</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (receivable.Status == "Paid")
+                                                {
+                                                    <span class="badge badge-success">Pago</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-warning">Pendente</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (receivable.PaymentDate.HasValue)
+                                                {
+                                                    @receivable.PaymentDate.Value.ToString("dd/MM/yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Details", new { id = receivable.ReceivableId })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Edit", new { id = receivable.ReceivableId })" class="btn btn-warning btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    @if (receivable.Status == "Pending")
+                                                    {
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="markAsPaid(@receivable.ReceivableId)">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    }
+                                                    <a href="@Url.Action("Delete", new { id = receivable.ReceivableId })" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#receivablesTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                }
+            });
+
+            // Carregar resumo
+            loadSummary();
+        });
+
+        function loadSummary() {
+            $.get('@Url.Action("Summary")', function(data) {
+                $('#totalPending').text('€ ' + data.totalPending.toFixed(2).replace('.', ','));
+                $('#totalPaid').text('€ ' + data.totalPaid.toFixed(2).replace('.', ','));
+                $('#totalServices').text('€ ' + data.totalServices.toFixed(2).replace('.', ','));
+                $('#totalSales').text('€ ' + data.totalSales.toFixed(2).replace('.', ','));
+            });
+        }
+
+        function markAsPaid(id) {
+            Swal.fire({
+                title: 'Confirmar Recebimento',
+                text: 'Deseja marcar este recebimento como pago?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sim, marcar como pago!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('@Url.Action("MarkAsPaid")', { id: id }, function(response) {
+                        if (response.success) {
+                            Swal.fire('Sucesso!', 'Recebimento marcado como pago!', 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Erro!', 'Erro ao marcar recebimento como pago.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

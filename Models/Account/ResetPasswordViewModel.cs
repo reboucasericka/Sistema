@@ -9,7 +9,7 @@ namespace Sistema.Models.Account
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, ErrorMessage = "The password must be at least {2} characters long.", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "The password must be at least {2} characters long.", MinimumLength = 5)]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 

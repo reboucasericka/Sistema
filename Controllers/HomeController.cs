@@ -18,28 +18,30 @@ namespace Sistema.Controllers
             _context = context;
         }
 
-        
         public async Task<IActionResult> Index()
         {
-            // Busca serviços em destaque
-            var featuredServices = await _context.Service
-                .Include(s => s.Category)
-                .Take(6)
-                .ToListAsync();
+            // Busca serviços em destaque (apenas se autenticado)
+            if (User.Identity.IsAuthenticated)
+            {
+                var featuredServices = await _context.Service
+                    .Include(s => s.Category)
+                    .Take(6)
+                    .ToListAsync();
 
-            // Busca produtos em destaque
-            var featuredProducts = await _context.Products
-                .Include(p => p.ProductCategory)
-                .Where(p => p.IsActive)
-                .Take(6)
-                .ToListAsync();
+                var featuredProducts = await _context.Products
+                    .Include(p => p.ProductCategory)
+                    .Where(p => p.IsActive)
+                    .Take(6)
+                    .ToListAsync();
 
-            ViewBag.FeaturedServices = featuredServices;
-            ViewBag.FeaturedProducts = featuredProducts;
+                ViewBag.FeaturedServices = featuredServices;
+                ViewBag.FeaturedProducts = featuredProducts;
+            }
 
             return View();
         }
         //  Nova p�gina Store (vitrine de produtos)
+        [Authorize]
         public async Task<IActionResult> Store()
         {
                 var products = await _context.Products
@@ -51,6 +53,7 @@ namespace Sistema.Controllers
             return View(products); // procura Views/Home/S
         }
 
+        [Authorize]
         public ActionResult Price()
         {
             var precos = _context.PriceTables.ToList();
@@ -58,10 +61,7 @@ namespace Sistema.Controllers
         }
 
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+      
 
         [Authorize]
         public IActionResult Admin()
@@ -70,7 +70,7 @@ namespace Sistema.Controllers
             ViewBag.TotalClients = 150;
             ViewBag.TotalAppointments = 12;
             ViewBag.TotalProducts = 45;
-            ViewBag.TotalRevenue = "R$ 15.420";
+            ViewBag.TotalRevenue = "€ 15.420";
             ViewBag.ActiveClients = 120;
             ViewBag.TotalServices = 8;
             

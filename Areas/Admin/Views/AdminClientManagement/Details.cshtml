@@ -156,7 +156,7 @@
                                     {
                                         <tr>
                                             <td>@billing.Data.ToString("dd/MM/yyyy")</td>
-                                            <td>R$ @billing.ValorTotal.ToString("N2")</td>
+                                            <td>€ @billing.ValorTotal.ToString("N2")</td>
                                             <td>@billing.QuantidadeServicos</td>
                                             <td>@billing.QuantidadeProdutos</td>
                                             <td>@billing.Usuario?.FirstName</td>
@@ -198,7 +198,7 @@
                                     {
                                         <tr>
                                             <td>@receivable.Descricao</td>
-                                            <td>R$ @receivable.Valor.ToString("N2")</td>
+                                            <td>€ @receivable.Valor.ToString("N2")</td>
                                             <td>@receivable.DataLanc.ToString("dd/MM/yyyy")</td>
                                             <td>@receivable.DataVenc.ToString("dd/MM/yyyy")</td>
                                             <td>@(receivable.DataPgto?.ToString("dd/MM/yyyy") ?? "-")</td>

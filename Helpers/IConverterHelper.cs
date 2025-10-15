@@ -6,9 +6,13 @@ namespace Sistema.Helpers
 {
     public interface IConverterHelper
     {
-        // Product mappings
-        Product ToProduct(AdminProductViewModel model,Guid imageId, bool isNew);
+        // Converte de ViewModel → Entidade
+        Product ToProduct(AdminProductViewModel model, Guid imageId, bool isNew, string? userId = null);
+        // Converte de Entidade → ViewModel
         AdminProductViewModel ToProductViewModel(Product product);
+
+        // Converte de Entidade → ViewModel
+        
 
         // Customer mappings
         Customer ToCustomer(AdminCustomerCreateViewModel model);

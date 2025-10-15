@@ -1,110 +1,214 @@
 @model IEnumerable<Sistema.Data.Entities.Professional>
 
 @{
-    ViewData["Title"] = "Profissionais";
+    ViewData["Title"] = "Gestão de Profissionais";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Profissionais</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Profissionais</li>
-                </ol>
-            </div>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-user-tie me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Novo Profissional
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Gerencie os profissionais da sua equipe</p>
         </div>
     </div>
-</div>
 
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Lista de Profissionais</h3>
-                        <div class="card-tools">
-                            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Novo Profissional
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="professionalsTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Foto</th>
-                                        <th>Nome</th>
-                                        <th>Especialidade</th>
-                                        <th>Email</th>
-                                        <th>Comissão</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var professional in Model)
-                                    {
-                                        <tr>
-                                            <td>
-                                                @if (professional.ImageId != Guid.Empty)
-                                                {
-                                                    <img src="@professional.ImageFullPath" alt="@professional.Name" class="img-circle img-size-32">
-                                                }
-                                                else
-                                                {
-                                                    <div class="img-circle img-size-32 bg-secondary d-flex align-items-center justify-content-center">
-                                                        <i class="fas fa-user text-white"></i>
-                                                    </div>
-                                                }
-                                            </td>
-                                            <td>@professional.Name</td>
-                                            <td>@professional.Specialty</td>
-                                            <td>@professional.User?.Email</td>
-                                            <td>@professional.DefaultCommission.ToString("C")</td>
-                                            <td>
-                                                @if (professional.IsActive)
-                                                {
-                                                    <span class="badge badge-success">Ativo</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge badge-danger">Inativo</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="@Url.Action("Details", new { id = professional.ProfessionalId })" 
-                                                       class="btn btn-info btn-sm" title="Visualizar">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="@Url.Action("Edit", new { id = professional.ProfessionalId })" 
-                                                       class="btn btn-warning btn-sm" title="Editar">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <a href="@Url.Action("Delete", new { id = professional.ProfessionalId })" 
-                                                       class="btn btn-danger btn-sm" title="Excluir">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+    <!-- Alertas -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Estatísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3>@Model.Count()</h3>
+                    <p>Total de Profissionais</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>@Model.Count(p => p.IsActive)</h3>
+                    <p>Profissionais Ativos</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>@Model.Count(p => !p.IsActive)</h3>
+                    <p>Profissionais Inativos</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-times"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>@Model.Count(p => p.User != null)</h3>
+                    <p>Com Acesso ao Sistema</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-key"></i>
                 </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Tabela de Profissionais -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Profissionais
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table id="professionalsTable" class="table table-hover align-middle">
+                        <thead class="table-light text-uppercase small">
+                            <tr>
+                                <th>
+                                    <i class="fas fa-image me-1"></i>Foto
+                                </th>
+                                <th>
+                                    <i class="fas fa-user me-1"></i>Nome
+                                </th>
+                                <th>
+                                    <i class="fas fa-star me-1"></i>Especialidade
+                                </th>
+                                <th>
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </th>
+                                <th>
+                                    <i class="fas fa-percentage me-1"></i>Comissão
+                                </th>
+                                <th>
+                                    <i class="fas fa-toggle-on me-1"></i>Status
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-cogs me-1"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var professional in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (professional.ImageId != Guid.Empty)
+                                        {
+                                            <img src="@professional.ImageFullPath" alt="@professional.Name" 
+                                                 class="rounded-circle" width="50" height="50" style="object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@professional.Name</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@professional.Specialty</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@professional.User?.Email</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold">@professional.DefaultCommission.ToString("N2")%</span>
+                                    </td>
+                                    <td>
+                                        @if (professional.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Ativo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Inativo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <a asp-action="Details" asp-route-id="@professional.ProfessionalId" 
+                                               class="btn btn-info btn-sm" title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@professional.ProfessionalId" 
+                                               class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-action="ToggleStatus" asp-route-id="@professional.ProfessionalId" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm @(professional.IsActive ? "btn-danger" : "btn-success")" 
+                                                        title="@(professional.IsActive ? "Desativar" : "Ativar")">
+                                                    <i class="fas @(professional.IsActive ? "fa-ban" : "fa-check")"></i>
+                                                </button>
+                                            </form>
+                                            <a asp-action="Delete" asp-route-id="@professional.ProfessionalId" 
+                                               class="btn btn-danger btn-sm" title="Excluir">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-user-tie fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum profissional encontrado</h5>
+                    <p class="text-muted">Comece adicionando seu primeiro profissional.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Adicionar Primeiro Profissional
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>

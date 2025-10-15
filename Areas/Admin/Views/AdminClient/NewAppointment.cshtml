@@ -24,7 +24,7 @@
                                     <i class="fas fa-spa me-2" style="color: var(--accent-terracotta);"></i>
                                     Serviço
                                 </label>
-                                <select asp-for="ServiceId" class="form-select" asp-items="@(new SelectList(ViewBag.Services, "Id", "Name"))">
+                                <select asp-for="ServiceId" class="form-select" asp-items="@(new SelectList(ViewBag.Services, "ServiceId", "Name"))">
                                     <option value="">Selecione um serviço</option>
                                 </select>
                                 <span asp-validation-for="ServiceId" class="text-danger"></span>

@@ -4,10 +4,10 @@
     Layout = "_AuthLayout";
 }
 <!--Views/Account/Login.cshtml-->
-<div class="container-fluid min-vh-100 d-flex align-items-center">
-    <div class="row w-100">
+<div class="container-fluid">
+    <div class="row">
         <!-- Imagem esquerda -->
-        <div class="col-md-6 auth-image d-none d-md-flex align-items-center justify-content-center">
+        <div class="col-md-6 auth-image d-none d-md-flex">
             <div class="auth-image-content">
                 <h3>Bem-vinda de volta!</h3>
                 <p>Entre na sua conta e continue sua jornada de beleza conosco.</p>
@@ -18,11 +18,11 @@
         </div>
 
         <!-- Formulário direita -->
-        <div class="col-md-6 d-flex align-items-center justify-content-center p-4">
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
             <div class="auth-card w-100" style="max-width: 450px;">
                 <div class="auth-header">
                     <h2><i class="fas fa-sign-in-alt me-2"></i>Entrar</h2>
-                    <p>Acesse sua conta para continuar</p>
+                    <p>Acesse sua conta para continuar Views/Account/Login.cshtml</p>
                 </div>
 
                 <div class="p-4">
@@ -40,27 +40,35 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Password">Senha</label>
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock me-2" style="color: var(--accent-terracotta);"></i>
+                                Senha
+                            </label>
                             <div class="position-relative">
-                                <input asp-for="Password" type="password" class="form-control" />
-                                <span asp-validation-for="Password" class="text-warning"></span>                            
-                        </div>
-                        </div>
-                        <div>
-                            <div class="form-check mb-3">
-                                <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
-                                <label asp-for="RememberMe" class="form-check-label">Lembrar de mim</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Digite sua senha" />
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3" onclick="togglePassword()" style="border: none; background: none; color: var(--accent-terracotta);">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
                             </div>
-                            <span asp-validation-for="RememberMe" class="text-warning"></span>
+                            <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        <div class="mb-3">
-                            <input type="submit" value="Login" class="btn btn-success" />
-                            <a asp-action="Register" class="btn btn-primary">Register New User</a>
+                        <div class="form-check mb-3">
+                            <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">Lembrar de mim</label>
+                        </div>
+
+
+                        <!--AQUI VAI PARA ONDE ?????-->
+                        <div class="d-grid gap-2 mb-3">
+                            <a asp-action="" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-1"></i>Cadastre-se aqui
+                            </a>    
+                            <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
                         </div>
 
                         <!-- Login Social -->
                         <div class="social-login">
-                            <div class="divider">
+                            <div>
                                 <span>ou continue com</span>
                             </div>
                             <a asp-action="ExternalLogin" asp-route-provider="Facebook" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-facebook social-btn">
@@ -72,19 +80,12 @@
                                 Google
                             </a>
                         </div>
-                        <!--REDIRECIONA PARA O REGISTER-->
-                        <div class="text-center">
-                            <p class="mb-2">Não tem uma conta?</p>
-                            <a asp-action="Register" class="text-link"><i class="fas fa-user-plus me-1"></i>Cadastre-se aqui</a>
-                        </div>
-
-                        <!--engrenagem acesso administrativo-->
+                        <!-- Link para registro -->
                         <div class="text-center mt-3">
-                            <a asp-controller="Account" asp-action="AdminLogin" title="Acesso Administrativo"
-                               style="font-size: 1.5rem; color: var(--cor-detalhe); text-decoration: none;">
-                                <i class="fas fa-cog"></i>
+                            <p class="mb-2">Não tem uma conta?</p>
+                            <a asp-action="Register" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-1"></i>Cadastre-se aqui
                             </a>
-                            <p class="small text-muted mt-2"></p>
                         </div>
 
                     </form>

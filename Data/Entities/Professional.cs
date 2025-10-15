@@ -4,12 +4,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Professionals")]
-    public class Professional
+    public class Professional : IEntity
     {
         [Key]
         public int ProfessionalId { get; set; }
+        
+        
 
         // 🔗 FK → User
+        [ForeignKey("User")]
         public string UserId { get; set; }
         public User User { get; set; }
 
@@ -29,8 +32,11 @@ namespace Sistema.Data.Entities
         [StringLength(100)]
         public string? Email { get; set; } // Email do profissional
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal DefaultCommission { get; set; } = 0;
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal CommissionPercentage { get; set; } = 0; // Percentual de comissão (0-100)
+
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal DefaultCommission { get; set; } = 0; // Comissão padrão (0-100)
 
         public bool IsActive { get; set; } = true;
 

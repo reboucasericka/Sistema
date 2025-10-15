@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using Sistema.Data.Entities;
 using Sistema.Data;
-using Microsoft.AspNetCore.Authorization;
+using Sistema.Data.Entities;
+using Sistema.Helpers;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -13,33 +13,62 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminCashMovementsController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly IUserHelper _userHelper;
 
-        public AdminCashMovementsController(SistemaDbContext context)
+        public AdminCashMovementsController(SistemaDbContext context, IUserHelper userHelper)
         {
             _context = context;
+            _userHelper = userHelper;
         }
 
-        // GET: CashMovements
-        public async Task<IActionResult> Index(int? cashRegisterId)
+        // GET: Admin/CashMovements
+        public async Task<IActionResult> Index(string? type, DateTime? startDate, DateTime? endDate, int? cashRegisterId)
         {
             var query = _context.CashMovements
                 .Include(cm => cm.CashRegister)
                 .AsQueryable();
 
+            // Filtros
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(cm => cm.Type == type);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(cm => cm.Date >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(cm => cm.Date <= endDate.Value);
+            }
+
             if (cashRegisterId.HasValue)
             {
                 query = query.Where(cm => cm.CashRegisterId == cashRegisterId.Value);
-                ViewBag.CashRegisterId = cashRegisterId.Value;
             }
 
-            var movements = await query
-                .OrderByDescending(cm => cm.Date)
-                .ToListAsync();
+            var cashMovements = await query.OrderByDescending(cm => cm.Date).ToListAsync();
 
-            return View(movements);
+            // Calcular totais
+            var totalEntradas = await query.Where(cm => cm.Type == "Entrada").SumAsync(cm => cm.Amount);
+            var totalSaidas = await query.Where(cm => cm.Type == "Saída").SumAsync(cm => cm.Amount);
+            var saldoLiquido = totalEntradas - totalSaidas;
+
+            ViewBag.Type = type;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.CashRegisterId = cashRegisterId;
+            ViewBag.TotalEntradas = totalEntradas;
+            ViewBag.TotalSaidas = totalSaidas;
+            ViewBag.SaldoLiquido = saldoLiquido;
+            ViewBag.CashRegisters = new SelectList(_context.CashRegisters, "CashRegisterId", "Date");
+
+            return View(cashMovements);
         }
 
-        // GET: CashMovements/Details/5
+        // GET: Admin/CashMovements/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -49,7 +78,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             var cashMovement = await _context.CashMovements
                 .Include(cm => cm.CashRegister)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CashMovementId == id);
 
             if (cashMovement == null)
             {
@@ -59,45 +88,46 @@ namespace Sistema.Areas.Admin.Controllers
             return View(cashMovement);
         }
 
-        // GET: CashMovements/Create
-        public async Task<IActionResult> Create(int? cashRegisterId)
+        // GET: Admin/CashMovements/Create
+        public async Task<IActionResult> Create()
         {
-            // Get open cash registers
-            var openCashRegisters = await _context.CashRegisters
-                .Where(cr => cr.Status == "aberto")
+            // Buscar caixa aberto
+            var openCashRegister = await _context.CashRegisters
+                .Where(cr => !cr.IsClosed)
                 .OrderByDescending(cr => cr.Date)
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            ViewData["CashRegisterId"] = new SelectList(openCashRegisters, "CashRegisterId", "Date", cashRegisterId);
-            
+            if (openCashRegister == null)
+            {
+                TempData["ErrorMessage"] = "Não há caixa aberto. Abra um caixa antes de registrar movimentações.";
+                return RedirectToAction("Index", "AdminCashRegister");
+            }
+
+            ViewData["CashRegisterId"] = openCashRegister.CashRegisterId;
+            ViewData["Type"] = new SelectList(new[] { "Entrada", "Saída" });
             return View();
         }
 
-        // POST: CashMovements/Create
+        // POST: Admin/CashMovements/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CashRegisterId,Type,Amount,Description,Date,Reference,RelatedEntityId,RelatedEntityType")] CashMovement cashMovement)
+        public async Task<IActionResult> Create([Bind("CashRegisterId,Type,Amount,Description,ReferenceId,ReferenceType")] CashMovement cashMovement)
         {
             if (ModelState.IsValid)
             {
                 cashMovement.Date = DateTime.Now;
                 _context.Add(cashMovement);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Cash movement created successfully!";
-                return RedirectToAction(nameof(Index), new { cashRegisterId = cashMovement.CashRegisterId });
+                TempData["SuccessMessage"] = "Movimentação registrada com sucesso!";
+                return RedirectToAction(nameof(Index));
             }
 
-            var openCashRegisters = await _context.CashRegisters
-                .Where(cr => cr.Status == "aberto")
-                .OrderByDescending(cr => cr.Date)
-                .ToListAsync();
-
-            ViewData["CashRegisterId"] = new SelectList(openCashRegisters, "CashRegisterId", "Date", cashMovement.CashRegisterId);
+            ViewData["CashRegisterId"] = cashMovement.CashRegisterId;
+            ViewData["Type"] = new SelectList(new[] { "Entrada", "Saída" }, cashMovement.Type);
             return View(cashMovement);
         }
 
-        // GET: CashMovements/Edit/5
+        // GET: Admin/CashMovements/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -111,21 +141,17 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var openCashRegisters = await _context.CashRegisters
-                .Where(cr => cr.Status == "aberto")
-                .OrderByDescending(cr => cr.Date)
-                .ToListAsync();
-
-            ViewData["CashRegisterId"] = new SelectList(openCashRegisters, "CashRegisterId", "Date", cashMovement.CashRegisterId);
+            ViewData["CashRegisterId"] = new SelectList(_context.CashRegisters, "CashRegisterId", "Date", cashMovement.CashRegisterId);
+            ViewData["Type"] = new SelectList(new[] { "Entrada", "Saída" }, cashMovement.Type);
             return View(cashMovement);
         }
 
-        // POST: CashMovements/Edit/5
+        // POST: Admin/CashMovements/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,CashRegisterId,Type,Amount,Description,Date,Reference,RelatedEntityId,RelatedEntityType")] CashMovement cashMovement)
+        public async Task<IActionResult> Edit(int id, [Bind("CashMovementId,CashRegisterId,Type,Amount,Description,Date,ReferenceId,ReferenceType")] CashMovement cashMovement)
         {
-            if (id != cashMovement.Id)
+            if (id != cashMovement.CashMovementId)
             {
                 return NotFound();
             }
@@ -136,12 +162,11 @@ namespace Sistema.Areas.Admin.Controllers
                 {
                     _context.Update(cashMovement);
                     await _context.SaveChangesAsync();
-                    
-                    TempData["SuccessMessage"] = "Cash movement updated successfully!";
+                    TempData["SuccessMessage"] = "Movimentação atualizada com sucesso!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CashMovementExists(cashMovement.Id))
+                    if (!CashMovementExists(cashMovement.CashMovementId))
                     {
                         return NotFound();
                     }
@@ -150,19 +175,15 @@ namespace Sistema.Areas.Admin.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index), new { cashRegisterId = cashMovement.CashRegisterId });
+                return RedirectToAction(nameof(Index));
             }
 
-            var openCashRegisters = await _context.CashRegisters
-                .Where(cr => cr.Status == "aberto")
-                .OrderByDescending(cr => cr.Date)
-                .ToListAsync();
-
-            ViewData["CashRegisterId"] = new SelectList(openCashRegisters, "CashRegisterId", "Date", cashMovement.CashRegisterId);
+            ViewData["CashRegisterId"] = new SelectList(_context.CashRegisters, "CashRegisterId", "Date", cashMovement.CashRegisterId);
+            ViewData["Type"] = new SelectList(new[] { "Entrada", "Saída" }, cashMovement.Type);
             return View(cashMovement);
         }
 
-        // GET: CashMovements/Delete/5
+        // GET: Admin/CashMovements/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -172,7 +193,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             var cashMovement = await _context.CashMovements
                 .Include(cm => cm.CashRegister)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CashMovementId == id);
 
             if (cashMovement == null)
             {
@@ -182,7 +203,7 @@ namespace Sistema.Areas.Admin.Controllers
             return View(cashMovement);
         }
 
-        // POST: CashMovements/Delete/5
+        // POST: Admin/CashMovements/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -192,16 +213,44 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 _context.CashMovements.Remove(cashMovement);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Cash movement deleted successfully!";
+                TempData["SuccessMessage"] = "Movimentação excluída com sucesso!";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Admin/CashMovements/Summary
+        public async Task<IActionResult> Summary(DateTime? startDate, DateTime? endDate)
+        {
+            var query = _context.CashMovements.AsQueryable();
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(cm => cm.Date >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(cm => cm.Date <= endDate.Value);
+            }
+
+            var summary = new
+            {
+                TotalEntradas = await query.Where(cm => cm.Type == "Entrada").SumAsync(cm => cm.Amount),
+                TotalSaidas = await query.Where(cm => cm.Type == "Saída").SumAsync(cm => cm.Amount),
+                SaldoLiquido = await query.Where(cm => cm.Type == "Entrada").SumAsync(cm => cm.Amount) - 
+                              await query.Where(cm => cm.Type == "Saída").SumAsync(cm => cm.Amount),
+                TotalMovements = await query.CountAsync(),
+                EntradasCount = await query.Where(cm => cm.Type == "Entrada").CountAsync(),
+                SaidasCount = await query.Where(cm => cm.Type == "Saída").CountAsync()
+            };
+
+            return Json(summary);
+        }
+
         private bool CashMovementExists(int id)
         {
-            return _context.CashMovements.Any(e => e.Id == id);
+            return _context.CashMovements.Any(e => e.CashMovementId == id);
         }
     }
 }

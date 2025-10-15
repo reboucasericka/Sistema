@@ -114,17 +114,16 @@ header .logo img {
 }
 /* Dropdown flutuante */
 .dropdown-content {
-    display: none;
+    background: var(--neutral-gray);
+    width: 300px;
     position: absolute;
-    background: var(--neutral-white);
-    min-width: 200px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    padding: 10px 0;
-    margin-top: 5px;
+    top: 61%;
+    left: 80%;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .5s;
+    padding: 35px 0;
+    z-index: 3;
 }
     /* Links internos */
 .dropdown-content a {
@@ -145,6 +144,23 @@ header .logo img {
 /* Hover ativa dropdown */
 .dropdown:hover .dropdown-content {
     display: block;
+}
+
+/* Clique ativa dropdown (para dispositivos móveis) */
+.dropdown-content.show {
+    display: block !important;
+}
+
+/* Melhorar acessibilidade */
+.dropbtn:focus {
+    outline: 2px solid var(--accent-terracotta);
+    outline-offset: 2px;
+}
+
+.dropdown-content a:focus {
+    background: var(--neutral-light);
+    color: var(--accent-terracotta);
+    outline: none;
 }
 
 /* Mobile Navigation */
@@ -917,7 +933,10 @@ header .logo img {
 
 .auth-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--primary-beige) 0%, var(--accent-peach) 100%);
+    background: var(--neutral-white);
+    padding-top: 80px; /* Espaço para o header fixo */
+    position: relative;
+    overflow: hidden;
 }
 
 .auth-card {
@@ -926,6 +945,8 @@ header .logo img {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     border: none;
     overflow: hidden;
+    margin: 2rem 0;
+    max-width: 500px;
 }
 
 .auth-header {
@@ -953,6 +974,7 @@ header .logo img {
     background: linear-gradient(135deg, var(--primary-beige) 0%, var(--accent-peach) 100%);
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
 }
 
 .auth-image::before {
@@ -963,7 +985,7 @@ header .logo img {
     right: 0;
     bottom: 0;
     background: url('/images/home/ew6.jpg') center/cover;
-    opacity: 0.3;
+    opacity: 0.2;
 }
 
 .auth-image-content {
@@ -971,7 +993,11 @@ header .logo img {
     z-index: 2;
     color: white;
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
 }
 
 .auth-image h3 {
@@ -1208,6 +1234,7 @@ footer .social a {
    📱 RESPONSIVE DESIGN
 ========================================================= */
 
+/* Tablet e Mobile */
 @media (max-width: 768px) {
     /* Header */
     header {
@@ -1296,8 +1323,62 @@ footer .social a {
         margin-bottom: 0.5rem;
         width: 100%;
     }
+
+    /* Admin Responsive */
+    .container-fluid {
+        padding: 15px;
+    }
+    
+    .small-box .icon {
+        font-size: 60px;
+        right: 10px;
+        top: -5px;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+
+    /* Auth Mobile */
+    .auth-container {
+        padding: 1rem;
+        padding-top: 100px;
+    }
+
+    .auth-container .container-fluid {
+        height: auto;
+        min-height: calc(100vh - 80px);
+    }
+
+    .auth-card {
+        margin: 1rem;
+        border-radius: 15px;
+        max-width: none;
+    }
+
+    .auth-header {
+        padding: 1.5rem;
+    }
+
+    .auth-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .auth-image {
+        display: none;
+    }
 }
 
+/* Mobile Small */
 @media (max-width: 480px) {
     header {
         padding: 10px 15px;
@@ -1318,15 +1399,185 @@ footer .social a {
     .slider_home .title_three {
         font-size: 0.9rem;
     }
+
+    /* Admin Mobile */
+    .container-fluid {
+        padding: 10px;
+    }
+    
+    .small-box > .inner {
+        padding: 15px;
+    }
+    
+    .small-box .icon {
+        font-size: 50px;
+        right: 8px;
+        top: -3px;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 6px 10px !important;
+        font-size: 0.9rem;
+    }
 }
 
 /* =========================================================
    🔧 UTILITY CLASSES
 ========================================================= */
 
+/* Flexbox Utilities */
+.d-flex {
+    display: flex !important;
+}
+
+.gap-1 {
+    gap: 0.25rem !important;
+}
+
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+.gap-3 {
+    gap: 1rem !important;
+}
+
+.gap-4 {
+    gap: 1.5rem !important;
+}
+
+.gap-5 {
+    gap: 3rem !important;
+}
+
+/* Flexbox Direction */
+.flex-row {
+    flex-direction: row !important;
+}
+
+.flex-column {
+    flex-direction: column !important;
+}
+
+.flex-wrap {
+    flex-wrap: wrap !important;
+}
+
+.flex-nowrap {
+    flex-wrap: nowrap !important;
+}
+
+/* Justify Content */
+.justify-content-start {
+    justify-content: flex-start !important;
+}
+
+.justify-content-end {
+    justify-content: flex-end !important;
+}
+
+.justify-content-center {
+    justify-content: center !important;
+}
+
+.justify-content-between {
+    justify-content: space-between !important;
+}
+
+.justify-content-around {
+    justify-content: space-around !important;
+}
+
+.justify-content-evenly {
+    justify-content: space-evenly !important;
+}
+
+/* Align Items */
+.align-items-start {
+    align-items: flex-start !important;
+}
+
+.align-items-end {
+    align-items: flex-end !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+.align-items-baseline {
+    align-items: baseline !important;
+}
+
+.align-items-stretch {
+    align-items: stretch !important;
+}
+
+/* Text Utilities */
 .text-pink {
     color: var(--accent-terracotta) !important;
 }
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-start {
+    text-align: start !important;
+}
+
+.text-end {
+    text-align: end !important;
+}
+
+/* Spacing Utilities */
+.me-1 { margin-right: 0.25rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.me-3 { margin-right: 1rem !important; }
+.me-4 { margin-right: 1.5rem !important; }
+.me-5 { margin-right: 3rem !important; }
+
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.ms-3 { margin-left: 1rem !important; }
+.ms-4 { margin-left: 1.5rem !important; }
+.ms-5 { margin-left: 3rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.pe-1 { padding-right: 0.25rem !important; }
+.pe-2 { padding-right: 0.5rem !important; }
+.pe-3 { padding-right: 1rem !important; }
+.pe-4 { padding-right: 1.5rem !important; }
+.pe-5 { padding-right: 3rem !important; }
+
+.ps-1 { padding-left: 0.25rem !important; }
+.ps-2 { padding-left: 0.5rem !important; }
+.ps-3 { padding-left: 1rem !important; }
+.ps-4 { padding-left: 1.5rem !important; }
+.ps-5 { padding-left: 3rem !important; }
+
+.pt-1 { padding-top: 0.25rem !important; }
+.pt-2 { padding-top: 0.5rem !important; }
+.pt-3 { padding-top: 1rem !important; }
+.pt-4 { padding-top: 1.5rem !important; }
+.pt-5 { padding-top: 3rem !important; }
+
+.pb-1 { padding-bottom: 0.25rem !important; }
+.pb-2 { padding-bottom: 0.5rem !important; }
+.pb-3 { padding-bottom: 1rem !important; }
+.pb-4 { padding-bottom: 1.5rem !important; }
+.pb-5 { padding-bottom: 3rem !important; }
 
 /* Accordion */
 .accordion-button {
@@ -1394,19 +1645,19 @@ footer .social a {
     font-weight: 500;
 }
 
-/* Unificado estilo de .card (público e admin) */
+/* === ESTILO DE CARDS (Admin + Público) === */
 .card {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    background: #fff;
     transition: all 0.3s ease;
     margin-bottom: 1.5rem;
 }
 
-.card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
-}
+    .card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
 
 .card-header {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -1414,12 +1665,12 @@ footer .social a {
     font-weight: 600;
     color: #495057;
     border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.5rem;
 }
 
 .card-body {
     padding: 1.5rem;
 }
-
 /* Small Boxes (Painéis de Estatísticas) */
 .small-box {
     border-radius: 12px;
@@ -1612,7 +1863,248 @@ footer .social a {
 /* Social Login */
 .social-login {
     margin: 1.5rem 0;
+    text-align: center;
 }
+
+.social-login > div {
+    margin-bottom: 1rem;
+    color: var(--neutral-gray);
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.social-login > div::before,
+.social-login > div::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--neutral-gray);
+    opacity: 0.3;
+}
+
+.social-login > div::before {
+    left: 0;
+}
+
+.social-login > div::after {
+    right: 0;
+}
+
+.social-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-facebook {
+    background: #1877f2;
+    color: white;
+    border: 1px solid #1877f2;
+}
+
+.btn-facebook:hover {
+    background: #166fe5;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-google {
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    color: #333;
+    transform: translateY(-2px);
+}
+
+/* Melhorias nos formulários de autenticação */
+.form-control:focus {
+    border-color: var(--accent-terracotta);
+    box-shadow: 0 0 0 0.2rem rgba(201, 125, 93, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-terracotta);
+    border-color: var(--accent-terracotta);
+}
+
+.btn-primary {
+    background-color: var(--accent-terracotta);
+    border-color: var(--accent-terracotta);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-peach);
+    border-color: var(--accent-peach);
+    transform: translateY(-2px);
+}
+
+/* Animações suaves */
+.auth-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Melhorias no layout de autenticação */
+.auth-container {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-container .container-fluid {
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: calc(100vh - 80px) !important;
+    margin: 0 !important;
+}
+
+.auth-container .row {
+    margin: 0 !important;
+    height: 100% !important;
+    align-items: stretch !important;
+}
+
+.auth-container .col-md-6 {
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    height: 100% !important;
+}
+
+.auth-container .col-md-6:first-child {
+    background: linear-gradient(135deg, var(--primary-beige) 0%, var(--accent-peach) 100%) !important;
+}
+
+.auth-container .col-md-6:last-child {
+    background: var(--neutral-white) !important;
+    padding: 2rem !important;
+}
+
+/* Garantir que o footer não interfira */
+.auth-container + footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 0;
+}
+
+/* Footer específico para autenticação */
+.auth-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--neutral-dark);
+    color: white;
+    padding: 1rem 0;
+}
+
+/* Ajustar o container de autenticação para o footer fixo */
+.auth-container {
+    padding-bottom: 200px; /* Espaço para o footer fixo */
+}
+
+
+/* === ESTILO GLOBAL DE TABELAS (Admin + Público) === */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+}
+
+    .table thead th {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: none !important;
+        font-weight: 600;
+        color: #495057;
+        padding: 14px 12px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+        .table tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.06);
+            transform: scale(1.005);
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+            .table tbody tr:nth-child(even):hover {
+                background-color: rgba(13, 110, 253, 0.06);
+            }
+
+    .table td {
+        padding: 12px;
+        border: none;
+        border-bottom: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
+
+        .table td:last-child {
+            text-align: center;
+        }
+
+    /* === ESTILO DE BOTÕES NAS TABELAS === */
+    .table .btn {
+        transition: all 0.2s ease;
+        border-radius: 6px;
+    }
+
+        .table .btn:hover {
+            transform: scale(1.1);
+        }
+
+/* === ESTILO GERAL DE PÁGINAS ADMIN === */
+body, .container-fluid {
+    overflow-x: hidden; /* remove barra horizontal */
+}
+
+.table-responsive {
+    margin-bottom: 0;
+}
+
+/* === CORREÇÃO DE ESPAÇAMENTO NAS AÇÕES === */
+.d-flex.gap-2 > * {
+    flex-shrink: 0;
+}
+
+/* === ESTILO DE TÍTULOS E CABEÇALHOS === */
+.content-header h1 {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.content-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+}
+
+
 
 .social-btn {
     width: 100%;
@@ -1668,47 +2160,6 @@ footer .social a {
     font-size: 0.9rem;
 }
 
-/* Unificado estilo de .table (público e admin) */
-.table {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.table thead th {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: none;
-    font-weight: 600;
-    color: #495057;
-    padding: 15px 12px;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-.table tbody tr {
-    transition: all 0.3s ease;
-}
-
-.table tbody tr:hover {
-    background-color: rgba(0,123,255,0.05);
-    transform: scale(1.01);
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-.table tbody tr:nth-child(even):hover {
-    background-color: rgba(0,123,255,0.05);
-}
-
-.table td {
-    padding: 12px;
-    border: none;
-    border-bottom: 1px solid #dee2e6;
-    vertical-align: middle;
-}
 
 /* Unificado estilo de .form-control (público e admin) */
 .form-control {
@@ -1871,56 +2322,24 @@ footer .social a {
     margin-right: 6px;
 }
 
-.me-1 { margin-right: 0.25rem !important; }
-.me-2 { margin-right: 0.5rem !important; }
-.me-3 { margin-right: 1rem !important; }
-.ms-1 { margin-left: 0.25rem !important; }
-.ms-2 { margin-left: 0.5rem !important; }
-.ms-3 { margin-left: 1rem !important; }
 
-/* Responsividade para Admin */
-@media (max-width: 768px) {
-    .container-fluid {
-        padding: 15px;
-    }
-    
-    .small-box .icon {
-        font-size: 60px;
-        right: 10px;
-        top: -5px;
-    }
-    
-    .table-responsive {
-        border-radius: 8px;
-    }
-    
-    .btn {
-        padding: 6px 12px;
-        font-size: 0.9rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
+
+
+
+
+
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    background-color: #343a40;
 }
 
-@media (max-width: 576px) {
-    .container-fluid {
-        padding: 10px;
-    }
-    
-    .small-box > .inner {
-        padding: 15px;
-    }
-    
-    .small-box .icon {
-        font-size: 50px;
-        right: 8px;
-        top: -3px;
-    }
-    
-    .navbar-nav .nav-link {
-        padding: 6px 10px !important;
-        font-size: 0.9rem;
-    }
+.container-fluid {
+    margin-left: 250px;
 }
+

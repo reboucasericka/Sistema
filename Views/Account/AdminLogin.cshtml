@@ -13,7 +13,7 @@
                     <div class="col-md-6 auth-image d-none d-md-flex align-items-center justify-content-center">
                         <div class="auth-image-content">
                             <h3>Painel Administrativo</h3>
-                            <p>Acesse o dashboard para gerenciar seu negócio, clientes e agendamentos.</p>
+                            <p>Acesse o dashboard para gerenciar seu negócio, clientes e agendamentos.Views/Account/AdminLogin.cshtml</p>
                             <div class="mt-4">
                                 <i class="fas fa-chart-line fa-3x mb-3" style="opacity: 0.8;"></i>
                             </div>
@@ -23,41 +23,30 @@
                     <!-- Formulário direita -->
                     <div class="col-md-6 d-flex align-items-center justify-content-center p-4">
                         <div style="width:100%; max-width:400px;">
+
                             <h3 class="mb-4 text-center text-primary-custom">
-                                <i class="fas fa-shield-alt me-2"></i>
-                                Acesso Administrativo
+                                <i class="fas fa-shield-alt me-2"></i>Acesso Administrativo
                             </h3>
 
-                            @if (!ViewData.ModelState.IsValid)
-                            {
-                                <div class="alert alert-danger">
-                                    <ul class="mb-0">
-                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                        {
-                                            <li>@error.ErrorMessage</li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-                            <form asp-controller="Account" asp-action="AdminLogin" asp-area="" method="post">
+                            <form asp-controller="Account" asp-action="AdminLogin" method="post">
                                 @Html.AntiForgeryToken()
 
                                 <div class="mb-3">
-                                    <label for="Username" class="form-label"><i class="fas fa-user-shield me-2"></i>Usuário ou E-mail</label>
-                                    <input asp-for="Username" id="Username" class="form-control" placeholder="Digite seu usuário ou e-mail" />
+                                    <label asp-for="Username" class="form-label"></label>
+                                    <input asp-for="Username" class="form-control" placeholder="Digite seu usuário ou e-mail" />
                                     <span asp-validation-for="Username" class="text-danger"></span>
-                                    <div class="form-text">Apenas usuários com permissão administrativa</div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="Password" class="form-label"><i class="fas fa-lock me-2"></i>Senha</label>
-                                    <input asp-for="Password" id="Password" type="password" class="form-control" placeholder="Digite sua senha" />
+                                    <label asp-for="Password" class="form-label"></label>
+                                    <input asp-for="Password" type="password" class="form-control" placeholder="Digite sua senha" />
                                     <span asp-validation-for="Password" class="text-danger"></span>
                                 </div>
 
                                 <div class="form-check mb-3">
-                                    <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                                    <input asp-for="RememberMe" class="form-check-input" />
                                     <label asp-for="RememberMe" class="form-check-label">Lembrar de mim</label>
                                 </div>
 
@@ -67,14 +56,6 @@
                                     </button>
                                 </div>
                             </form>
-                            
-
-                            <div class="text-center mt-4">
-                                <a asp-action="Login" class="text-link">
-                                    <i class="fas fa-arrow-left me-2"></i>
-                                    Voltar ao Login Cliente
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,4 +63,7 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
 

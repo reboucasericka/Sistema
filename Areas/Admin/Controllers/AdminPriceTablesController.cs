@@ -37,7 +37,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var priceTable = await _context.PriceTables
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.PriceId == id);
             if (priceTable == null)
             {
                 return NotFound();
@@ -91,7 +91,7 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,ServiceName,Price,Description")] PriceTable priceTable)
         {
-            if (id != priceTable.Id)
+            if (id != priceTable.PriceId)
             {
                 return NotFound();
             }
@@ -105,7 +105,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PriceTableExists(priceTable.Id))
+                    if (!PriceTableExists(priceTable.PriceId))
                     {
                         return NotFound();
                     }
@@ -128,7 +128,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var priceTable = await _context.PriceTables
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.PriceId == id);
             if (priceTable == null)
             {
                 return NotFound();
@@ -154,7 +154,7 @@ namespace Sistema.Areas.Admin.Controllers
 
         private bool PriceTableExists(int id)
         {
-            return _context.PriceTables.Any(e => e.Id == id);
+            return _context.PriceTables.Any(e => e.PriceId == id);
         }
     }
 }

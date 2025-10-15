@@ -26,7 +26,7 @@
                 <div class="box_tabs">
                     @foreach (var service in Model.Where(s => s.IsActive))
                     {
-                        <a asp-area="Public" asp-controller="PublicServices" asp-action="Details" asp-route-id="@service.Id">
+                        <a asp-area="Public" asp-controller="PublicServices" asp-action="Details" asp-route-id="@service.ServiceId">
                             <div class="item_tab">
                                 <div class="bg">
                                     <div class="content text-center">

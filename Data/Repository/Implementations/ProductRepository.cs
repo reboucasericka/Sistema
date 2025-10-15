@@ -24,17 +24,19 @@ namespace Sistema.Data.Repository.Implementations
         public IQueryable<Product> GetAllWithIncludes()
         {
             return _context.Products
-                .Include(p => p.ProductCategory)// ✅ navigation property
-                //.Include(p => p.Supplier)
+                .Include(p => p.ProductCategory)
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
                 .AsNoTracking();
         }
 
         public IQueryable<Product> GetByCategory(int productCategoryId)
         {
             return _context.Products
-                .Include(p => p.ProductCategory)  // navigation
-                //.Include(p => p.Supplier)         // navigation
-                .Where(p => p.ProductCategoryId == productCategoryId) // ✅ usa a FK
+                .Include(p => p.ProductCategory)
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
+                .Where(p => p.ProductCategoryId == productCategoryId)
                 .AsNoTracking();
         }
 
@@ -42,7 +44,8 @@ namespace Sistema.Data.Repository.Implementations
         {
             return _context.Products
                 .Include(p => p.ProductCategory)
-                //.Include(p => p.Supplier)
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
                 .Where(p => p.SupplierId == supplierId)
                 .AsNoTracking();
         }
@@ -51,15 +54,17 @@ namespace Sistema.Data.Repository.Implementations
         {
             return await _context.Products
                 .Include(p => p.ProductCategory)
-                //.Include(p => p.Supplier)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
         }
 
         public IQueryable<Product> GetProductsWithLowStock()
         {
             return _context.Products
                 .Include(p => p.ProductCategory)
-                //.Include(p => p.Supplier)
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
                 .Where(p => p.Stock < p.MinimumStockLevel)
                 .AsNoTracking();
         }

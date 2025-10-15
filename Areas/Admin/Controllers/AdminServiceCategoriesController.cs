@@ -36,7 +36,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var serviceCategory = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CategoryId == id);
             
             if (serviceCategory == null)
             {
@@ -89,7 +89,7 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Category serviceCategory)
         {
-            if (id != serviceCategory.Id)
+            if (id != serviceCategory.CategoryId)
             {
                 return NotFound();
             }
@@ -105,7 +105,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CategoryExists(serviceCategory.Id))
+                    if (!CategoryExists(serviceCategory.CategoryId))
                     {
                         return NotFound();
                     }
@@ -128,7 +128,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var serviceCategory = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CategoryId == id);
             if (serviceCategory == null)
             {
                 return NotFound();
@@ -156,7 +156,7 @@ namespace Sistema.Areas.Admin.Controllers
 
         private bool CategoryExists(int id)
         {
-            return _context.Categories.Any(e => e.Id == id);
+            return _context.Categories.Any(e => e.CategoryId == id);
         }
     }
 }

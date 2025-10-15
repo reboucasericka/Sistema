@@ -24,7 +24,7 @@ namespace Sistema.Data.Repository.Implementations
         {
             return await _context.Service
                 .Include(s => s.Category)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.ServiceId == id);
         }
 
         public IQueryable<Service> GetByCategory(int categoryId)

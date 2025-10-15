@@ -104,8 +104,8 @@
                                                     <span class="badge badge-success">Normal</span>
                                                 }
                                             </td>
-                                            <td>@product.PurchasePrice.ToString("C")</td>
-                                            <td>@product.SalePrice.ToString("C")</td>
+                                            <td>€@product.PurchasePrice.ToString("N2")</td>
+                                            <td>€@product.SalePrice.ToString("N2")</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="@Url.Action("Entry", new { productId = product.ProductId })" 

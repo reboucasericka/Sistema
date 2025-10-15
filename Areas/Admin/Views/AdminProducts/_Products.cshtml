@@ -33,10 +33,10 @@
     <span asp-validation-for="Stock" class="text-danger"></span>
 </div>
 <div class="form-group">
-    <label asp-for="ImageId" class="control-label"></label>
-    <input asp-for="ImageId" id="photoInput" class="form-control" type="file" accept="image/*" />
+    <label asp-for="ImageFile" class="control-label">Foto do Produto</label>
+    <input asp-for="ImageFile" id="photoInput" class="form-control" type="file" accept="image/*" />
     <span class="text-muted small">Formatos aceitos: JPG, PNG, GIF, WebP. Tamanho máximo: 2MB.</span>
-    <span asp-validation-for="ImageId" class="text-danger"></span>
+    <span asp-validation-for="ImageFile" class="text-danger"></span>
 </div>
 <div class="form-group text-center">
     <img id="photoPreview" class="img-thumbnail mt-2" style="max-height:150px; display:none;" />

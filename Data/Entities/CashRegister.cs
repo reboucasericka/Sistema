@@ -19,17 +19,31 @@ namespace Sistema.Data.Entities
         public decimal FinalValue { get; set; }
 
         // 🔗 FK → Opening User
-        public int OpeningUserId { get; set; }
-        public User OpeningUser { get; set; }
+        public string UserIdAbertura { get; set; }
+        public User UserAbertura { get; set; }
 
         // 🔗 FK → Closing User (optional)
-        public int? ClosingUserId { get; set; }
-        public User? ClosingUser { get; set; }
+        public string? UserIdFechamento { get; set; }
+        public User? UserFechamento { get; set; }
+
+        public bool IsClosed { get; set; } = false;
 
         [StringLength(20)]
-        public string Status { get; set; } = "open";
+        public string Status { get; set; } = "Open"; // Open, Closed
 
         public string? Notes { get; set; }
+
+        // Navigation properties for user relationships
+        public User OpeningUser => UserAbertura;
+        public User? ClosingUser => UserFechamento;
+        public string OpeningUserId 
+        { 
+            get => UserIdAbertura; 
+            set => UserIdAbertura = value; 
+        }
+
+        // Navigation Properties
+        public ICollection<CashMovement> CashMovements { get; set; } = new List<CashMovement>();
 
         public bool ExportedToExcel { get; set; } = false;
         public bool ExportedToPdf { get; set; } = false;

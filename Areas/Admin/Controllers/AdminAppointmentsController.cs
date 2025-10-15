@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Data.Repository.Interfaces;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 
@@ -13,10 +14,14 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminAppointmentsController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly ICustomerRepository _customerRepository;
 
-        public AdminAppointmentsController(SistemaDbContext context)
+        public AdminAppointmentsController(SistemaDbContext context, IAppointmentRepository appointmentRepository, ICustomerRepository customerRepository)
         {
             _context = context;
+            _appointmentRepository = appointmentRepository;
+            _customerRepository = customerRepository;
         }
 
 
@@ -49,12 +54,7 @@ namespace Sistema.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? status, int? professionalId, DateTime? startDate, DateTime? endDate)
         {
-            var query = _context.Appointments
-                .Include(a => a.Customer)
-                .ThenInclude(c => c.User)
-                .Include(a => a.Professional)
-                .Include(a => a.Service)
-                .AsQueryable();
+            var query = _appointmentRepository.GetAllWithIncludes().AsQueryable();
 
             // Apply filters
             if (!string.IsNullOrEmpty(status))
@@ -83,6 +83,7 @@ namespace Sistema.Areas.Admin.Controllers
 
             // Get filter options
             ViewBag.Professionals = await _context.Professionals
+                .Where(p => p.IsActive)
                 .Select(p => new { p.ProfessionalId, p.Name })
                 .ToListAsync();
 
@@ -119,7 +120,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name");
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty");
-            ViewData["ServiceId"] = new SelectList(_context.Service, "Id", "Name");
+            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name");
             return View();
         }
 
@@ -139,7 +140,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "Id", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 
@@ -159,7 +160,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "Id", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 
@@ -198,7 +199,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "Id", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 
@@ -249,38 +250,71 @@ namespace Sistema.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAvailableTimes(int professionalId, DateTime date)
         {
-            // 1. Busca todos os horários do profissional para o dia da semana
-            var schedules = await _context.ProfessionalSchedules
-                .Where(s => s.ProfessionalId == professionalId && s.DayOfWeek == date.DayOfWeek)
-                .ToListAsync();
-
-            if (schedules == null || !schedules.Any())
+            try
             {
-                return Json(new List<string>()); // Sem disponibilidade
-            }
+                Console.WriteLine($"=== BUSCANDO HORÁRIOS DISPONÍVEIS ===");
+                Console.WriteLine($"ProfissionalId: {professionalId}, Data: {date:dd/MM/yyyy}");
 
-            // 2. Gera todos os slots possíveis (30 min) com base nos horários encontrados
-            var allSlots = new List<string>();
-            foreach (var schedule in schedules)
-            {
-                for (var t = schedule.StartTime; t < schedule.EndTime; t = t.Add(TimeSpan.FromMinutes(30)))
+                // 1. Verificar se o profissional existe e está ativo
+                var professional = await _context.Professionals
+                    .FirstOrDefaultAsync(p => p.ProfessionalId == professionalId && p.IsActive);
+
+                if (professional == null)
                 {
-                    allSlots.Add(t.ToString(@"hh\:mm"));
+                    Console.WriteLine("❌ Profissional não encontrado ou inativo");
+                    return Json(new { success = false, message = "Profissional não encontrado" });
                 }
+
+                // 2. Busca todos os horários do profissional para o dia da semana
+                var schedules = await _context.ProfessionalSchedules
+                    .Where(s => s.ProfessionalId == professionalId && s.DayOfWeek == date.DayOfWeek)
+                    .ToListAsync();
+
+                Console.WriteLine($"📅 Horários encontrados: {schedules.Count}");
+
+                if (schedules == null || !schedules.Any())
+                {
+                    Console.WriteLine("❌ Nenhum horário configurado para este dia");
+                    return Json(new { success = true, availableTimes = new List<string>(), message = "Nenhum horário disponível para este dia" });
+                }
+
+                // 3. Gera todos os slots possíveis (30 min) com base nos horários encontrados
+                var allSlots = new List<string>();
+                foreach (var schedule in schedules)
+                {
+                    Console.WriteLine($"⏰ Horário: {schedule.StartTime:hh\\:mm} - {schedule.EndTime:hh\\:mm}");
+                    for (var t = schedule.StartTime; t < schedule.EndTime; t = t.Add(TimeSpan.FromMinutes(30)))
+                    {
+                        allSlots.Add(t.ToString(@"hh\:mm"));
+                    }
+                }
+
+                Console.WriteLine($"🕐 Total de slots gerados: {allSlots.Count}");
+
+                // 4. Busca os horários já ocupados
+                var bookedTimes = await _context.Appointments
+                    .Where(a => a.ProfessionalId == professionalId && 
+                               a.StartTime.Date == date.Date &&
+                               a.Status != "Canceled")
+                    .Select(a => a.StartTime.TimeOfDay)
+                    .ToListAsync();
+
+                Console.WriteLine($"📋 Horários ocupados: {bookedTimes.Count}");
+
+                // 5. Remove os horários ocupados
+                var availableTimes = allSlots
+                    .Where(t => !bookedTimes.Any(bt => bt.ToString(@"hh\:mm") == t))
+                    .ToList();
+
+                Console.WriteLine($"✅ Horários disponíveis: {availableTimes.Count}");
+
+                return Json(new { success = true, availableTimes = availableTimes });
             }
-
-            // 3. Busca os horários já ocupados
-            var bookedTimes = await _context.Appointments
-                .Where(a => a.ProfessionalId == professionalId && a.StartTime.Date == date.Date)
-                .Select(a => a.StartTime.TimeOfDay)
-                .ToListAsync();
-
-            // 4. Remove os horários ocupados
-            var availableTimes = allSlots
-                .Where(t => !bookedTimes.Any(bt => bt.ToString(@"hh\:mm") == t))
-                .ToList();
-
-            return Json(availableTimes);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERRO ao buscar horários: {ex.Message}");
+                return Json(new { success = false, message = "Erro ao buscar horários disponíveis" });
+            }
         }
 
         // POST: Admin/Appointments/UpdateStatus

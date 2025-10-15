@@ -1,108 +1,115 @@
 @model Sistema.Data.Entities.Customer
 
 @{
-    ViewData["Title"] = "Create Client";
+    ViewData["Title"] = "Novo Cliente";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Create Client</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item"><a asp-action="Index">Clients</a></li>
-                    <li class="breadcrumb-item active">Create</li>
-                </ol>
-            </div>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-user-plus me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Adicione um novo cliente ao sistema</p>
         </div>
     </div>
-</div>
 
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Client Information</h3>
+    <!-- Formulário -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-user me-2"></i>Informações do Cliente
+            </h5>
+        </div>
+        <form asp-action="Create" class="needs-validation" novalidate>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Por favor, corrija os erros abaixo:
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label">
+                            <i class="fas fa-user me-1"></i>Nome Completo
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Digite o nome completo" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
-                    <form asp-action="Create">
-                        <div class="card-body">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Name" class="control-label"></label>
-                                        <input asp-for="Name" class="form-control" />
-                                        <span asp-validation-for="Name" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Email" class="control-label"></label>
-                                        <input asp-for="Email" type="email" class="form-control" />
-                                        <span asp-validation-for="Email" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email
+                        </label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="Digite o email" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Phone" class="control-label"></label>
-                                        <input asp-for="Phone" class="form-control" />
-                                        <span asp-validation-for="Phone" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="BirthDate" class="control-label"></label>
-                                        <input asp-for="BirthDate" type="date" class="form-control" />
-                                        <span asp-validation-for="BirthDate" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label asp-for="Phone" class="form-label">
+                            <i class="fas fa-phone me-1"></i>Telefone
+                        </label>
+                        <input asp-for="Phone" class="form-control" placeholder="Digite o telefone" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="BirthDate" class="form-label">
+                            <i class="fas fa-birthday-cake me-1"></i>Data de Nascimento
+                        </label>
+                        <input asp-for="BirthDate" type="date" class="form-control" />
+                        <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                    </div>
+                </div>
 
-                            <div class="form-group">
-                                <label asp-for="Address" class="control-label"></label>
-                                <textarea asp-for="Address" class="form-control" rows="3"></textarea>
-                                <span asp-validation-for="Address" class="text-danger"></span>
-                            </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label asp-for="Address" class="form-label">
+                            <i class="fas fa-map-marker-alt me-1"></i>Endereço
+                        </label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Digite o endereço completo"></textarea>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                </div>
 
-                            <div class="form-group">
-                                <label asp-for="Notes" class="control-label"></label>
-                                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
-                                <span asp-validation-for="Notes" class="text-danger"></span>
-                            </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label asp-for="Notes" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Observações
+                        </label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Observações sobre o cliente (opcional)"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger small"></span>
+                    </div>
+                </div>
 
-                            <div class="form-group">
-                                <div class="form-check">
-                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                    <label asp-for="IsActive" class="form-check-label">
-                                        Active Client
-                                    </label>
-                                </div>
-                            </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                <i class="fas fa-toggle-on me-1"></i>Cliente Ativo
+                            </label>
                         </div>
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Create Client
-                            </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to List
-                            </a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i>Salvar Cliente
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

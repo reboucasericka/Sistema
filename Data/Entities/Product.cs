@@ -13,22 +13,18 @@ namespace Sistema.Data.Entities
 
         [Required]
         [MaxLength(150)]
-        public string Name { get; set; } //Nome
+        public string Name { get; set; } = string.Empty; //Nome
 
         [MaxLength(255)]
         public string? Description { get; set; } //Descrição
 
-        // Implementação da interface IEntity
-        public int Id
-        {
-            get => ProductId; //retorna o valor da PK
-            set => ProductId = value; //define o valor da PK
-        }
+      
 
         // 🔗 FK → ProductCategories
         [ForeignKey("ProductCategory")]
+        [Range(1, int.MaxValue, ErrorMessage = "A categoria é obrigatória")]
         public int ProductCategoryId { get; set; } //CategoriaId
-        public ProductCategory ProductCategory { get; set; } //navegação
+        public ProductCategory ProductCategory { get; set; } = null!; //navegação
 
         [Required, Column(TypeName = "decimal(10,2)")]
         [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)] 
@@ -40,9 +36,9 @@ namespace Sistema.Data.Entities
 
         public int Stock { get; set; } = 0; //quantidade em stock
 
-        [MaxLength(200)]
+        
         [Display(Name = "Foto do Produto")]
-        public Guid ImageId { get; set; } // Foto do produto (caminho da imagem)
+        public Guid? ImageId { get; set; } // Foto do produto (caminho da imagem)
 
         public int MinimumStockLevel { get; set; } = 0; //StockMinimo
 
@@ -51,10 +47,12 @@ namespace Sistema.Data.Entities
         // 🔗 FK → Suppliers (optional)
         [ForeignKey("Supplier")]
         public int? SupplierId { get; set; } //FornecedorId (pode ser null)
-        public Supplier Supplier { get; set; }
+        public Supplier? Supplier { get; set; }
 
-
-        public User User { get; set; }
+        // 🔗 FK → User (quem criou o produto)
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public User? User { get; set; }
 
         public string ImageFullPath => ImageId == Guid.Empty
             ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"

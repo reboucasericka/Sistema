@@ -4,56 +4,72 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Receivables")]
-    public class Receivable
+    public class Receivable : IEntity
     {
         [Key]
         public int ReceivableId { get; set; }
 
-        [StringLength(100)]
-        public string? Description { get; set; }
+        
 
-        [StringLength(50)]
-        public string? Type { get; set; }
+        [Required]
+        [StringLength(200)]
+        public string Description { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal Value { get; set; }
+        public decimal Amount { get; set; }
 
-        [Column(TypeName = "date")]
-        public DateTime LaunchDate { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Value { get; set; } // Alias para Amount
 
-        [Column(TypeName = "date")]
-        public DateTime DueDate { get; set; }
+        [Required]
+        [StringLength(20)]
+        public string Status { get; set; } = "Pending"; // Pending, Paid
+
+        public bool IsPaid { get; set; } = false;
 
         [Column(TypeName = "date")]
         public DateTime? PaymentDate { get; set; }
 
-        // 🔗 FK → User who launched
-        public int UserId { get; set; }
-        public User LaunchUser { get; set; }
+        public int? PersonId { get; set; } // ID da pessoa relacionada
 
-        // 🔗 FK → User who cleared
-        public int? ClearUserId { get; set; }
-        public User? ClearUser { get; set; }
+        // Navigation properties for user relationships
+        public User LaunchUser => User;
+        public User? ClearUser { get; set; } // Usuário que quitou
+        public string? ClearUserId { get; set; } // ID do usuário que quitou
 
-        [StringLength(200)]
-        public string? Photo { get; set; }
+        [Column(TypeName = "datetime2")]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public int? PersonId { get; set; }
+        [Column(TypeName = "date")]
+        public DateTime LaunchDate { get; set; } = DateTime.Now;
 
-        public bool IsPaid { get; set; } = false;
+        // 🔗 FK → Customer
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; }
 
-        // 🔗 FK → Product (optional)
+        // 🔗 FK → Professional
+        public int ProfessionalId { get; set; }
+        public Professional Professional { get; set; }
+
+        // 🔗 FK → Service (nullable - para recebimentos de serviços)
+        public int? ServiceId { get; set; }
+        public Service? Service { get; set; }
+
+        // 🔗 FK → Sale (nullable - para recebimentos de vendas)
+        public int? SaleId { get; set; }
+        public Sale? Sale { get; set; }
+
+        // 🔗 FK → Product (optional - para recebimentos relacionados a produtos)
         public int? ProductId { get; set; }
         public Product? Product { get; set; }
 
-        public int? Quantity { get; set; }
-
         // 🔗 FK → PaymentMethod
-        public int? PaymentMethodId { get; set; }
-        public PaymentMethod? PaymentMethod { get; set; }
+        public int PaymentMethodId { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
 
-        public int Installment { get; set; } = 1;
-        public int TotalInstallments { get; set; } = 1;
+        // 🔗 FK → User who created
+        public string UserId { get; set; }
+        public User User { get; set; }
 
         public bool ExportedToExcel { get; set; } = false;
         public bool ExportedToPdf { get; set; } = false;

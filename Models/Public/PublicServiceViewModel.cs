@@ -4,7 +4,7 @@ namespace Sistema.Models.Public
 {
     public class PublicServiceViewModel
     {
-        public int Id { get; set; }
+        public int ServiceId { get; set; }
 
         [Display(Name = "Name")]
         public string Name { get; set; }

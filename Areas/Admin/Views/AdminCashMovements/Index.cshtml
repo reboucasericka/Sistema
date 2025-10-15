@@ -1,7 +1,7 @@
 @model IEnumerable<Sistema.Data.Entities.CashMovement>
 
 @{
-    ViewData["Title"] = "Cash Movements";
+    ViewData["Title"] = "Movimentações de Caixa";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -9,12 +9,12 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Cash Movements</h1>
+                <h1 class="m-0">Movimentações de Caixa</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Admin" asp-action="Index">Home</a></li>
-                    <li class="breadcrumb-item active">Cash Movements</li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Movimentações</li>
                 </ol>
             </div>
         </div>
@@ -23,84 +23,194 @@
 
 <section class="content">
     <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Filtros</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" class="row">
+                            <div class="col-md-3">
+                                <label for="type">Tipo:</label>
+                                <select name="type" id="type" class="form-control">
+                                    <option value="">Todos</option>
+                                    <option value="Entrada" selected="@(ViewBag.Type == "Entrada")">Entrada</option>
+                                    <option value="Saída" selected="@(ViewBag.Type == "Saída")">Saída</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cashRegisterId">Caixa:</label>
+                                <select name="cashRegisterId" id="cashRegisterId" class="form-control" asp-items="ViewBag.CashRegisters">
+                                    <option value="">Todos os caixas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="startDate">Data Início:</label>
+                                <input type="date" name="startDate" id="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label for="endDate">Data Fim:</label>
+                                <input type="date" name="endDate" id="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-2">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary form-control">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo -->
+        <div class="row mb-3">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>€@ViewBag.TotalEntradas.ToString("N2")</h3>
+                        <p>Total Entradas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>€@ViewBag.TotalSaidas.ToString("N2")</h3>
+                        <p>Total Saídas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-6">
+                <div class="small-box @(ViewBag.SaldoLiquido >= 0 ? "bg-info" : "bg-warning")">
+                    <div class="inner">
+                        <h3>€@ViewBag.SaldoLiquido.ToString("N2")</h3>
+                        <p>Saldo Líquido</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Cash Movements Management</h3>
+                        <h3 class="card-title">Lista de Movimentações</h3>
                         <div class="card-tools">
-                            <a asp-action="Create" asp-route-cashRegisterId="@ViewBag.CashRegisterId" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> New Movement
+                            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Nova Movimentação
                             </a>
                         </div>
                     </div>
                     <div class="card-body">
-                        @if (TempData["SuccessMessage"] != null)
-                        {
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                @TempData["SuccessMessage"]
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        }
-
-                        @if (Model.Any())
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped">
-                                    <thead>
+                        <div class="table-responsive">
+                            <table id="cashMovementsTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Caixa</th>
+                                        <th>Referência</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var movement in Model)
+                                    {
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Type</th>
-                                            <th>Amount</th>
-                                            <th>Description</th>
-                                            <th>Reference</th>
-                                            <th>Cash Register</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var movement in Model)
-                                        {
-                                            <tr>
-                                                <td>@movement.Date.ToString("dd/MM/yyyy HH:mm")</td>
-                                                <td>
-                                                    <span class="badge @(movement.Type == "entry" ? "badge-success" : "badge-danger")">
-                                                        @(movement.Type == "entry" ? "Entry" : "Exit")
-                                                    </span>
-                                                </td>
-                                                <td class="@(movement.Type == "entry" ? "text-success" : "text-danger")">
-                                                    @(movement.Type == "entry" ? "+" : "-") €@movement.Amount.ToString("N2")
-                                                </td>
-                                                <td>@movement.Description</td>
-                                                <td>@(movement.Reference ?? "-")</td>
-                                                <td>@movement.CashRegister.Date.ToString("dd/MM/yyyy")</td>
-                                                <td>
-                                                    <a asp-action="Details" asp-route-id="@movement.Id" class="btn btn-info btn-sm">
+                                            <td>@movement.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                @if (movement.Type == "Entrada")
+                                                {
+                                                    <span class="badge badge-success">Entrada</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger">Saída</span>
+                                                }
+                                            </td>
+                                            <td>@movement.Description</td>
+                                            <td>
+                                                <span class="@(movement.Type == "Entrada" ? "text-success" : "text-danger")">
+                                                    @(movement.Type == "Entrada" ? "+" : "-")€@movement.Amount.ToString("N2")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (movement.CashRegister != null)
+                                                {
+                                                    @movement.CashRegister.Date.ToString("dd/MM/yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(movement.ReferenceType))
+                                                {
+                                                    <span class="badge badge-info">@movement.ReferenceType</span>
+                                                    @if (movement.ReferenceId.HasValue)
+                                                    {
+                                                        <span class="text-muted">#@movement.ReferenceId</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Details", new { id = movement.CashMovementId })" class="btn btn-info btn-sm">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a asp-action="Edit" asp-route-id="@movement.Id" class="btn btn-warning btn-sm">
+                                                    <a href="@Url.Action("Edit", new { id = movement.CashMovementId })" class="btn btn-warning btn-sm">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a asp-action="Delete" asp-route-id="@movement.Id" class="btn btn-danger btn-sm">
+                                                    <a href="@Url.Action("Delete", new { id = movement.CashMovementId })" class="btn btn-danger btn-sm">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                No cash movements found.
-                            </div>
-                        }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#cashMovementsTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
+                },
+                "order": [[0, "desc"]] // Ordenar por data decrescente
+            });
+        });
+    </script>
+}

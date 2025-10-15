@@ -13,80 +13,113 @@
     
     <!-- CSS Local -->
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <!-- CSS Específico do Painel Admin -->
+    <link rel="stylesheet" href="~/css/admin-panel.css" asp-append-version="true" />
 </head>
-<body class="bg-light">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/Admin/Admin">
-                <i class="fas fa-tachometer-alt me-2"></i>Painel Administrativo
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/Admin">
-                            <i class="fas fa-home me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminClients">
-                            <i class="fas fa-users me-1"></i>Clientes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminAppointments">
-                            <i class="fas fa-calendar-alt me-1"></i>Agendamentos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminServices">
-                            <i class="fas fa-concierge-bell me-1"></i>Serviços
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminCashRegister">
-                            <i class="fas fa-cash-register me-1"></i>Caixa
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminReports">
-                            <i class="fas fa-chart-bar me-1"></i>Relatórios
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Admin/AdminSettings">
-                            <i class="fas fa-cog me-1"></i>Configurações
-                        </a>
-                    </li>
-                </ul>
-                
-                <div class="d-flex align-items-center">
-                    <span class="navbar-text text-white me-3">
-                        <i class="fas fa-user me-1"></i>@User.Identity?.Name
-                    </span>
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-outline-light btn-sm">
-                            <i class="fas fa-sign-out-alt me-1"></i>Sair
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body class="admin-panel">
+    <!-- Toggle para mobile -->
+    <button id="sidebarToggle" class="btn btn-dark d-lg-none position-fixed m-3" style="z-index: 1040;">
+        <i class="fas fa-bars"></i>
+    </button>
 
-    <!-- Main Content -->
-    <div class="container-fluid mt-4">
-        @RenderBody()
+    <div class="d-flex flex-nowrap admin-wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar bg-dark text-white p-3">
+            <a class="navbar-brand text-white mb-4 d-block" href="/Admin/Admin">
+                <i class="fas fa-tachometer-alt me-2"></i>Painel
+            </a>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/Admin/Admin"><i class="fas fa-home me-1"></i>Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/Admin/AdminClients"><i class="fas fa-users me-1"></i>Clientes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/Admin/AdminProfessionals"><i class="fas fa-user-tie me-1"></i>Profissionais</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/Admin/AdminAppointments"><i class="fas fa-calendar-alt me-1"></i>Agendamentos</a>
+                </li>
+
+                <!-- Dropdown: Produtos -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                        <i class="fas fa-boxes me-1"></i>Produtos
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/Admin/AdminProducts">Produtos</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminProductCategories">Categorias de Produtos</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminSuppliers">Fornecedores</a></li>
+                    </ul>
+                </li>
+
+                <!-- Dropdown: Serviços -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                        <i class="fas fa-concierge-bell me-1"></i>Serviços
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/Admin/AdminServices">Serviços</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminServiceProfessionals">Por Profissional</a></li>
+                    </ul>
+                </li>
+
+                <!-- Dropdown: Financeiro -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                        <i class="fas fa-dollar-sign me-1"></i>Financeiro
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/Admin/AdminReceivables"><i class="fas fa-arrow-down me-1"></i>Recebimentos</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminPayables"><i class="fas fa-arrow-up me-1"></i>Pagamentos</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminCashMovements"><i class="fas fa-exchange-alt me-1"></i>Movimentações</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminCashRegister"><i class="fas fa-cash-register me-1"></i>Caixa</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminReports"><i class="fas fa-chart-bar me-1"></i>Relatórios</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/Admin/AdminSettings"><i class="fas fa-cog me-1"></i>Configurações</a>
+                </li>
+            </ul>
+
+            <hr class="bg-light" />
+            <div class="text-white small">
+                <i class="fas fa-user me-1"></i>@User.Identity?.Name
+            </div>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="mt-2">
+                <button type="submit" class="btn btn-outline-light btn-sm w-100">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </button>
+            </form>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-grow-1 p-4 admin-content">
+            @RenderBody()
+        </main>
     </div>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Script para toggle da sidebar -->
+    <script>
+        $(document).ready(function () {
+            $('#sidebarToggle').on('click', function () {
+                $('.sidebar').toggleClass('active');
+            });
+        });
+    </script>
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>

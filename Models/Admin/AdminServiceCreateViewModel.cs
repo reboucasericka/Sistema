@@ -31,7 +31,7 @@ namespace Sistema.Models.Admin
 
         [Required(ErrorMessage = "Category is required")]
         [Display(Name = "Category")]
-        public int CategoryId { get; set; }
+        public int ServiceCategoryId { get; set; }
 
         [Display(Name = "Categories")]
         public IEnumerable<SelectListItem>? Categories { get; set; }

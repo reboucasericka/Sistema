@@ -8,7 +8,7 @@ namespace Sistema.Data.Entities
     {
         [Key]
         [Column("BillingId")]  //  coluna real no SQL
-        public int Id { get; set; }   // cumpre IEntity, mas mapeia pra BillingId
+        public int BillingId { get; set; }   // cumpre IEntity, mas mapeia pra BillingId
 
         [Column(TypeName = "date")]
         public DateTime Date { get; set; }

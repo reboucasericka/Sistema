@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Sistema.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class INITIAL : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,21 +48,21 @@ namespace Sistema.Migrations
                 name: "Category",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Category", x => x.Id);
+                    table.PrimaryKey("PK_Category", x => x.CategoryId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    NotificationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Message = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -75,7 +75,7 @@ namespace Sistema.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.PrimaryKey("PK_Notifications", x => x.NotificationId);
                 });
 
             migrationBuilder.CreateTable(
@@ -84,7 +84,8 @@ namespace Sistema.Migrations
                 {
                     PaymentMethodId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Description = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -96,7 +97,7 @@ namespace Sistema.Migrations
                 name: "PriceTables",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    PriceId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -105,7 +106,7 @@ namespace Sistema.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PriceTables", x => x.Id);
+                    table.PrimaryKey("PK_PriceTables", x => x.PriceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,8 +115,7 @@ namespace Sistema.Migrations
                 {
                     ProductCategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -176,8 +176,7 @@ namespace Sistema.Migrations
                     Address = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     DeliveryTime = table.Column<int>(type: "int", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,7 +208,7 @@ namespace Sistema.Migrations
                 name: "Service",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ServiceId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
@@ -224,12 +223,12 @@ namespace Sistema.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Service", x => x.Id);
+                    table.PrimaryKey("PK_Service", x => x.ServiceId);
                     table.ForeignKey(
                         name: "FK_Service_Category_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Category",
-                        principalColumn: "Id",
+                        principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -242,7 +241,7 @@ namespace Sistema.Migrations
                     LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Active = table.Column<bool>(type: "bit", nullable: false),
-                    ImageId = table.Column<Guid>(type: "uniqueidentifier", maxLength: 200, nullable: false),
+                    ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ProfileId = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -386,7 +385,6 @@ namespace Sistema.Migrations
                 {
                     BillingId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "date", nullable: false),
                     TotalValue = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     ServicesQuantity = table.Column<int>(type: "int", nullable: false),
@@ -415,12 +413,12 @@ namespace Sistema.Migrations
                     Date = table.Column<DateTime>(type: "date", nullable: false),
                     InitialValue = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     FinalValue = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    OpeningUserId = table.Column<int>(type: "int", nullable: false),
-                    OpeningUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ClosingUserId = table.Column<int>(type: "int", nullable: true),
-                    ClosingUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    UserIdAbertura = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserIdFechamento = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IsClosed = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OpeningUserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
                     ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -428,15 +426,17 @@ namespace Sistema.Migrations
                 {
                     table.PrimaryKey("PK_CashRegisters", x => x.CashRegisterId);
                     table.ForeignKey(
-                        name: "FK_CashRegisters_AspNetUsers_ClosingUserId1",
-                        column: x => x.ClosingUserId1,
+                        name: "FK_CashRegisters_AspNetUsers_UserIdAbertura",
+                        column: x => x.UserIdAbertura,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CashRegisters_AspNetUsers_OpeningUserId1",
-                        column: x => x.OpeningUserId1,
+                        name: "FK_CashRegisters_AspNetUsers_UserIdFechamento",
+                        column: x => x.UserIdFechamento,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -464,7 +464,8 @@ namespace Sistema.Migrations
                         name: "FK_Customers_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -475,12 +476,11 @@ namespace Sistema.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     ProductCategoryId = table.Column<int>(type: "int", nullable: false),
                     PurchasePrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     SalePrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
-                    ImageId = table.Column<Guid>(type: "uniqueidentifier", maxLength: 200, nullable: false),
+                    ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     MinimumStockLevel = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     SupplierId = table.Column<int>(type: "int", nullable: true),
@@ -493,18 +493,20 @@ namespace Sistema.Migrations
                         name: "FK_Products_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Products_ProductCategories_ProductCategoryId",
                         column: x => x.ProductCategoryId,
                         principalTable: "ProductCategories",
                         principalColumn: "ProductCategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Products_Suppliers_SupplierId",
                         column: x => x.SupplierId,
                         principalTable: "Suppliers",
-                        principalColumn: "SupplierId");
+                        principalColumn: "SupplierId",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -519,7 +521,8 @@ namespace Sistema.Migrations
                     Specialty = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    DefaultCommission = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    CommissionPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    DefaultCommission = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     ServiceId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -536,33 +539,35 @@ namespace Sistema.Migrations
                         name: "FK_Professionals_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id");
+                        principalColumn: "ServiceId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "CashMovements",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    CashMovementId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CashRegisterId = table.Column<int>(type: "int", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Reference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    RelatedEntityId = table.Column<int>(type: "int", nullable: true),
-                    RelatedEntityType = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ReferenceId = table.Column<int>(type: "int", nullable: true),
+                    ReferenceType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    RelatedEntityType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    RelatedEntityId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CashMovements", x => x.Id);
+                    table.PrimaryKey("PK_CashMovements", x => x.CashMovementId);
                     table.ForeignKey(
                         name: "FK_CashMovements_CashRegisters_CashRegisterId",
                         column: x => x.CashRegisterId,
                         principalTable: "CashRegisters",
                         principalColumn: "CashRegisterId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -616,7 +621,7 @@ namespace Sistema.Migrations
                         name: "FK_ServiceReviews_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id",
+                        principalColumn: "ServiceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -652,111 +657,7 @@ namespace Sistema.Migrations
                         name: "FK_BillingDetails_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Payables",
-                columns: table => new
-                {
-                    PayableId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Value = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    LaunchDate = table.Column<DateTime>(type: "date", nullable: false),
-                    DueDate = table.Column<DateTime>(type: "date", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "date", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    LaunchUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ClearUserId = table.Column<int>(type: "int", nullable: true),
-                    ClearUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    Photo = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    PersonId = table.Column<int>(type: "int", nullable: true),
-                    IsPaid = table.Column<bool>(type: "bit", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: true),
-                    Quantity = table.Column<int>(type: "int", nullable: true),
-                    PaymentMethodId = table.Column<int>(type: "int", nullable: true),
-                    Installment = table.Column<int>(type: "int", nullable: false),
-                    TotalInstallments = table.Column<int>(type: "int", nullable: false),
-                    ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
-                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Payables", x => x.PayableId);
-                    table.ForeignKey(
-                        name: "FK_Payables_AspNetUsers_ClearUserId1",
-                        column: x => x.ClearUserId1,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Payables_AspNetUsers_LaunchUserId",
-                        column: x => x.LaunchUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Payables_PaymentMethods_PaymentMethodId",
-                        column: x => x.PaymentMethodId,
-                        principalTable: "PaymentMethods",
-                        principalColumn: "PaymentMethodId");
-                    table.ForeignKey(
-                        name: "FK_Payables_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "ProductId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Receivables",
-                columns: table => new
-                {
-                    ReceivableId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Value = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    LaunchDate = table.Column<DateTime>(type: "date", nullable: false),
-                    DueDate = table.Column<DateTime>(type: "date", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "date", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    LaunchUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ClearUserId = table.Column<int>(type: "int", nullable: true),
-                    ClearUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    Photo = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    PersonId = table.Column<int>(type: "int", nullable: true),
-                    IsPaid = table.Column<bool>(type: "bit", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: true),
-                    Quantity = table.Column<int>(type: "int", nullable: true),
-                    PaymentMethodId = table.Column<int>(type: "int", nullable: true),
-                    Installment = table.Column<int>(type: "int", nullable: false),
-                    TotalInstallments = table.Column<int>(type: "int", nullable: false),
-                    ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
-                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Receivables", x => x.ReceivableId);
-                    table.ForeignKey(
-                        name: "FK_Receivables_AspNetUsers_ClearUserId1",
-                        column: x => x.ClearUserId1,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Receivables_AspNetUsers_LaunchUserId",
-                        column: x => x.LaunchUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Receivables_PaymentMethods_PaymentMethodId",
-                        column: x => x.PaymentMethodId,
-                        principalTable: "PaymentMethods",
-                        principalColumn: "PaymentMethodId");
-                    table.ForeignKey(
-                        name: "FK_Receivables_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "ProductId");
+                        principalColumn: "ServiceId");
                 });
 
             migrationBuilder.CreateTable(
@@ -865,19 +766,19 @@ namespace Sistema.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "CustomerId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Appointments_Professionals_ProfessionalId",
                         column: x => x.ProfessionalId,
                         principalTable: "Professionals",
                         principalColumn: "ProfessionalId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Appointments_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ServiceId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -913,7 +814,7 @@ namespace Sistema.Migrations
                         name: "FK_ProcedureHistories_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id",
+                        principalColumn: "ServiceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -926,11 +827,18 @@ namespace Sistema.Migrations
                     ProfessionalId = table.Column<int>(type: "int", nullable: false),
                     DayOfWeek = table.Column<int>(type: "int", nullable: false),
                     StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProfessionalSchedules", x => x.ScheduleId);
+                    table.ForeignKey(
+                        name: "FK_ProfessionalSchedules_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_ProfessionalSchedules_Professionals_ProfessionalId",
                         column: x => x.ProfessionalId,
@@ -962,8 +870,54 @@ namespace Sistema.Migrations
                         name: "FK_ProfessionalServices_Service_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Service",
-                        principalColumn: "Id",
+                        principalColumn: "ServiceId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Sales",
+                columns: table => new
+                {
+                    SaleId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SaleDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    ProfessionalId = table.Column<int>(type: "int", nullable: false),
+                    PaymentMethodId = table.Column<int>(type: "int", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Discount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    FinalTotal = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sales", x => x.SaleId);
+                    table.ForeignKey(
+                        name: "FK_Sales_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Sales_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Sales_PaymentMethods_PaymentMethodId",
+                        column: x => x.PaymentMethodId,
+                        principalTable: "PaymentMethods",
+                        principalColumn: "PaymentMethodId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Sales_Professionals_ProfessionalId",
+                        column: x => x.ProfessionalId,
+                        principalTable: "Professionals",
+                        principalColumn: "ProfessionalId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1081,6 +1035,188 @@ namespace Sistema.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Payables",
+                columns: table => new
+                {
+                    PayableId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Value = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    DueDate = table.Column<DateTime>(type: "date", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "date", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LaunchDate = table.Column<DateTime>(type: "date", nullable: false),
+                    IsPaid = table.Column<bool>(type: "bit", nullable: false),
+                    PersonId = table.Column<int>(type: "int", nullable: true),
+                    Installment = table.Column<int>(type: "int", nullable: true),
+                    TotalInstallments = table.Column<int>(type: "int", nullable: true),
+                    Photo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClearUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SupplierId = table.Column<int>(type: "int", nullable: true),
+                    ProfessionalId = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PaymentMethodId = table.Column<int>(type: "int", nullable: true),
+                    SaleId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
+                    ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
+                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payables", x => x.PayableId);
+                    table.ForeignKey(
+                        name: "FK_Payables_AspNetUsers_ClearUserId",
+                        column: x => x.ClearUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Payables_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payables_PaymentMethods_PaymentMethodId",
+                        column: x => x.PaymentMethodId,
+                        principalTable: "PaymentMethods",
+                        principalColumn: "PaymentMethodId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payables_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId");
+                    table.ForeignKey(
+                        name: "FK_Payables_Professionals_ProfessionalId",
+                        column: x => x.ProfessionalId,
+                        principalTable: "Professionals",
+                        principalColumn: "ProfessionalId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payables_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "SaleId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payables_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "SupplierId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Receivables",
+                columns: table => new
+                {
+                    ReceivableId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Value = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    IsPaid = table.Column<bool>(type: "bit", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "date", nullable: true),
+                    PersonId = table.Column<int>(type: "int", nullable: true),
+                    ClearUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LaunchDate = table.Column<DateTime>(type: "date", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    ProfessionalId = table.Column<int>(type: "int", nullable: false),
+                    ServiceId = table.Column<int>(type: "int", nullable: true),
+                    SaleId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
+                    PaymentMethodId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
+                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Receivables", x => x.ReceivableId);
+                    table.ForeignKey(
+                        name: "FK_Receivables_AspNetUsers_ClearUserId",
+                        column: x => x.ClearUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Receivables_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Receivables_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Receivables_PaymentMethods_PaymentMethodId",
+                        column: x => x.PaymentMethodId,
+                        principalTable: "PaymentMethods",
+                        principalColumn: "PaymentMethodId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Receivables_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId");
+                    table.ForeignKey(
+                        name: "FK_Receivables_Professionals_ProfessionalId",
+                        column: x => x.ProfessionalId,
+                        principalTable: "Professionals",
+                        principalColumn: "ProfessionalId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Receivables_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "SaleId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Receivables_Service_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Service",
+                        principalColumn: "ServiceId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SaleItems",
+                columns: table => new
+                {
+                    SaleItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SaleId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaleItems", x => x.SaleItemId);
+                    table.ForeignKey(
+                        name: "FK_SaleItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SaleItems_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "SaleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AccessLog_UserId",
                 table: "AccessLog",
@@ -1171,14 +1307,14 @@ namespace Sistema.Migrations
                 column: "CashRegisterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CashRegisters_ClosingUserId1",
+                name: "IX_CashRegisters_UserIdAbertura",
                 table: "CashRegisters",
-                column: "ClosingUserId1");
+                column: "UserIdAbertura");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CashRegisters_OpeningUserId1",
+                name: "IX_CashRegisters_UserIdFechamento",
                 table: "CashRegisters",
-                column: "OpeningUserId1");
+                column: "UserIdFechamento");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_UserId",
@@ -1186,14 +1322,9 @@ namespace Sistema.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payables_ClearUserId1",
+                name: "IX_Payables_ClearUserId",
                 table: "Payables",
-                column: "ClearUserId1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payables_LaunchUserId",
-                table: "Payables",
-                column: "LaunchUserId");
+                column: "ClearUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payables_PaymentMethodId",
@@ -1204,6 +1335,26 @@ namespace Sistema.Migrations
                 name: "IX_Payables_ProductId",
                 table: "Payables",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payables_ProfessionalId",
+                table: "Payables",
+                column: "ProfessionalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payables_SaleId",
+                table: "Payables",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payables_SupplierId",
+                table: "Payables",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payables_UserId",
+                table: "Payables",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlanAppointments_AppointmentId",
@@ -1266,6 +1417,11 @@ namespace Sistema.Migrations
                 column: "ProfessionalId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProfessionalSchedules_UserId",
+                table: "ProfessionalSchedules",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProfessionalServices_ProfessionalId",
                 table: "ProfessionalServices",
                 column: "ProfessionalId");
@@ -1276,14 +1432,14 @@ namespace Sistema.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Receivables_ClearUserId1",
+                name: "IX_Receivables_ClearUserId",
                 table: "Receivables",
-                column: "ClearUserId1");
+                column: "ClearUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Receivables_LaunchUserId",
+                name: "IX_Receivables_CustomerId",
                 table: "Receivables",
-                column: "LaunchUserId");
+                column: "CustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Receivables_PaymentMethodId",
@@ -1296,9 +1452,59 @@ namespace Sistema.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Receivables_ProfessionalId",
+                table: "Receivables",
+                column: "ProfessionalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Receivables_SaleId",
+                table: "Receivables",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Receivables_ServiceId",
+                table: "Receivables",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Receivables_UserId",
+                table: "Receivables",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reminder_AppointmentId",
                 table: "Reminder",
                 column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaleItems_ProductId",
+                table: "SaleItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaleItems_SaleId",
+                table: "SaleItems",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sales_CustomerId",
+                table: "Sales",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sales_PaymentMethodId",
+                table: "Sales",
+                column: "PaymentMethodId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sales_ProfessionalId",
+                table: "Sales",
+                column: "ProfessionalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sales_UserId",
+                table: "Sales",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Schedule_ProfessionalId",
@@ -1424,6 +1630,9 @@ namespace Sistema.Migrations
                 name: "Reminder");
 
             migrationBuilder.DropTable(
+                name: "SaleItems");
+
+            migrationBuilder.DropTable(
                 name: "Schedule");
 
             migrationBuilder.DropTable(
@@ -1454,13 +1663,16 @@ namespace Sistema.Migrations
                 name: "Plans");
 
             migrationBuilder.DropTable(
-                name: "PaymentMethods");
+                name: "Sales");
 
             migrationBuilder.DropTable(
                 name: "Appointments");
 
             migrationBuilder.DropTable(
                 name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "PaymentMethods");
 
             migrationBuilder.DropTable(
                 name: "Customers");

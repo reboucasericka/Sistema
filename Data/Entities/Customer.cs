@@ -4,13 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Customers")]
-    public class Customer
+    public class Customer : IEntity
     {
         [Key]
-        public int CustomerId { get; set; }
+        public int CustomerId { get; set; }       
         
-        // Alias para CustomerId para compatibilidade
-        public int Id => CustomerId;
 
         [Required, StringLength(100)]
         public string Name { get; set; } // Nome do cliente
@@ -40,6 +38,7 @@ namespace Sistema.Data.Entities
         public Guid ImageId { get; set; } // Foto do cliente (ID da imagem no blob)
 
         // 🔗 FK → User
+        [ForeignKey("User")]
         public string? UserId { get; set; }
         public User? User { get; set; }
 

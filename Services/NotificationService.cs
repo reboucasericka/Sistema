@@ -56,7 +56,7 @@ namespace Sistema.Services
         public async Task SendCashRegisterNotificationAsync(string message, decimal? amount = null)
         {
             var notificationMessage = amount.HasValue 
-                ? $"{message} - Valor: R$ {amount.Value:N2}"
+                ? $"{message} - Valor: € {amount.Value:N2}"
                 : message;
 
             await SendNotificationAsync(notificationMessage, "cash", null);
@@ -70,7 +70,7 @@ namespace Sistema.Services
 
         public async Task SendFinancialNotificationAsync(string message, decimal amount)
         {
-            var notificationMessage = $"{message} - Valor: R$ {amount:N2}";
+            var notificationMessage = $"{message} - Valor: € {amount:N2}";
             await SendNotificationAsync(notificationMessage, "financial", null);
         }
     }

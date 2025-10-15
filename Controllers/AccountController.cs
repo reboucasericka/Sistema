@@ -1,22 +1,22 @@
-﻿using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.Facebook;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-
+using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
-using Sistema.Data.Entities;
 using Sistema.Data;
+using Sistema.Data.Entities;
 using Sistema.Helpers;
 using Sistema.Models.Account;
 using Sistema.Models.Admin;
 using Sistema.Services;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Security.Claims;
 
 namespace Sistema.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : Controller //responsavel pelo login, registo, logout, reset password, profile, settings
     {
         private readonly IUserHelper _userHelper;
         private readonly IEmailService _emailService;
@@ -34,9 +34,75 @@ namespace Sistema.Controllers
             _userManager = userManager;
 
         }
+        // =======================
+        // LOGIN CLIENTE AdminController, dentro da área "Admin", com um método Index()
+        // =======================
+        [HttpGet]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "Home");
 
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
 
+            try
+            {
+                var result = await _userHelper.LoginAsync(model);
+
+                if (result.Succeeded)
+                {
+                    var user = await _userHelper.GetUserByEmailAsync(model.Username)
+                              ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+
+                    if (user == null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Usuário não encontrado.");
+                        return View(model);
+                    }
+
+                    // Log do acesso
+                    await LogAccess(user, "Login");
+
+                    // Se for admin, vai para o painel administrativo
+                    if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
+                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
+
+                    // Se tiver ReturnUrl válido, redireciona para lá
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        return LocalRedirect(returnUrl);
+
+                    // Verifica se o e-mail foi confirmado
+                    if (!user.EmailConfirmed)
+                    {
+                        await _userHelper.LogoutAsync();
+                        ModelState.AddModelError(string.Empty, "Confirme seu e-mail antes de continuar.");
+                        return View(model);
+                    }
+
+                    // Se for cliente com e-mail confirmado, vai para o perfil
+                    return RedirectToAction("Profile", "PublicProfile");
+                }
+
+                ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
+            }
+            catch (Exception ex)
+            {
+                // Log do erro (em produção, usar um logger adequado)
+                Console.WriteLine($"Erro no login: {ex.Message}");
+                ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
+            }
+
+            return View(model);
+        }
 
 
 
@@ -97,133 +163,69 @@ namespace Sistema.Controllers
 
 
 
-        // =======================
-        // LOGIN CLIENTE AdminController, dentro da área "Admin", com um método Index()
-        // =======================
-        [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
-        {
-            if (User.Identity.IsAuthenticated)
-                return RedirectToAction("Index", "Home");
-
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var result = await _userHelper.LoginAsync(model);
-
-            if (result.Succeeded)
-            {
-                var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                          ?? await _userHelper.GetUserByUsernameAsync(model.Username);
-                // Se existir ReturnUrl, respeita
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    return LocalRedirect(returnUrl);
-
-                // Caso contrário, decide pela role
-                if (user != null && await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                    return RedirectToAction("Index", "Admin", new { area = "Admin" });
-
-                return RedirectToAction("Index", "Home");
-            }
-
-            ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
-            return View(model);
-        }/*
-    
-                if (user != null)
-                {
-                    // Respeita o ReturnUrl se for válido
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                        return LocalRedirect(returnUrl);
-
-                    // Caso contrário, decide pela role
-                    if (user != null && await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-
-                    // Senão, redireciona com base na role
-                    //if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                       // return RedirectToAction("Index", "Admin", new { area = "Admin" });
-
-                    return RedirectToAction("Index", "Home");
-                }
-
-                return RedirectToAction("Index", "Home");
-            }
-
-            ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
-            return View(model);
-        }*/
-
+       
 
         // =======================
         // LOGIN ADMINISTRATIVO
         // =======================
         [HttpGet]
-        public async Task<IActionResult> AdminLogin()
+        [AllowAnonymous]
+        public IActionResult AdminLogin(string? returnUrl = null)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var user = await GetCurrentUserAsync();
-                if (user != null)
-                {
-                    var isAdmin = await _userHelper.IsUserInRoleAsync(user, "Admin");
-                    if (isAdmin)
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-
-                    await _userHelper.LogoutAsync();
-                    TempData["ErrorMessage"] = "Acesso restrito a administradores.";
-                }
-            }
-
-            return View(new LoginViewModel());
+            ViewData["ReturnUrl"] = returnUrl;
+            return View("AdminLogin", new LoginViewModel());
+        
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdminLogin(LoginViewModel model)
+        public async Task<IActionResult> AdminLogin(LoginViewModel model, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return View("AdminLogin", model);
 
-            var result = await _userHelper.LoginAsync(model);
-
-            if (result.Succeeded)
+            try
             {
+                // Aceita email OU username
                 var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                          ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+                           ?? await _userHelper.GetUserByUsernameAsync(model.Username);
 
-                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                if (user == null)
                 {
-                    await LogAccess(user, "AdminLogin");
-                    return RedirectToAction("Index", "Admin", new { area = "Admin" });
+                    ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
+                    return View("AdminLogin", model);
                 }
 
-                await _userHelper.LogoutAsync();
-                ModelState.AddModelError(string.Empty, "Acesso restrito a administradores.");
+                // Precisa ser Admin
+                if (!await _userHelper.IsUserInRoleAsync(user, "Admin"))
+                {
+                    ModelState.AddModelError(string.Empty, "Este utilizador não tem acesso administrativo.");
+                    return View("AdminLogin", model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(
+                    user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+                if (!result.Succeeded)
+                {
+                    ModelState.AddModelError(string.Empty, "Credenciais inválidas.");
+                    return View("AdminLogin", model);
+                }
+
+                // Log do acesso administrativo
+                await LogAccess(user, "AdminLogin");
+
+                // Sucesso: painel admin
+                return RedirectToAction("Index", "Admin", new { area = "Admin" });
             }
-            else
+            catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
+                Console.WriteLine($"Erro no login administrativo: {ex.Message}");
+                ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
+                return View("AdminLogin", model);
             }
-
-            return View(model);
         }
-
-
-
-
-
-
-
-
 
         // =======================
         // LOGIN VIA FACEBOOK E GOOGLE
@@ -299,14 +301,15 @@ namespace Sistema.Controllers
         // =======================
         // LOGOUT
         // =======================
-        [HttpPost]
+        [HttpGet, HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            Response.Cookies.Delete(".AspNetCore.Identity.Application");
-            return RedirectToAction("Login", "Account");
-
+            return RedirectToAction("Index", "Home");
         }
+
+
 
 
 
@@ -320,47 +323,78 @@ namespace Sistema.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterNewUserViewModel model)
         {
-            if (ModelState.IsValid) //verifica se o modelo e valido
+            if (ModelState.IsValid)
             {
-                var user = await _userHelper.GetUserByEmailAsync(model.Email); //verifica se o user ja existe
-                if (user == null) //se nao existir cria um novo user
+                try
                 {
-                    user = new User //cria um novo user
+                    // Verifica se o usuário já existe
+                    var existingUser = await _userHelper.GetUserByEmailAsync(model.Email);
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Já existe um usuário com este e-mail.");
+                        return View(model);
+                    }
+
+                    // Cria novo usuário
+                    var user = new User
                     {
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         Email = model.Email,
                         UserName = model.Username,
-                        PhoneNumber = model.Phone
+                        PhoneNumber = model.Phone,
+                        EmailConfirmed = true // Para simplificar, confirmamos automaticamente
                     };
 
                     var result = await _userHelper.AddUserAsync(user, model.Password);
-                    if (result != IdentityResult.Success)  //se nao for possivel criar o user
+                    if (result.Succeeded)
                     {
-                        ModelState.AddModelError(string.Empty, "Não foi possível criar o usuário. Tente novamente.");
-                        return View(model); //retorna a view com o modelo
+                        // Adiciona role de Customer
+                        await _userHelper.AddUserToRoleAsync(user, "Customer");
+
+                        // Log do novo registro
+                        await LogAccess(user, "Register");
+
+                        // Login automático após registro
+                        var loginViewModel = new LoginViewModel
+                        {
+                            Username = model.Username,
+                            Password = model.Password,
+                            RememberMe = false
+                        };
+
+                        var loginResult = await _userHelper.LoginAsync(loginViewModel);
+                        if (loginResult.Succeeded)
+                        {
+                            TempData["SuccessMessage"] = "Conta criada com sucesso! Bem-vindo(a)!";
+                            return RedirectToAction("Profile", "PublicProfile");
+                        }
+                        else
+                        {
+                            // Se não conseguir fazer login, redireciona para login
+                            TempData["SuccessMessage"] = "Conta criada com sucesso! Faça login para continuar.";
+                            return RedirectToAction("Login");
+                        }
                     }
-                    // Log do novo registro
-                    var loginViewModel = new LoginViewModel
+                    else
                     {
-                        Password = model.Password, //do utilizador que ja esta criado
-                        RememberMe = false, //nao se lembra do user deixar false
-                        Username = model.Username //do utilizador que ja esta criado
-                    };
-                    var result2 = await _userHelper.LoginAsync(loginViewModel); //faz o login do user que acabou de criar
-                    if (result2.Succeeded) //se ele conseguiu logar retorna de uma pagina para a home
-                    {
-                        return Redirect("/Home/Index");
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
                     }
-
-                    ModelState.AddModelError(string.Empty, "The user couldn't be logged in."); //se ele nao conseguir logar da mensagem de erro
-
-
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro no registro: {ex.Message}");
+                    ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
                 }
             }
-            return View(model); //se o modelo nao for valido retorna a view com o modelo
+
+            return View(model);
         }
 
 

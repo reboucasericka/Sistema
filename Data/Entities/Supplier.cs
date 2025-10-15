@@ -11,7 +11,7 @@ namespace Sistema.Data.Entities
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
@@ -34,13 +34,9 @@ namespace Sistema.Data.Entities
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
         // 🔗 1:N relationship (one supplier can provide multiple products)
-        public ICollection<Product> Products { get; set; }
+        public ICollection<Product> Products { get; set; } = new List<Product>();
 
         // ✅ IEntity interface implementation
-        public int Id
-        {
-            get => SupplierId; // returns PK value
-            set => SupplierId = value; // sets PK value
-        }
+        
     }
 }

@@ -4,10 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("ProfessionalSchedules")]
-    public class ProfessionalSchedule
+    public class ProfessionalSchedule : IEntity
     {
         [Key]
         public int ScheduleId { get; set; }
+        
+        
 
         [Required]
         [ForeignKey("Professional")]
@@ -22,5 +24,10 @@ namespace Sistema.Data.Entities
 
         [Required]
         public TimeSpan EndTime { get; set; }   // Ex.: 18:00
+
+        // 🔗 FK → User (quem criou o horário)
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public User? User { get; set; }
     }
 }

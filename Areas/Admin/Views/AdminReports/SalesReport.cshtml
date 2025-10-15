@@ -1,0 +1,59 @@
+@{
+    ViewData["Title"] = "Relatório de Vendas";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> Relatório de Vendas
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-info-circle"></i> Em Desenvolvimento</h4>
+                        <p>Este relatório está sendo implementado. Em breve você poderá visualizar relatórios detalhados de vendas com gráficos e análises.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Funcionalidades Planejadas</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check"></i> Vendas por período</li>
+                                        <li><i class="fas fa-check"></i> Produtos mais vendidos</li>
+                                        <li><i class="fas fa-check"></i> Análise de tendências</li>
+                                        <li><i class="fas fa-check"></i> Exportação para Excel/PDF</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Próximas Atualizações</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-clock"></i> Gráficos interativos</li>
+                                        <li><i class="fas fa-clock"></i> Comparativo mensal</li>
+                                        <li><i class="fas fa-clock"></i> Relatórios personalizados</li>
+                                        <li><i class="fas fa-clock"></i> Dashboard em tempo real</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "AdminReports")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar aos Relatórios
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

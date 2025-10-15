@@ -4,20 +4,25 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Sistema.Data.Entities
 {
     [Table("Appointments")]
-    public class Appointment
+    public class Appointment : IEntity
     {
         [Key]
-        public int AppointmentId { get; set; } // PK
+        public int AppointmentId { get; set; } // PK       
+        
+       
 
         // 🔗 FK → Cliente
+        [ForeignKey("Customer")]
         public int CustomerId { get; set; } // FK
         public Customer Customer { get; set; } // Navegação
 
         // 🔗 FK → Service
+        [ForeignKey("Service")]
         public int ServiceId { get; set; } // FK
         public Service Service { get; set; } // Navegação
 
         // 🔗 FK → Professional
+        [ForeignKey("Professional")]
         public int ProfessionalId { get; set; } // FK
         public Professional Professional { get; set; } // Navegação
 

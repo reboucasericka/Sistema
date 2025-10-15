@@ -34,7 +34,7 @@ namespace Sistema.Models.Account
         public string? Username { get; set; }
 
         [Required(ErrorMessage = "A senha é obrigatória")]
-        [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres")]
+        [MinLength(5, ErrorMessage = "A senha deve ter pelo menos 5 caracteres")]
         [Display(Name = "Senha")]
         public string? Password { get; set; }
 

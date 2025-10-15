@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Helpers;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -11,21 +13,52 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminPayablesController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly IUserHelper _userHelper;
 
-        public AdminPayablesController(SistemaDbContext context)
+        public AdminPayablesController(SistemaDbContext context, IUserHelper userHelper)
         {
             _context = context;
+            _userHelper = userHelper;
         }
 
         // GET: Admin/Payables
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? status, string? type, DateTime? startDate, DateTime? endDate)
         {
-            var payables = await _context.Payables
-                .Include(p => p.LaunchUser)
-                .Include(p => p.ClearUser)
-                .OrderByDescending(p => p.DueDate)
-                .ToListAsync();
-            
+            var query = _context.Payables
+                .Include(p => p.Professional)
+                .Include(p => p.Supplier)
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.User)
+                .AsQueryable();
+
+            // Filtros
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(p => p.Status == status);
+            }
+
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(p => p.Type == type);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(p => p.DueDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(p => p.DueDate <= endDate.Value);
+            }
+
+            var payables = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+
+            ViewBag.Status = status;
+            ViewBag.Type = type;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+
             return View(payables);
         }
 
@@ -38,10 +71,13 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var payable = await _context.Payables
-                .Include(p => p.LaunchUser)
-                .Include(p => p.ClearUser)
+                .Include(p => p.Professional)
+                .Include(p => p.Supplier)
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.User)
+                .Include(p => p.Sale)
                 .FirstOrDefaultAsync(m => m.PayableId == id);
-            
+
             if (payable == null)
             {
                 return NotFound();
@@ -51,28 +87,37 @@ namespace Sistema.Areas.Admin.Controllers
         }
 
         // GET: Admin/Payables/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Name");
+            ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name");
+            ViewData["PaymentMethodId"] = new SelectList(_context.PaymentMethods.Where(pm => pm.IsActive), "PaymentMethodId", "Name");
+            ViewData["Type"] = new SelectList(new[] { "Expense", "Commission", "Supplier", "Other" });
             return View();
         }
 
         // POST: Admin/Payables/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PayableId,Description,Type,Value,LaunchDate,DueDate,LaunchUser,IsPaid")] Payable payable)
+        public async Task<IActionResult> Create([Bind("Description,Amount,DueDate,Type,ProfessionalId,SupplierId,PaymentMethodId,Notes")] Payable payable)
         {
             if (ModelState.IsValid)
             {
-                payable.LaunchDate = DateTime.Now;
+                payable.UserId = _userHelper.GetUserId(User);
+                payable.CreatedAt = DateTime.Now;
+                payable.Status = "Pending";
                 payable.IsPaid = false;
-                payable.UserId = 1; // You might need to adjust this based on your user system
-                
+
                 _context.Add(payable);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Payableable created successfully!";
+                TempData["SuccessMessage"] = "Pagamento criado com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Name", payable.ProfessionalId);
+            ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name", payable.SupplierId);
+            ViewData["PaymentMethodId"] = new SelectList(_context.PaymentMethods.Where(pm => pm.IsActive), "PaymentMethodId", "Name", payable.PaymentMethodId);
+            ViewData["Type"] = new SelectList(new[] { "Expense", "Commission", "Supplier", "Other" }, payable.Type);
             return View(payable);
         }
 
@@ -89,13 +134,18 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
+            ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Name", payable.ProfessionalId);
+            ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name", payable.SupplierId);
+            ViewData["PaymentMethodId"] = new SelectList(_context.PaymentMethods.Where(pm => pm.IsActive), "PaymentMethodId", "Name", payable.PaymentMethodId);
+            ViewData["Type"] = new SelectList(new[] { "Expense", "Commission", "Supplier", "Other" }, payable.Type);
             return View(payable);
         }
 
         // POST: Admin/Payables/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PayableId,Description,Type,Value,LaunchDate,DueDate,LaunchUser,IsPaid,PaymentDate")] Payable payable)
+        public async Task<IActionResult> Edit(int id, [Bind("PayableId,Description,Amount,DueDate,Type,ProfessionalId,SupplierId,PaymentMethodId,Status,IsPaid,PaymentDate")] Payable payable)
         {
             if (id != payable.PayableId)
             {
@@ -108,12 +158,11 @@ namespace Sistema.Areas.Admin.Controllers
                 {
                     _context.Update(payable);
                     await _context.SaveChangesAsync();
-                    
-                    TempData["SuccessMessage"] = "Payableable updated successfully!";
+                    TempData["SuccessMessage"] = "Pagamento atualizado com sucesso!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PayableableExists(payable.PayableId))
+                    if (!PayableExists(payable.PayableId))
                     {
                         return NotFound();
                     }
@@ -124,6 +173,11 @@ namespace Sistema.Areas.Admin.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Name", payable.ProfessionalId);
+            ViewData["SupplierId"] = new SelectList(_context.Suppliers, "SupplierId", "Name", payable.SupplierId);
+            ViewData["PaymentMethodId"] = new SelectList(_context.PaymentMethods.Where(pm => pm.IsActive), "PaymentMethodId", "Name", payable.PaymentMethodId);
+            ViewData["Type"] = new SelectList(new[] { "Expense", "Commission", "Supplier", "Other" }, payable.Type);
             return View(payable);
         }
 
@@ -136,8 +190,12 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             var payable = await _context.Payables
-                .Include(p => p.LaunchUser)
+                .Include(p => p.Professional)
+                .Include(p => p.Supplier)
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.User)
                 .FirstOrDefaultAsync(m => m.PayableId == id);
+
             if (payable == null)
             {
                 return NotFound();
@@ -156,8 +214,7 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 _context.Payables.Remove(payable);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Payableable deleted successfully!";
+                TempData["SuccessMessage"] = "Pagamento excluído com sucesso!";
             }
 
             return RedirectToAction(nameof(Index));
@@ -169,50 +226,40 @@ namespace Sistema.Areas.Admin.Controllers
         public async Task<IActionResult> MarkAsPaid(int id)
         {
             var payable = await _context.Payables.FindAsync(id);
-            if (payable != null)
+            if (payable == null)
             {
-                // Check if there's an open cash register
-                var openCashRegister = await _context.CashRegisters
-                    .Where(c => c.Status == "aberto")
-                    .OrderByDescending(c => c.Date)
-                    .FirstOrDefaultAsync();
-
-                if (openCashRegister == null)
-                {
-                    TempData["ErrorMessage"] = "No open cash register found. Please open a cash register first.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Mark payable as paid
-                payable.IsPaid = true;
-                payable.PaymentDate = DateTime.Now;
-                payable.ClearUserId = 1; // You might need to adjust this based on your user system
-                
-                _context.Update(payable);
-
-                // Create cash movement for the payment (exit from cash)
-                var cashMovement = new CashMovement
-                {
-                    CashRegisterId = openCashRegister.CashRegisterId,
-                    Type = "exit",
-                    Amount = payable.Value,
-                    Description = $"Payablement made - {payable.Description}",
-                    Date = DateTime.Now,
-                    Reference = $"Payableable-{payable.PayableId}",
-                    RelatedEntityId = payable.PayableId,
-                    RelatedEntityType = "Payableable"
-                };
-
-                _context.CashMovements.Add(cashMovement);
-                await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = $"Payableable marked as paid and €{payable.Value:N2} deducted from cash register!";
+                return NotFound();
             }
 
+            payable.Status = "Paid";
+            payable.IsPaid = true;
+            payable.PaymentDate = DateTime.Now;
+            payable.ClearUserId = _userHelper.GetUserId(User);
+
+            _context.Update(payable);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Pagamento marcado como pago!";
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PayableableExists(int id)
+        // GET: Admin/Payables/Summary
+        public async Task<IActionResult> Summary()
+        {
+            var summary = new
+            {
+                TotalPending = await _context.Payables.Where(p => p.Status == "Pending").SumAsync(p => p.Amount),
+                TotalPaid = await _context.Payables.Where(p => p.Status == "Paid").SumAsync(p => p.Amount),
+                TotalExpenses = await _context.Payables.Where(p => p.Type == "Expense").SumAsync(p => p.Amount),
+                TotalCommissions = await _context.Payables.Where(p => p.Type == "Commission").SumAsync(p => p.Amount),
+                OverdueCount = await _context.Payables.Where(p => p.Status == "Pending" && p.DueDate < DateTime.Now).CountAsync(),
+                OverdueAmount = await _context.Payables.Where(p => p.Status == "Pending" && p.DueDate < DateTime.Now).SumAsync(p => p.Amount)
+            };
+
+            return Json(summary);
+        }
+
+        private bool PayableExists(int id)
         {
             return _context.Payables.Any(e => e.PayableId == id);
         }

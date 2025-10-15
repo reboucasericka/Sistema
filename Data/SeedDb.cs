@@ -36,19 +36,17 @@ namespace Sistema.Data
         {
             _logger.LogInformation("🌱 Starting SeedDb initialization...");
 
-            // Garante que a BD está criada
-            await _context.Database.EnsureCreatedAsync();
+            // Use migrations
+            await _context.Database.MigrateAsync();
 
-            // Cria roles principais
             await _userHelper.CheckRoleAsync("Admin");
             await _userHelper.CheckRoleAsync("Professional");
             await _userHelper.CheckRoleAsync("Customer");
 
-            // Lê credenciais do appsettings.json ou user-secrets
             var adminEmail = _configuration["AdminUser:Email"];
             var adminPassword = _configuration["AdminUser:Password"];
             var adminFirstName = _configuration["AdminUser:FirstName"] ?? "Administrator";
-            var adminLastName = _configuration["AdminUser:LastName"] ?? "System";
+            var adminLastName  = _configuration["AdminUser:LastName"] ?? "System";
 
             if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
             {
@@ -56,24 +54,23 @@ namespace Sistema.Data
                 throw new InvalidOperationException("AdminUser credentials are not configured.");
             }
 
-            // Cria ou atualiza o administrador
             var adminUser = await _userHelper.GetUserByEmailAsync(adminEmail);
             if (adminUser == null)
             {
                 adminUser = new User
                 {
                     FirstName = adminFirstName,
-                    LastName = adminLastName,
-                    Email = adminEmail,
-                    UserName = adminEmail,
-                    PhoneNumber = "000000000",
-                    Active = true,
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    LastName  = adminLastName,
+                    Email     = adminEmail,
+                    UserName  = adminEmail,
+                    PhoneNumber   = "000000000",
+                    Active        = true,
+                    EmailConfirmed= true,
+                    CreatedAt     = DateTime.UtcNow
                 };
 
                 var result = await _userHelper.AddUserAsync(adminUser, adminPassword);
-                if (result != IdentityResult.Success)
+                if (!result.Succeeded)
                 {
                     var errorList = string.Join(", ", result.Errors.Select(e => e.Description));
                     _logger.LogError("❌ Failed to create admin user: {Errors}", errorList);
@@ -85,9 +82,12 @@ namespace Sistema.Data
             }
             else
             {
-                // Atualiza role se necessário
-                var isInRole = await _userHelper.IsUserInRoleAsync(adminUser, "Admin");
-                if (!isInRole)
+                var changed = false;
+                if (!adminUser.EmailConfirmed) { adminUser.EmailConfirmed = true; changed = true; }
+                if (!adminUser.Active)         { adminUser.Active        = true; changed = true; }
+                if (changed) await _context.SaveChangesAsync();
+
+                if (!await _userHelper.IsUserInRoleAsync(adminUser, "Admin"))
                 {
                     await _userHelper.AddUserToRoleAsync(adminUser, "Admin");
                     _logger.LogInformation("✅ Admin user found and added to Admin role: {Email}", adminEmail);
@@ -98,8 +98,9 @@ namespace Sistema.Data
                 }
             }
 
-            // Executa seeds adicionais apenas se as tabelas estiverem vazias
             await SeedCategoriesAsync();
+            await SeedProductCategoriesAsync();
+            await SeedSuppliersAsync();
             await SeedServicesAsync();
             await SeedProfessionalsAsync();
             await SeedCustomersAsync();
@@ -128,6 +129,65 @@ namespace Sistema.Data
             _logger.LogInformation("📦 Seeded {Count} service categories", categories.Count);
         }
 
+        private async Task SeedProductCategoriesAsync()
+        {
+            if (await _context.ProductCategories.AnyAsync()) return;
+
+            var productCategories = new List<ProductCategory>
+            {
+                new ProductCategory { Name = "Shampoos e Condicionadores" },
+                new ProductCategory { Name = "Tinturas e Colorantes" },
+                new ProductCategory { Name = "Produtos para Unhas" },
+                new ProductCategory { Name = "Maquiagem" },
+                new ProductCategory { Name = "Cremes e Hidratantes" },
+                new ProductCategory { Name = "Ferramentas e Acessórios" }
+            };
+
+            _context.ProductCategories.AddRange(productCategories);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("🛍️ Seeded {Count} product categories", productCategories.Count);
+        }
+
+        private async Task SeedSuppliersAsync()
+        {
+            if (await _context.Suppliers.AnyAsync()) return;
+
+            var suppliers = new List<Supplier>
+            {
+                new Supplier 
+                { 
+                    Name = "Distribuidora de Beleza Ltda", 
+                    Email = "contato@distribuidorabeleza.com.br",
+                    Phone = "(11) 99999-9999",
+                    Address = "Rua das Flores, 123 - São Paulo/SP",
+                    TaxId = "12.345.678/0001-90",
+                    RegistrationDate = DateTime.UtcNow
+                },
+                new Supplier 
+                { 
+                    Name = "Cosméticos Premium S.A.", 
+                    Email = "vendas@cosmeticospremium.com.br",
+                    Phone = "(11) 88888-8888",
+                    Address = "Av. Paulista, 456 - São Paulo/SP",
+                    TaxId = "98.765.432/0001-10",
+                    RegistrationDate = DateTime.UtcNow
+                },
+                new Supplier 
+                { 
+                    Name = "Fornecedor de Ferramentas", 
+                    Email = "contato@ferramentasbeleza.com.br",
+                    Phone = "(11) 77777-7777",
+                    Address = "Rua das Ferramentas, 789 - São Paulo/SP",
+                    TaxId = "11.222.333/0001-44",
+                    RegistrationDate = DateTime.UtcNow
+                }
+            };
+
+            _context.Suppliers.AddRange(suppliers);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("🏪 Seeded {Count} suppliers", suppliers.Count);
+        }
+
         private async Task SeedServicesAsync()
         {
             if (await _context.Service.AnyAsync()) return;
@@ -137,9 +197,9 @@ namespace Sistema.Data
 
             var services = new List<Service>
             {
-                new Service { Name = "Women's Haircut", CategoryId = hair.Id, Price = 25.00m, Duration = "45min", IsActive = true },
-                new Service { Name = "Hair Coloring", CategoryId = hair.Id, Price = 60.00m, Duration = "1h30", IsActive = true },
-                new Service { Name = "Social Makeup", CategoryId = makeup.Id, Price = 40.00m, Duration = "1h", IsActive = true }
+                new Service { Name = "Women's Haircut", CategoryId = hair.CategoryId, Price = 25.00m, Duration = "45min", IsActive = true },
+                new Service { Name = "Hair Coloring", CategoryId = hair.CategoryId, Price = 60.00m, Duration = "1h30", IsActive = true },
+                new Service { Name = "Social Makeup", CategoryId = makeup.CategoryId, Price = 40.00m, Duration = "1h", IsActive = true }
             };
 
             _context.Service.AddRange(services);

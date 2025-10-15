@@ -15,14 +15,28 @@ namespace Sistema.Helpers
 
         public BlobHelper(IConfiguration configuration)
         {
-            
-            string keys = configuration["Blob:ConnectionString"]; //pegar a chave de acesso ao blob
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(keys); //criar a conta de armazenamento
-            _blobClient = storageAccount.CreateCloudBlobClient(); //criar o cliente do blob
-
+            try
+            {
+                string keys = configuration["Blob:ConnectionString"]; //pegar a chave de acesso ao blob
+                if (string.IsNullOrEmpty(keys))
+                {
+                    throw new ArgumentException("Connection string do Blob Storage não configurada");
+                }
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(keys); //criar a conta de armazenamento
+                _blobClient = storageAccount.CreateCloudBlobClient(); //criar o cliente do blob
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao configurar Blob Storage: {ex.Message}", ex);
+            }
         }
         public async Task<Guid> UploadBlobAsync(IFormFile file, string containerName)
         {
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("Arquivo não pode ser nulo ou vazio");
+            }
+            
             Stream stream = file.OpenReadStream();
             return await UploadStreamAsync(stream, containerName);
         }
@@ -41,11 +55,32 @@ namespace Sistema.Helpers
 
         private async Task<Guid> UploadStreamAsync(Stream stream, string containerName)
         {
-            Guid name = Guid.NewGuid();
-            CloudBlobContainer container = _blobClient.GetContainerReference(containerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference($"{name}.png");
-            await blockBlob.UploadFromStreamAsync(stream);
-            return name;
+            try
+            {
+                Guid name = Guid.NewGuid();
+                CloudBlobContainer container = _blobClient.GetContainerReference(containerName);
+                await container.CreateIfNotExistsAsync();
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference($"{name}.png");
+                await blockBlob.UploadFromStreamAsync(stream);
+                return name;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao fazer upload do arquivo: {ex.Message}", ex);
+            }
+        }
+
+        public async Task CreateContainerIfNotExistsAsync(string containerName)
+        {
+            try
+            {
+                CloudBlobContainer container = _blobClient.GetContainerReference(containerName);
+                await container.CreateIfNotExistsAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao criar container '{containerName}': {ex.Message}", ex);
+            }
         }
     }
 }

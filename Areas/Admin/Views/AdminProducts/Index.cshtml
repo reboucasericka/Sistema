@@ -1,92 +1,209 @@
 ﻿@model IEnumerable<Sistema.Data.Entities.Product>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Gestão de Produtos";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Lista de Produtos</h1>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-boxes me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Novo Produto
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Gerencie o catálogo de produtos da sua empresa</p>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Criar novo</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductCategory.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PurchasePrice)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SalePrice)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Stock)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImageId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MinimumStockLevel)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Supplier)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductCategory.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PurchasePrice)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SalePrice)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Stock)
-            </td>
-            <td>
-                    @if (!string.IsNullOrEmpty(item.ImageFullPath))
-                {
-                        <img src="@Url.Content(item.ImageFullPath)" alt="Imagem do Produto" style="width:100px; height:auto; max-width: 100px; max-height: 100px;" />
-                }
-            </td> 
-            <td>
-                @Html.DisplayFor(modelItem => item.MinimumStockLevel)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Supplier.Name)
-            </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.ProductId" class="btn btn-warning">
-                        <i class="fas fa-edit me-1"></i> Editar
+    <!-- Alertas -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Estatísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3>@Model.Count()</h3>
+                    <p>Total de Produtos</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>@Model.Count(p => p.Stock > p.MinimumStockLevel)</h3>
+                    <p>Em Estoque</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>@Model.Count(p => p.Stock <= p.MinimumStockLevel)</h3>
+                    <p>Estoque Baixo</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>@Model.Count(p => p.Stock == 0)</h3>
+                    <p>Sem Estoque</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Produtos -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Produtos
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light text-uppercase small">
+                            <tr>
+                                <th>
+                                    <i class="fas fa-image me-1"></i>Imagem
+                                </th>
+                                <th>
+                                    <i class="fas fa-tag me-1"></i>Nome
+                                </th>
+                                <th>
+                                    <i class="fas fa-folder me-1"></i>Categoria
+                                </th>
+                                <th>
+                                    <i class="fas fa-dollar-sign me-1"></i>Preço Compra
+                                </th>
+                                <th>
+                                    <i class="fas fa-tag me-1"></i>Preço Venda
+                                </th>
+                                <th>
+                                    <i class="fas fa-boxes me-1"></i>Estoque
+                                </th>
+                                <th>
+                                    <i class="fas fa-truck me-1"></i>Fornecedor
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-cogs me-1"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.ImageFullPath))
+                                        {
+                                            <img src="@Url.Content(item.ImageFullPath)" alt="Imagem do Produto" 
+                                                 class="rounded" style="width:50px; height:50px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width:50px; height:50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@Html.DisplayFor(modelItem => item.Name)</div>
+                                        <small class="text-muted text-truncate d-block" style="max-width: 200px;" title="@Html.DisplayFor(modelItem => item.Description)">
+                                            @Html.DisplayFor(modelItem => item.Description)
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@Html.DisplayFor(modelItem => item.ProductCategory.Name)</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold">€ @Html.DisplayFor(modelItem => item.PurchasePrice)</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-bold">€ @Html.DisplayFor(modelItem => item.SalePrice)</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var stockClass = item.Stock <= item.MinimumStockLevel ? "text-danger" : "text-success";
+                                        }
+                                        <div>
+                                            <span class="@stockClass fw-bold">@Html.DisplayFor(modelItem => item.Stock)</span>
+                                            <small class="text-muted d-block">Mín: @Html.DisplayFor(modelItem => item.MinimumStockLevel)</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@Html.DisplayFor(modelItem => item.Supplier.Name)</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <a asp-action="Details" asp-route-id="@item.ProductId" 
+                                               class="btn btn-info btn-sm" title="Detalhes">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.ProductId" 
+                                               class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.ProductId" 
+                                               class="btn btn-danger btn-sm" title="Excluir">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum produto encontrado</h5>
+                    <p class="text-muted">Comece adicionando seu primeiro produto.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Adicionar Primeiro Produto
                     </a>
-                    <a asp-action="Details" asp-route-id="@item.ProductId" class="btn btn-info">
-                        <i class="fas fa-info-circle me-1"></i> Detalhes
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@item.ProductId" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> Deletar
-                    </a>
-                </td>
-        </tr>
-}
-    </tbody>
-</table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

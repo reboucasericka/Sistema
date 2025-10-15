@@ -60,6 +60,40 @@
                                     <li><a asp-controller="Funcionarios" asp-action="Index"><i class="fa fa-angle-right"></i> Funcionários</a></li>
                                 </ul>
                             </li>
+        <li class="treeview">
+            <a href="#">
+                <i class="fa fa-user-md"></i>
+                <span>Profissionais</span>
+                <i class="fa fa-angle-left pull-right"></i>
+            </a>
+            <ul class="treeview-menu">
+                <li><a asp-area="Admin" asp-controller="AdminProfessionals" asp-action="Index"><i class="fa fa-angle-right"></i> Lista de Profissionais</a></li>
+                <li><a asp-area="Admin" asp-controller="AdminProfessionalSchedules" asp-action="Index"><i class="fa fa-angle-right"></i> Agenda Interna</a></li>
+            </ul>
+        </li>
+        <li class="treeview">
+            <a href="#">
+                <i class="fa fa-calendar"></i>
+                <span>Agendamentos</span>
+                <i class="fa fa-angle-left pull-right"></i>
+            </a>
+            <ul class="treeview-menu">
+                <li><a asp-area="Admin" asp-controller="AdminAppointments" asp-action="Index"><i class="fa fa-angle-right"></i> Lista de Agendamentos</a></li>
+                <li><a asp-area="Admin" asp-controller="AdminAppointments" asp-action="Public"><i class="fa fa-angle-right"></i> Agendamento Online</a></li>
+            </ul>
+        </li>
+        <li class="treeview">
+            <a href="#">
+                <i class="fa fa-cube"></i>
+                <span>Produtos</span>
+                <i class="fa fa-angle-left pull-right"></i>
+            </a>
+            <ul class="treeview-menu">
+                <li><a asp-area="Admin" asp-controller="AdminProductCategories" asp-action="Index"><i class="fa fa-angle-right"></i> Categorias</a></li>
+                <li><a asp-area="Admin" asp-controller="AdminSuppliers" asp-action="Index"><i class="fa fa-angle-right"></i> Fornecedores</a></li>
+                <li><a asp-area="Admin" asp-controller="AdminProducts" asp-action="Index"><i class="fa fa-angle-right"></i> Produtos</a></li>
+            </ul>
+        </li>
                         </ul>
                     </div>
                 </nav>
@@ -118,7 +152,8 @@
                             </a>
                             <ul class="dropdown-menu drp-mnu">
                                 <li><a asp-controller="Perfil" asp-action="Editar"><i class="fa fa-suitcase"></i> Editar Perfil</a></li>
-                                <li><a asp-controller="Authentication" asp-action="Logout"><i class="fa fa-sign-out"></i> Sair</a></li>
+                                <li><a asp-area="" asp-controller="Account" asp-action="Logout"><i class="fa fa-sign-out"></i> Sair</a></li>
+
                             </ul>
                         </li>
                     </ul>

@@ -10,6 +10,8 @@ namespace Sistema.Helpers
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
+        
+        
         public UserHelper(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
@@ -21,50 +23,19 @@ namespace Sistema.Helpers
             return await _userManager.CreateAsync(user, Password);
         }
 
-        public async Task AddUserToRoleAsync(User user, string roleName) //ok
-        {
-            await _userManager.AddToRoleAsync(user, roleName);
-        }
-
-        public async Task<IdentityResult> ChangePasswordAsync(
-            User user, string currentPassword, string newPassword)
-        {
-            return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        }//ok
-
-
-
-
-        public async Task CheckRoleAsync(string roleName) //ok
-        {
-            var roleExists = await _roleManager.RoleExistsAsync(roleName);
-            if (!roleExists)
-            {
-                await _roleManager.CreateAsync(new IdentityRole
-                {
-                    Name = roleName
-                });
-            }
-        } 
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<bool> IsUserInRoleAsync(User user, string roleName) //ok
-        {
-            return await _userManager.IsInRoleAsync(user, roleName);//verifica se o user esta na role retorna um boolean
-        }
-
-
 
         public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
             return await _signInManager.PasswordSignInAsync(
-                model.Username, 
-                model.Password, 
-                model.RememberMe, 
+                model.Username,
+                model.Password,
+                model.RememberMe,
                 false);
 
 
@@ -99,9 +70,9 @@ namespace Sistema.Helpers
 
         public async Task LogoutAsync()
         {
-
-
             await _signInManager.SignOutAsync();
+        }
+            
             /*try
             {
                 Console.WriteLine("🔓 UserHelper: Iniciando SignOut...");
@@ -113,7 +84,47 @@ namespace Sistema.Helpers
                 Console.WriteLine($"❌ UserHelper: Erro no SignOut: {ex.Message}");
                 throw;
             }*/
+        
+
+
+
+        public async Task AddUserToRoleAsync(User user, string roleName) //ok
+        {
+            await _userManager.AddToRoleAsync(user, roleName);
         }
+
+
+        public async Task<IdentityResult> ChangePasswordAsync(
+            User user, string currentPassword, string newPassword)
+        {
+            return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        }//ok
+
+
+
+
+        public async Task CheckRoleAsync(string roleName) //ok
+        {
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
+            if (!roleExists)
+            {
+                await _roleManager.CreateAsync(new IdentityRole
+                {
+                    Name = roleName
+                });
+            }
+        } 
+
+       
+        public async Task<bool> IsUserInRoleAsync(User user, string roleName) //ok
+        {
+            return await _userManager.IsInRoleAsync(user, roleName);//verifica se o user esta na role retorna um boolean
+        }
+
+
+
+       
+      
 
         public async Task<IdentityResult> UpdateUserAsync(User user)
         {
@@ -179,6 +190,11 @@ namespace Sistema.Helpers
         public async Task<IList<string>> GetUserRolesAsync(User user)
         {
             return await _userManager.GetRolesAsync(user);
+        }
+
+        public string GetUserId(System.Security.Claims.ClaimsPrincipal user)
+        {
+            return _userManager.GetUserId(user);
         }
 
     }

@@ -1,236 +1,390 @@
+
 @{
-    ViewData["Title"] = "Relatórios";
+    ViewData["Title"] = "Relatórios Financeiros";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Relatórios</h1>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-chart-line me-2"></i>@ViewData["Title"]
+            </h5>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf me-1"></i>PDF
+                </button>
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel me-1"></i>Excel
+                </button>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Relatórios</li>
-                </ol>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Análise detalhada da performance financeira da clínica</p>
+        </div>
+    </div>
+
+    <!-- Filtros de Período -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-filter me-2"></i>Filtros de Período
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="reportFilters" class="row g-3">
+                <div class="col-md-4">
+                    <label for="startDate" class="form-label">
+                        <i class="fas fa-calendar-alt me-1"></i>Data Início
+                    </label>
+                    <input type="date" id="startDate" class="form-control" value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label for="endDate" class="form-label">
+                        <i class="fas fa-calendar-alt me-1"></i>Data Fim
+                    </label>
+                    <input type="date" id="endDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-primary w-100" onclick="applyFilters()">
+                        <i class="fas fa-filter me-1"></i>Aplicar Filtros
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards de Relatórios -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3>Vendas</h3>
+                    <p>Relatório de Vendas</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <a href="@Url.Action("SalesReport")" class="small-box-footer">
+                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>Caixa</h3>
+                    <p>Fluxo de Caixa</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <a href="@Url.Action("CashFlowReport")" class="small-box-footer">
+                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>Comissões</h3>
+                    <p>Relatório de Comissões</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <a href="@Url.Action("CommissionsReport")" class="small-box-footer">
+                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>Resumo</h3>
+                    <p>Resumo Financeiro</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <a href="@Url.Action("FinancialSummary")" class="small-box-footer">
+                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
     </div>
-</div>
 
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Relatório de Vendas -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>Vendas</h3>
-                        <p>Relatório de vendas e faturamento</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <a href="@Url.Action("Sales")" class="small-box-footer">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
+    <!-- Gráficos em Tempo Real -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Vendas por Dia
+                    </h5>
                 </div>
-            </div>
-
-            <!-- Relatório de Agendamentos -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>Agendamentos</h3>
-                        <p>Relatório de agendamentos</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <a href="@Url.Action("Appointments")" class="small-box-footer">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Relatório Financeiro -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>Financeiro</h3>
-                        <p>Relatório financeiro completo</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <a href="@Url.Action("Financial")" class="small-box-footer">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Relatório de Clientes -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>Clientes</h3>
-                        <p>Relatório de clientes</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <a href="@Url.Action("Clients")" class="small-box-footer">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
+                <div class="card-body">
+                    <canvas id="salesChart" height="300"></canvas>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <!-- Relatório de Produtos -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-secondary">
-                    <div class="inner">
-                        <h3>Produtos</h3>
-                        <p>Relatório de produtos e estoque</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <a href="@Url.Action("Products")" class="small-box-footer">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>Fluxo de Caixa
+                    </h5>
                 </div>
-            </div>
-
-            <!-- Exportar Relatórios -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h3>Exportar</h3>
-                        <p>Exportar relatórios para Excel</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-file-excel"></i>
-                    </div>
-                    <a href="#" class="small-box-footer" data-toggle="modal" data-target="#exportModal">
-                        Mais informações <i class="fas fa-arrow-circle-right"></i>
-                    </a>
+                <div class="card-body">
+                    <canvas id="cashFlowChart" height="300"></canvas>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Estatísticas Gerais -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Estatísticas Gerais</h3>
+    <!-- Exportação -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-download me-2"></i>Exportação de Relatórios
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Exportar para PDF</h6>
+                            <p class="text-muted mb-2">Gere relatórios em formato PDF para impressão ou arquivo.</p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf me-1"></i>Exportar PDF
+                            </button>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-info"><i class="fas fa-calendar-check"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Agendamentos Hoje</span>
-                                        <span class="info-box-number">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success"><i class="fas fa-users"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total de Clientes</span>
-                                        <span class="info-box-number">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-warning"><i class="fas fa-box"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Produtos em Estoque</span>
-                                        <span class="info-box-number">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Estoque Baixo</span>
-                                        <span class="info-box-number">0</span>
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-file-excel fa-2x text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Exportar para Excel</h6>
+                            <p class="text-muted mb-2">Gere planilhas em formato Excel para análise detalhada.</p>
+                            <button type="button" class="btn btn-success btn-sm" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
-
-<!-- Modal para Exportar Relatórios -->
-<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">Exportar Relatórios</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="exportForm">
-                    <div class="form-group">
-                        <label for="reportType">Tipo de Relatório</label>
-                        <select class="form-control" id="reportType" name="reportType" required>
-                            <option value="">Selecione um relatório</option>
-                            <option value="sales">Vendas</option>
-                            <option value="appointments">Agendamentos</option>
-                            <option value="clients">Clientes</option>
-                            <option value="cash">Caixa</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="startDate">Data Inicial</label>
-                        <input type="date" class="form-control" id="startDate" name="startDate" value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")">
-                    </div>
-                    <div class="form-group">
-                        <label for="endDate">Data Final</label>
-                        <input type="date" class="form-control" id="endDate" name="endDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="exportBtn">Exportar</button>
-            </div>
-        </div>
-    </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let salesChart, cashFlowChart;
+
         $(document).ready(function() {
-            $('#exportBtn').click(function() {
-                var reportType = $('#reportType').val();
-                var startDate = $('#startDate').val();
-                var endDate = $('#endDate').val();
-                
-                if (!reportType) {
-                    alert('Por favor, selecione um tipo de relatório.');
-                    return;
-                }
-                
-                var url = '@Url.Action("Export")' + '?reportType=' + reportType + '&startDate=' + startDate + '&endDate=' + endDate;
-                window.open(url, '_blank');
-                $('#exportModal').modal('hide');
-            });
+            loadCharts();
         });
+
+        function applyFilters() {
+            loadCharts();
+        }
+
+        function loadCharts() {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+
+            // Carregar dados de vendas
+            $.get('@Url.Action("GetChartData")', { 
+                chartType: 'sales', 
+                startDate: startDate, 
+                endDate: endDate 
+            }, function(data) {
+                updateSalesChart(data);
+            });
+
+            // Carregar dados de fluxo de caixa
+            $.get('@Url.Action("GetChartData")', { 
+                chartType: 'cashflow', 
+                startDate: startDate, 
+                endDate: endDate 
+            }, function(data) {
+                updateCashFlowChart(data);
+            });
+        }
+
+        function updateSalesChart(data) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => new Date(item.date).toLocaleDateString('pt-PT')),
+                    datasets: [{
+                        label: 'Vendas (€)',
+                        data: data.map(item => item.total),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€ ' + value.toFixed(2).replace('.', ',');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCashFlowChart(data) {
+            const ctx = document.getElementById('cashFlowChart').getContext('2d');
+            
+            if (cashFlowChart) {
+                cashFlowChart.destroy();
+            }
+
+            // Agrupar dados por data
+            const groupedData = {};
+            data.forEach(item => {
+                if (!groupedData[item.date]) {
+                    groupedData[item.date] = { entrada: 0, saida: 0 };
+                }
+                groupedData[item.date][item.type.toLowerCase()] = item.total;
+            });
+
+            const labels = Object.keys(groupedData).map(date => new Date(date).toLocaleDateString('pt-PT'));
+            const entradas = Object.values(groupedData).map(item => item.entrada);
+            const saidas = Object.values(groupedData).map(item => item.saida);
+
+            cashFlowChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Entradas',
+                            data: entradas,
+                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                            borderColor: 'rgb(75, 192, 192)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Saídas',
+                            data: saidas,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€ ' + value.toFixed(2).replace('.', ',');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportToPDF() {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            
+            // Criar um formulário para fazer o download
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '@Url.Action("ExportToPDF")',
+                'target': '_blank'
+            });
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'reportType',
+                'value': 'summary'
+            }));
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'startDate',
+                'value': startDate
+            }));
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'endDate',
+                'value': endDate
+            }));
+            
+            $('body').append(form);
+            form.submit();
+            form.remove();
+        }
+
+        function exportToExcel() {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            
+            // Criar um formulário para fazer o download
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '@Url.Action("ExportToExcel")',
+                'target': '_blank'
+            });
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'reportType',
+                'value': 'summary'
+            }));
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'startDate',
+                'value': startDate
+            }));
+            
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'endDate',
+                'value': endDate
+            }));
+            
+            $('body').append(form);
+            form.submit();
+            form.remove();
+        }
     </script>
 }

@@ -27,9 +27,9 @@
                 <td>@item.Price.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</td>
                 <td>@Html.DisplayFor(modelItem => item.Description)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalhes</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    <a asp-action="Edit" asp-route-id="@item.PriceId" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.PriceId" class="btn btn-sm btn-info">Detalhes</a>
+                    <a asp-action="Delete" asp-route-id="@item.PriceId" class="btn btn-sm btn-danger">Eliminar</a>
                 </td>
             </tr>
         }

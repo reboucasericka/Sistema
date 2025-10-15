@@ -5,7 +5,7 @@ namespace Sistema.Models.Admin
 {
     public class AdminServiceEditViewModel
     {
-        public int Id { get; set; }
+        public int ServiceId { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100, ErrorMessage = "Name must not exceed 100 characters")]
@@ -36,7 +36,7 @@ namespace Sistema.Models.Admin
 
         [Required(ErrorMessage = "Category is required")]
         [Display(Name = "Category")]
-        public int CategoryId { get; set; }
+        public int ServiceCategoryId { get; set; }
 
         [Display(Name = "Categories")]
         public IEnumerable<SelectListItem>? Categories { get; set; }

@@ -6,7 +6,7 @@ namespace Sistema.Models.Admin
 {
     public class AdminServiceViewModel
     {
-        public int Id { get; set; }
+        public int ServiceId { get; set; }
 
         [Required(ErrorMessage = "O nome é obrigatório")]
         [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
@@ -43,7 +43,7 @@ namespace Sistema.Models.Admin
         public IEnumerable<SelectListItem>? Categories { get; set; }
 
         // Campos legados para compatibilidade
-        public int ServiceId => Id;
+        public int Id => ServiceId;
         public int ServiceCategoryId => CategoryId;
         public bool Active => IsActive;
     }

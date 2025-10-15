@@ -300,12 +300,12 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Billing", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("BillingId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("BillingId");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BillingId"));
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("date");
@@ -331,7 +331,7 @@ namespace Sistema.Migrations
                     b.Property<string>("UserId1")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("Id");
+                    b.HasKey("BillingId");
 
                     b.HasIndex("UserId1");
 
@@ -382,14 +382,14 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.CashMovement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CashMovementId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CashMovementId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("CashRegisterId")
                         .HasColumnType("int");
@@ -403,21 +403,28 @@ namespace Sistema.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Reference")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RelatedEntityId")
                         .HasColumnType("int");
 
                     b.Property<string>("RelatedEntityType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("Id");
+                    b.HasKey("CashMovementId");
 
                     b.HasIndex("CashRegisterId");
 
@@ -431,12 +438,6 @@ namespace Sistema.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CashRegisterId"));
-
-                    b.Property<int?>("ClosingUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ClosingUserId1")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("date");
@@ -453,36 +454,44 @@ namespace Sistema.Migrations
                     b.Property<decimal>("InitialValue")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OpeningUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OpeningUserId1")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("OpeningUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("UserIdAbertura")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserIdFechamento")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("CashRegisterId");
 
-                    b.HasIndex("ClosingUserId1");
+                    b.HasIndex("UserIdAbertura");
 
-                    b.HasIndex("OpeningUserId1");
+                    b.HasIndex("UserIdFechamento");
 
                     b.ToTable("CashRegisters");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Category", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
@@ -493,7 +502,7 @@ namespace Sistema.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("CategoryId");
 
                     b.ToTable("Category");
                 });
@@ -554,12 +563,12 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Notification", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("NotificationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("NotificationId");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -595,7 +604,7 @@ namespace Sistema.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("Id");
+                    b.HasKey("NotificationId");
 
                     b.ToTable("Notifications");
                 });
@@ -608,15 +617,19 @@ namespace Sistema.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayableId"));
 
-                    b.Property<int?>("ClearUserId")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("ClearUserId1")
+                    b.Property<string>("ClearUserId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("date");
@@ -627,7 +640,7 @@ namespace Sistema.Migrations
                     b.Property<bool>("ExportedToPdf")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Installment")
+                    b.Property<int?>("Installment")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsPaid")
@@ -636,8 +649,8 @@ namespace Sistema.Migrations
                     b.Property<DateTime>("LaunchDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("LaunchUserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("date");
@@ -649,37 +662,55 @@ namespace Sistema.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Photo")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Quantity")
+                    b.Property<int?>("ProfessionalId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalInstallments")
+                    b.Property<int?>("SaleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TotalInstallments")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("PayableId");
 
-                    b.HasIndex("ClearUserId1");
-
-                    b.HasIndex("LaunchUserId");
+                    b.HasIndex("ClearUserId");
 
                     b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ProfessionalId");
+
+                    b.HasIndex("SaleId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Payables");
                 });
@@ -693,12 +724,16 @@ namespace Sistema.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentMethodId"));
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("PaymentMethodId");
 
@@ -777,12 +812,12 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.PriceTable", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PriceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("PriceId");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PriceId"));
 
                     b.Property<string>("Category")
                         .HasColumnType("nvarchar(max)");
@@ -796,7 +831,7 @@ namespace Sistema.Migrations
                     b.Property<string>("ServiceName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("PriceId");
 
                     b.ToTable("PriceTables");
                 });
@@ -854,11 +889,7 @@ namespace Sistema.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("ImageId")
-                        .HasMaxLength(200)
+                    b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
@@ -909,9 +940,6 @@ namespace Sistema.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductCategoryId"));
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -930,8 +958,11 @@ namespace Sistema.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfessionalId"));
 
+                    b.Property<decimal>("CommissionPercentage")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<decimal>("DefaultCommission")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -993,9 +1024,14 @@ namespace Sistema.Migrations
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("ScheduleId");
 
                     b.HasIndex("ProfessionalId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ProfessionalSchedules");
                 });
@@ -1052,18 +1088,22 @@ namespace Sistema.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceivableId"));
 
-                    b.Property<int?>("ClearUserId")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("ClearUserId1")
+                    b.Property<string>("ClearUserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("date");
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("ExportedToExcel")
                         .HasColumnType("bit");
@@ -1071,59 +1111,62 @@ namespace Sistema.Migrations
                     b.Property<bool>("ExportedToPdf")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Installment")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("LaunchDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("LaunchUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("date");
 
-                    b.Property<int?>("PaymentMethodId")
+                    b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
 
                     b.Property<int?>("PersonId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Photo")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Quantity")
+                    b.Property<int>("ProfessionalId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalInstallments")
+                    b.Property<int?>("SaleId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("UserId")
+                    b.Property<int?>("ServiceId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("ReceivableId");
 
-                    b.HasIndex("ClearUserId1");
+                    b.HasIndex("ClearUserId");
 
-                    b.HasIndex("LaunchUserId");
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ProfessionalId");
+
+                    b.HasIndex("SaleId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Receivables");
                 });
@@ -1163,6 +1206,90 @@ namespace Sistema.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.ToTable("Reminder");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Sale", b =>
+                {
+                    b.Property<int>("SaleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SaleId"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("FinalTotal")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("PaymentMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProfessionalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SaleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SaleId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("ProfessionalId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Sales");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.SaleItem", b =>
+                {
+                    b.Property<int>("SaleItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SaleItemId"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SaleId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("SaleItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleItems");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Schedule", b =>
@@ -1205,12 +1332,12 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.Service", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("ServiceId");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceId"));
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -1246,7 +1373,7 @@ namespace Sistema.Migrations
                     b.Property<int>("ReturnDays")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ServiceId");
 
                     b.HasIndex("CategoryId");
 
@@ -1551,9 +1678,6 @@ namespace Sistema.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1609,8 +1733,7 @@ namespace Sistema.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid>("ImageId")
-                        .HasMaxLength(200)
+                    b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("LastName")
@@ -1736,19 +1859,19 @@ namespace Sistema.Migrations
                     b.HasOne("Sistema.Data.Entities.Customer", "Customer")
                         .WithMany("Appointments")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Sistema.Data.Entities.Professional", "Professional")
                         .WithMany("Appointments")
                         .HasForeignKey("ProfessionalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Sistema.Data.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -1793,9 +1916,9 @@ namespace Sistema.Migrations
             modelBuilder.Entity("Sistema.Data.Entities.CashMovement", b =>
                 {
                     b.HasOne("Sistema.Data.Entities.CashRegister", "CashRegister")
-                        .WithMany()
+                        .WithMany("CashMovements")
                         .HasForeignKey("CashRegisterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CashRegister");
@@ -1803,24 +1926,28 @@ namespace Sistema.Migrations
 
             modelBuilder.Entity("Sistema.Data.Entities.CashRegister", b =>
                 {
-                    b.HasOne("Sistema.Data.Entities.User", "ClosingUser")
+                    b.HasOne("Sistema.Data.Entities.User", "UserAbertura")
                         .WithMany()
-                        .HasForeignKey("ClosingUserId1");
+                        .HasForeignKey("UserIdAbertura")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.HasOne("Sistema.Data.Entities.User", "OpeningUser")
+                    b.HasOne("Sistema.Data.Entities.User", "UserFechamento")
                         .WithMany()
-                        .HasForeignKey("OpeningUserId1");
+                        .HasForeignKey("UserIdFechamento")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("ClosingUser");
+                    b.Navigation("UserAbertura");
 
-                    b.Navigation("OpeningUser");
+                    b.Navigation("UserFechamento");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Customer", b =>
                 {
                     b.HasOne("Sistema.Data.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -1829,27 +1956,51 @@ namespace Sistema.Migrations
                 {
                     b.HasOne("Sistema.Data.Entities.User", "ClearUser")
                         .WithMany()
-                        .HasForeignKey("ClearUserId1");
-
-                    b.HasOne("Sistema.Data.Entities.User", "LaunchUser")
-                        .WithMany()
-                        .HasForeignKey("LaunchUserId");
+                        .HasForeignKey("ClearUserId");
 
                     b.HasOne("Sistema.Data.Entities.PaymentMethod", "PaymentMethod")
                         .WithMany("Payables")
-                        .HasForeignKey("PaymentMethodId");
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Sistema.Data.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId");
 
-                    b.Navigation("ClearUser");
+                    b.HasOne("Sistema.Data.Entities.Professional", "Professional")
+                        .WithMany()
+                        .HasForeignKey("ProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("LaunchUser");
+                    b.HasOne("Sistema.Data.Entities.Sale", "Sale")
+                        .WithMany("Payables")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sistema.Data.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sistema.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClearUser");
 
                     b.Navigation("PaymentMethod");
 
                     b.Navigation("Product");
+
+                    b.Navigation("Professional");
+
+                    b.Navigation("Sale");
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Plan", b =>
@@ -1912,16 +2063,18 @@ namespace Sistema.Migrations
                     b.HasOne("Sistema.Data.Entities.ProductCategory", "ProductCategory")
                         .WithMany("Products")
                         .HasForeignKey("ProductCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Sistema.Data.Entities.Supplier", "Supplier")
                         .WithMany("Products")
-                        .HasForeignKey("SupplierId");
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Sistema.Data.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ProductCategory");
 
@@ -1953,7 +2106,14 @@ namespace Sistema.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Sistema.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Professional");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.ProfessionalService", b =>
@@ -1979,27 +2139,61 @@ namespace Sistema.Migrations
                 {
                     b.HasOne("Sistema.Data.Entities.User", "ClearUser")
                         .WithMany()
-                        .HasForeignKey("ClearUserId1");
+                        .HasForeignKey("ClearUserId");
 
-                    b.HasOne("Sistema.Data.Entities.User", "LaunchUser")
+                    b.HasOne("Sistema.Data.Entities.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("LaunchUserId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Sistema.Data.Entities.PaymentMethod", "PaymentMethod")
                         .WithMany("Receivables")
-                        .HasForeignKey("PaymentMethodId");
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Sistema.Data.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId");
 
+                    b.HasOne("Sistema.Data.Entities.Professional", "Professional")
+                        .WithMany()
+                        .HasForeignKey("ProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.Sale", "Sale")
+                        .WithMany("Receivables")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sistema.Data.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sistema.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("ClearUser");
 
-                    b.Navigation("LaunchUser");
+                    b.Navigation("Customer");
 
                     b.Navigation("PaymentMethod");
 
                     b.Navigation("Product");
+
+                    b.Navigation("Professional");
+
+                    b.Navigation("Sale");
+
+                    b.Navigation("Service");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Reminder", b =>
@@ -2011,6 +2205,60 @@ namespace Sistema.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Sale", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.PaymentMethod", "PaymentMethod")
+                        .WithMany("Sales")
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.Professional", "Professional")
+                        .WithMany()
+                        .HasForeignKey("ProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("PaymentMethod");
+
+                    b.Navigation("Professional");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.SaleItem", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.Sale", "Sale")
+                        .WithMany("Items")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Schedule", b =>
@@ -2141,6 +2389,11 @@ namespace Sistema.Migrations
                     b.Navigation("Reminders");
                 });
 
+            modelBuilder.Entity("Sistema.Data.Entities.CashRegister", b =>
+                {
+                    b.Navigation("CashMovements");
+                });
+
             modelBuilder.Entity("Sistema.Data.Entities.Category", b =>
                 {
                     b.Navigation("Service");
@@ -2156,6 +2409,8 @@ namespace Sistema.Migrations
                     b.Navigation("Payables");
 
                     b.Navigation("Receivables");
+
+                    b.Navigation("Sales");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Plan", b =>
@@ -2180,6 +2435,15 @@ namespace Sistema.Migrations
             modelBuilder.Entity("Sistema.Data.Entities.Profile", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Sale", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("Payables");
+
+                    b.Navigation("Receivables");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Service", b =>

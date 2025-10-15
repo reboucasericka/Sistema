@@ -31,7 +31,7 @@ namespace Sistema.Areas.Public.Controllers
         {
             var service = await _context.Service
                 .Include(s => s.Category)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.ServiceId == id);
 
             if (service == null)
                 return NotFound();

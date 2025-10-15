@@ -59,7 +59,7 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
                     <div class="inner">
-                        <h3>@ViewBag.TotalBilling.ToString("C")</h3>
+                        <h3>€@ViewBag.TotalBilling.ToString("N2")</h3>
                         <p>Faturamento Total</p>
                     </div>
                     <div class="icon">
@@ -152,7 +152,7 @@
                                         <tr>
                                             <td>@billing.Date.ToString("dd/MM/yyyy")</td>
                                             <td>@billing.User?.FirstName @billing.User?.LastName</td>
-                                            <td>@billing.TotalValue.ToString("C")</td>
+                                            <td>€@billing.TotalValue.ToString("N2")</td>
                                             <td>@billing.ServicesQuantity</td>
                                             <td>@billing.ProductsQuantity</td>
                                             <td>
@@ -203,7 +203,7 @@
                 data: {
                     labels: salesByDayLabels,
                     datasets: [{
-                        label: 'Vendas (R$)',
+                        label: 'Vendas (€)',
                         data: salesByDayValues,
                         borderColor: 'rgb(75, 192, 192)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',

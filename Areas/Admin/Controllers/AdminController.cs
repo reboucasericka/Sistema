@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
@@ -12,10 +13,12 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminController : Controller
     {
         private readonly SistemaDbContext _context;
+        private readonly SignInManager<User> _signInManager;
 
-        public AdminController(SistemaDbContext context)
+        public AdminController(SistemaDbContext context, SignInManager<User> signInManager)
         {
             _context = context;
+            _signInManager = signInManager;
         }
 
         // GET: Admin Dashboard
@@ -179,6 +182,8 @@ namespace Sistema.Areas.Admin.Controllers
 
             return View(notifications);
         }
+
+       
 
     }
 }

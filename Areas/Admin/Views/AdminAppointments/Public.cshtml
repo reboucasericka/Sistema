@@ -44,7 +44,7 @@
                                                 <option value="">Selecione um serviço</option>
                                                 @foreach (var service in ViewBag.Services)
                                                 {
-                                                    <option value="@service.ServiceId" data-price="@service.Price">@service.Name - R$ @service.Price.ToString("F2")</option>
+                                                    <option value="@service.ServiceId" data-price="@service.Price">@service.Name - € @service.Price.ToString("F2")</option>
                                                 }
                                             </select>
                                         </div>
@@ -110,7 +110,7 @@
                                         <div class="service-item mb-3">
                                             <h5>@service.Name</h5>
                                             <p class="text-muted">@service.Description</p>
-                                            <span class="badge badge-primary">R$ @service.Price.ToString("F2")</span>
+                                            <span class="badge badge-primary">€ @service.Price.ToString("F2")</span>
                                         </div>
                                     }
                                 </div>

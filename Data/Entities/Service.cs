@@ -8,7 +8,7 @@ namespace Sistema.Data.Entities
     {
         [Key]
         [Column("ServiceId")]   //  nome real da coluna no banco
-        public int Id { get; set; }  //  continua cumprindo a interface
+        public int ServiceId { get; set; }  //  continua cumprindo a interface
 
         [Required, StringLength(100)]
         public string Name { get; set; }
@@ -32,6 +32,7 @@ namespace Sistema.Data.Entities
         public Guid ImageId { get; set; } // ID da imagem no blob
 
         // FK
+        [ForeignKey("Category")]
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 

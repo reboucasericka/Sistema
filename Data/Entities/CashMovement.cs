@@ -7,18 +7,18 @@ namespace Sistema.Data.Entities
     public class CashMovement : IEntity
     {
         [Key]
-        public int Id { get; set; }
+        public int CashMovementId { get; set; }
         
-        public int MovementId => Id; // Alias for compatibility
+        
 
         [Required]
         public int CashRegisterId { get; set; }
 
         [Required, StringLength(20)]
-        public string Type { get; set; } // "entry" or "exit"
+        public string Type { get; set; } // "Entrada" or "Saída"
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
 
         [Required, StringLength(200)]
@@ -27,11 +27,17 @@ namespace Sistema.Data.Entities
         [Required]
         public DateTime Date { get; set; }
 
-        [StringLength(100)]
-        public string? Reference { get; set; } // Reference to related entity (Receivable, Pay, etc.)
+        // Reference to Payable or Receivable
+        public int? ReferenceId { get; set; }
+        public string? ReferenceType { get; set; } // "Payable" or "Receivable"
 
-        public int? RelatedEntityId { get; set; } // ID of related entity
-        public string? RelatedEntityType { get; set; } // Type of related entity
+        [StringLength(200)]
+        public string? Reference { get; set; } // Referência do movimento
+
+        [StringLength(50)]
+        public string? RelatedEntityType { get; set; } // Tipo da entidade relacionada
+
+        public int? RelatedEntityId { get; set; } // ID da entidade relacionada
 
         // Navigation Properties
         [ForeignKey("CashRegisterId")]

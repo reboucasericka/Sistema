@@ -1,7 +1,7 @@
 @model Sistema.Models.Public.PublicServiceViewModel
 
 <div class="col-md-6 col-lg-4 mb-4">
-    <div class="card h-100 service-item-card" style="transition: transform 0.2s; cursor: pointer;" onclick="location.href='@Url.Action("Schedule", "Booking", new { id = Model.Id })'">
+    <div class="card h-100 service-item-card" style="transition: transform 0.2s; cursor: pointer;" onclick="location.href='@Url.Action("Schedule", "Booking", new { id = Model.ServiceId })'">
         <div class="card-img-top-container">
             @if (!string.IsNullOrEmpty(Model.ImageId))
             {
@@ -26,7 +26,7 @@
                     <span class="badge bg-secondary">@Model.Duration</span>
                 </div>
                 <div class="d-grid">
-                    <a asp-action="Schedule" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <a asp-action="Schedule" asp-route-id="@Model.ServiceId" class="btn btn-primary">
                         <i class="fas fa-calendar-plus"></i> Book Now
                     </a>
                 </div>

@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
+using Sistema.Data.Repository.Interfaces;
 using Sistema.Helpers;
+using Sistema.Models.Admin;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -13,21 +16,35 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminProfessionalsController : Controller
     {
         private readonly SistemaDbContext _context;
-        private readonly IImageHelper _imageHelper;
+        private readonly IProfessionalRepository _professionalRepository;
+        private readonly IBlobHelper _blobHelper;
         private readonly IUserHelper _userHelper;
+        private readonly IStorageHelper _storageHelper;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminProfessionalsController(SistemaDbContext context, IImageHelper imageHelper, IUserHelper userHelper)
+        public AdminProfessionalsController(SistemaDbContext context,
+            IProfessionalRepository professionalRepository,
+            IBlobHelper blobHelper,
+            IUserHelper userHelper,
+            IStorageHelper storageHelper,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _context = context;
-            _imageHelper = imageHelper;
+            _professionalRepository = professionalRepository;
+            _blobHelper = blobHelper;
             _userHelper = userHelper;
+            _storageHelper = storageHelper;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         // GET: Profissionais
         public async Task<IActionResult> Index()
         {
-            var sistemaDbContext = _context.Professionals.Include(p => p.User);
-            return View(await sistemaDbContext.ToListAsync());
+            var professionals = _professionalRepository.GetAllWithIncludes().OrderBy(p => p.Name);
+            return View(await professionals.ToListAsync());
         }
 
         // GET: Profissionais/Details/5
@@ -58,56 +75,85 @@ namespace Sistema.Areas.Admin.Controllers
                 .Select(u => new { u.Id, u.Email, u.FirstName, u.LastName })
                 .ToListAsync();
             
-            ViewData["Id"] = new SelectList(users, "Id", "Email");
-            return View();
+            ViewData["ExistingUsers"] = new SelectList(users, "Id", "Email");
+            return View(new AdminProfessionalCreateViewModel());
         }
 
         // POST: Profissionais/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Professional professional, IFormFile? photoFile, string? email, string? password)
+        public async Task<IActionResult> Create(AdminProfessionalCreateViewModel model)
         {
             try
             {
-                // Upload da foto se fornecida
-                if (photoFile != null && photoFile.Length > 0)
+                // Validação: deve ter usuário existente OU criar novo usuário
+                if (string.IsNullOrEmpty(model.ExistingUserId) && 
+                    (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password)))
                 {
-                    professional.ImageId = Guid.Parse(await _imageHelper.UploadImageAsync(photoFile, "professionals") ?? Guid.Empty.ToString());
+                    ModelState.AddModelError("", "Selecione um usuário existente ou crie um novo.");
+                    await LoadUsersForDropdown();
+                    return View(model);
                 }
 
-                // Se email e senha foram fornecidos, criar usuário funcionário
-                if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+                string userId = string.Empty;
+
+                // Se usuário existente foi selecionado
+                if (!string.IsNullOrEmpty(model.ExistingUserId))
+                {
+                    userId = model.ExistingUserId;
+                }
+                // Se email e senha foram fornecidos, criar novo usuário
+                else if (!string.IsNullOrEmpty(model.Email) && !string.IsNullOrEmpty(model.Password))
                 {
                     var user = new User
                     {
-                        FirstName = professional.Name.Split(' ')[0],
-                        LastName = professional.Name.Contains(' ') ? string.Join(" ", professional.Name.Split(' ').Skip(1)) : "",
-                        Email = email,
-                        UserName = email,
-                        PhoneNumber = "000000000",
+                        UserName = model.Email,
+                        Email = model.Email,
                         EmailConfirmed = true
                     };
 
-                    var result = await _userHelper.CreateEmployeeUserAsync(user, password);
-                    if (result.Succeeded)
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (!result.Succeeded)
                     {
-                        professional.UserId = user.Id;
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Erro ao criar usuário: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                        foreach (var error in result.Errors)
+                            ModelState.AddModelError(string.Empty, error.Description);
                         await LoadUsersForDropdown();
-                        return View(professional);
+                        return View(model);
+                    }
+
+                    userId = user.Id;
+                    await _userManager.AddToRoleAsync(user, "Professional");
+                }
+
+                // Upload da foto se fornecida
+                Guid? imageId = null;
+                if (model.PhotoFile != null && model.PhotoFile.Length > 0)
+                {
+                    try
+                    {
+                        string photoPath = await _storageHelper.UploadAsync(model.PhotoFile, "professionals");
+                        if (!string.IsNullOrEmpty(photoPath))
+                        {
+                            imageId = Guid.Parse(photoPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERRO no upload da imagem: {ex.Message}");
+                        TempData["WarningMessage"] = "Imagem não foi enviada, profissional criado sem foto.";
                     }
                 }
 
-                // Definir como ativo por padrão se não especificado
-                if (!professional.IsActive)
+                // Criar o profissional
+                var professional = new Professional
                 {
-                    professional.IsActive = true;
-                }
+                    Name = model.Name,
+                    DefaultCommission = model.DefaultCommission,
+                    Specialty = model.Specialty,
+                    IsActive = model.IsActive,
+                    UserId = userId,
+                    ImageId = imageId ?? Guid.NewGuid()
+                };
 
                 _context.Add(professional);
                 await _context.SaveChangesAsync();
@@ -119,7 +165,7 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 ModelState.AddModelError("", "Erro ao salvar profissional: " + ex.Message);
                 await LoadUsersForDropdown();
-                return View(professional);
+                return View(model);
             }
         }
 
@@ -130,7 +176,7 @@ namespace Sistema.Areas.Admin.Controllers
                 .Select(u => new { u.Id, u.Email, u.FirstName, u.LastName })
                 .ToListAsync();
             
-            ViewData["Id"] = new SelectList(users, "Id", "Email");
+            ViewData["ExistingUsers"] = new SelectList(users, "Id", "Email");
         }
 
         // GET: Profissionais/Edit/5
@@ -169,7 +215,7 @@ namespace Sistema.Areas.Admin.Controllers
                     // Upload da nova foto se fornecida
                     if (photoFile != null && photoFile.Length > 0)
                     {
-                        professional.ImageId = Guid.Parse(await _imageHelper.UploadImageAsync(photoFile, "professionals") ?? Guid.Empty.ToString());
+                        professional.ImageId = await _blobHelper.UploadBlobAsync(photoFile, "professionals");
                     }
 
                     _context.Update(professional);
@@ -223,6 +269,25 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Profissionais/ToggleStatus/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var professional = await _context.Professionals.FindAsync(id);
+            if (professional == null)
+            {
+                return NotFound();
+            }
+
+            professional.IsActive = !professional.IsActive;
+            _context.Update(professional);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = professional.IsActive ? "Profissional ativado com sucesso!" : "Profissional desativado com sucesso!";
             return RedirectToAction(nameof(Index));
         }
 

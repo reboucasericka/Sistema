@@ -7,8 +7,8 @@ namespace Sistema.Data.Entities
     {
         [Key]
         [Column("PriceId")]   // nome real da coluna no banco
-        public int Id { get; set; }  //  continua cumprindo a interface
-       
+        public int PriceId { get; set; }  
+
         public string? Category { get; set; }
         public string? ServiceName { get; set; }
         public decimal Price { get; set; }

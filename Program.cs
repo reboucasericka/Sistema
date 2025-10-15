@@ -79,6 +79,7 @@ builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<IRoleHelper, RoleHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
+builder.Services.AddScoped<ICashRegisterHelper, CashRegisterHelper>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -86,10 +87,25 @@ builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IPriceTableRepository, PriceTableRepository>();
+builder.Services.AddScoped<IPayableRepository, PayableRepository>();
+builder.Services.AddScoped<IReceivableRepository, ReceivableRepository>();
+builder.Services.AddScoped<IProfessionalScheduleRepository, ProfessionalScheduleRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
+
+// ===== Helpers =====
+builder.Services.AddScoped<IImageHelper, ImageHelper>();
 builder.Services.AddScoped<IBlobHelper, BlobHelper>();
+
+builder.Services.AddScoped<IStorageHelper, StorageHelper>();
+
+
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
+builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
@@ -155,22 +171,20 @@ app.UseRequestLocalization();
 // =====================================================================
 // 7️⃣ ROTAS MVC + AREAS + SIGNALR
 // =====================================================================
+//nao mudar aqui a ordem das rotas
+// Rota para áreas (Admin, Public)
 
+
+// 1) Áreas primeiro (mantém default controller=Admin para convenção)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
+// 2) Default depois
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
-
-
-
-// ROTAS PERSONALIZADAS DA ÁREA PUBLIC
-
-
+// 3) Rotas personalizadas da área Public (mantém como já estão)
 app.MapControllerRoute(
     name: "PublicAppointment",
     pattern: "Public/PublicAppointment/{action=Index}/{id?}",
