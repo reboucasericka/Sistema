@@ -1,0 +1,120 @@
+@model Sistema.Data.Entities.Setting
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Excluir Configuração";
+}
+
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-trash me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Confirme a exclusão da configuração da clínica</p>
+        </div>
+    </div>
+
+    <!-- Alerta de Confirmação -->
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">
+            <i class="fas fa-exclamation-triangle me-2"></i>Atenção!
+        </h4>
+        <p>Você está prestes a excluir permanentemente a configuração da clínica <strong>@Model.ClinicName</strong>.</p>
+        <hr>
+        <p class="mb-0">Esta ação não pode ser desfeita. Tem certeza que deseja continuar?</p>
+    </div>
+
+    <!-- Detalhes da Configuração -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-clinic-medical me-2"></i>Configuração a ser Excluída
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nome da Clínica</label>
+                    <p class="form-control-plaintext">@Model.ClinicName</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Email</label>
+                    <p class="form-control-plaintext">@Model.Email</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Telefone Fixo</label>
+                    <p class="form-control-plaintext">@(Model.LandlinePhone ?? "Não informado")</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">WhatsApp</label>
+                    <p class="form-control-plaintext">@(Model.WhatsAppPhone ?? "Não informado")</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Endereço</label>
+                    <p class="form-control-plaintext">@(Model.Address ?? "Não informado")</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Horário de Funcionamento</label>
+                    <p class="form-control-plaintext">@Model.BusinessHours</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Duração Padrão do Serviço</label>
+                    <p class="form-control-plaintext">@Model.DefaultServiceDuration minutos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Confirmação -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="SettingId" />
+                
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                Eu confirmo que desejo excluir permanentemente esta configuração
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                        <i class="fas fa-trash me-1"></i>Excluir Configuração
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('confirmDelete').addEventListener('change', function() {
+            const deleteButton = document.getElementById('deleteButton');
+            deleteButton.disabled = !this.checked;
+        });
+    </script>
+}

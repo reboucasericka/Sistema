@@ -55,8 +55,8 @@ namespace Sistema.Data.Entities
         public User? User { get; set; }
 
         public string ImageFullPath => ImageId == Guid.Empty
-            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
-            : $"https://supershopcontaarmazename.blob.core.windows.net/products/{ImageId}.png";
+            ? "/images/noimage.png"
+            : $"/uploads/products/{ImageId}.png";
 
 
     }

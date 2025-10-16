@@ -26,7 +26,7 @@ namespace Sistema.Areas.Admin.Controllers
         // GET: Admin/Services
         public async Task<IActionResult> Index()
         {
-            var services = await _context.Service
+            var services = await _context.Services
                 .Include(s => s.Category)
                 .OrderBy(s => s.Name)
                 .ToListAsync();
@@ -41,7 +41,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.Category)
                 .Include(s => s.ProfessionalServices)
                     .ThenInclude(ps => ps.Professional)
@@ -109,7 +109,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Service.FindAsync(serviceId);
+            var service = await _context.Services.FindAsync(serviceId);
             if (service == null)
             {
                 return NotFound();
@@ -145,7 +145,7 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    var service = await _context.Service.FindAsync(serviceId);
+                    var service = await _context.Services.FindAsync(serviceId);
                     if (service == null)
                     {
                         return NotFound();
@@ -203,7 +203,7 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.Category)
                 .FirstOrDefaultAsync(m => m.ServiceId == serviceId);
 
@@ -220,7 +220,7 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int serviceId)
         {
-            var service = await _context.Service.FindAsync(serviceId);
+            var service = await _context.Services.FindAsync(serviceId);
             if (service != null)
             {
                 // Deletar a foto se existir
@@ -229,7 +229,7 @@ namespace Sistema.Areas.Admin.Controllers
                     await _storageHelper.DeleteAsync(service.ImageId.ToString(), "services");
                 }
 
-                _context.Service.Remove(service);
+                _context.Services.Remove(service);
                 await _context.SaveChangesAsync();
 
                 // Log access
@@ -243,7 +243,7 @@ namespace Sistema.Areas.Admin.Controllers
 
         private bool ServiceExists(int serviceId)
         {
-            return _context.Service.Any(e => e.ServiceId == serviceId);
+            return _context.Services.Any(e => e.ServiceId == serviceId);
         }
 
         private async Task LogAccess(string action, string details)

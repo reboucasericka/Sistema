@@ -21,27 +21,34 @@ namespace Sistema.Helpers
         if (!Directory.Exists(uploadsPath))
             Directory.CreateDirectory(uploadsPath);
 
-        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-        var filePath = Path.Combine(uploadsPath, uniqueFileName);
+        var guid = Guid.NewGuid();
+        var fileExtension = Path.GetExtension(file.FileName);
+        var fileName = $"{guid}{fileExtension}";
+        var filePath = Path.Combine(uploadsPath, fileName);
 
         using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }
 
-        // Retorna apenas o nome do arquivo
-        return uniqueFileName;
+        // Retorna o GUID como string
+        return guid.ToString();
     }
 
-    public void DeleteImage(string imagePath, string folder)
+    public void DeleteImage(string imageId, string folder)
     {
-        if (string.IsNullOrEmpty(imagePath)) return;
+        if (string.IsNullOrEmpty(imageId)) return;
 
-        // Constrói o caminho completo usando o nome do arquivo
-        var fullPath = Path.Combine(_environment.WebRootPath, "uploads", folder, imagePath);
+        // Busca por arquivos que começam com o GUID
+        var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", folder);
+        if (!Directory.Exists(uploadsPath)) return;
 
-        if (File.Exists(fullPath))
-            File.Delete(fullPath);
+        var files = Directory.GetFiles(uploadsPath, $"{imageId}.*");
+        foreach (var file in files)
+        {
+            if (File.Exists(file))
+                File.Delete(file);
+        }
     }
     }
 }

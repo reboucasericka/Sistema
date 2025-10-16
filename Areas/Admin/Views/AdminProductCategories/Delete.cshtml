@@ -5,11 +5,17 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-trash me-2"></i>Excluir Categoria</h2>
-    <a asp-action="Index" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i>Voltar à Lista
-    </a>
+<div class="content-header">
+    <h1><i class="fas fa-trash me-2"></i>@ViewData["Title"]</h1>
+    <p class="text-muted">Confirme a exclusão da categoria de produto</p>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
+        </a>
+    </div>
 </div>
 
 <div class="row">

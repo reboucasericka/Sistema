@@ -15,21 +15,21 @@ namespace Sistema.Data.Repository.Implementations
 
         public IQueryable<Service> GetAllWithIncludes()
         {
-            return _context.Service
+            return _context.Services
                 .Include(s => s.Category)
                 .AsNoTracking();
         }
 
         public async Task<Service?> GetByIdWithIncludesAsync(int id)
         {
-            return await _context.Service
+            return await _context.Services
                 .Include(s => s.Category)
                 .FirstOrDefaultAsync(s => s.ServiceId == id);
         }
 
         public IQueryable<Service> GetByCategory(int categoryId)
         {
-            return _context.Service
+            return _context.Services
                 .Include(s => s.Category)
                 .Where(s => s.CategoryId == categoryId)
                 .AsNoTracking();

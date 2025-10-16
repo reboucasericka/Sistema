@@ -190,7 +190,7 @@ namespace Sistema.Data
 
         private async Task SeedServicesAsync()
         {
-            if (await _context.Service.AnyAsync()) return;
+            if (await _context.Services.AnyAsync()) return;
 
             var hair = await _context.Categories.FirstOrDefaultAsync(c => c.Name == "Hair");
             var makeup = await _context.Categories.FirstOrDefaultAsync(c => c.Name == "Makeup");
@@ -202,7 +202,7 @@ namespace Sistema.Data
                 new Service { Name = "Social Makeup", CategoryId = makeup.CategoryId, Price = 40.00m, Duration = "1h", IsActive = true }
             };
 
-            _context.Service.AddRange(services);
+            _context.Services.AddRange(services);
             await _context.SaveChangesAsync();
             _logger.LogInformation("💇 Seeded {Count} services", services.Count);
         }

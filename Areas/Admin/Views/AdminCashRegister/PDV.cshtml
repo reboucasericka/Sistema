@@ -4,24 +4,9 @@
 }
 
 <div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">PDV - Ponto de Venda</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item"><a asp-action="Index">Caixa</a></li>
-                    <li class="breadcrumb-item active">PDV</li>
-                </ol>
-            </div>
-        </div>
-    </div>
+    <h1><i class="fas fa-shopping-cart me-2"></i>@ViewData["Title"]</h1>
+    <p class="text-muted">Sistema de ponto de venda integrado</p>
 </div>
-
-<section class="content">
-    <div class="container-fluid">
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -243,17 +228,18 @@
             const code = $('#barcodeInput').val().trim();
             if (!code) return;
 
-            $.get('/Admin/AdminCashRegister/GetByBarcode', { code: code })
-                .done(function(response) {
-                    if (response.success) {
-                        currentProduct = response.product;
-                        showProductResult();
-                    } else {
-                        Swal.fire('Erro', response.message, 'error');
-                    }
+            $.get('/Admin/AdminCashRegister/GetProductByBarcode', { barcode: code })
+                .done(function(product) {
+                    currentProduct = {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        stock: product.stockQuantity
+                    };
+                    showProductResult();
                 })
                 .fail(function() {
-                    Swal.fire('Erro', 'Erro ao buscar produto', 'error');
+                    Swal.fire('Erro', 'Produto não encontrado ou sem estoque', 'error');
                 });
         }
 

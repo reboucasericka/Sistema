@@ -27,7 +27,7 @@ namespace Sistema.Areas.Public.Controllers
         {
             try
             {
-                var services = await _context.Service
+                var services = await _context.Services
                     .Include(s => s.Category)
                     .Where(s => s.IsActive)
                     .ToListAsync();

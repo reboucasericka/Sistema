@@ -33,7 +33,7 @@ namespace Sistema.Areas.Admin.Controllers
                 TotalAppointments = await _context.Appointments.CountAsync(),
                 TotalClients = await _context.Customers.CountAsync(),
                 TotalProfessionals = await _context.Professionals.CountAsync(),
-                TotalServices = await _context.Service.CountAsync(),
+                TotalServices = await _context.Services.CountAsync(),
                 TodayAppointments = await _context.Appointments
                     .Where(a => a.StartTime.Date == DateTime.Today)
                     .CountAsync(),
@@ -90,7 +90,7 @@ namespace Sistema.Areas.Admin.Controllers
             });
 
             // Exemplo: serviços cadastrados
-            var serviceCount = await _context.Service.CountAsync();
+            var serviceCount = await _context.Services.CountAsync();
             notifications.Add(new AdminNotification
             {
                 Message = $"{serviceCount} serviços disponíveis",

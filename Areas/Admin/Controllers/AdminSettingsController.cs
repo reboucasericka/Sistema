@@ -53,13 +53,13 @@ namespace Sistema.Areas.Admin.Controllers
         // POST: Settings/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SettingId,NomeClinica,Email,TelefoneFixo,TelemovelWhatsApp,Endereco,Logo,Icone,LogoRelatorio,TipoRelatorio,Instagram,TipoComissao,ComissaoPadraoExtensao,ComissaoPadraoDesign,PastaImagens,HorarioFuncionamento,DuracaoPadraoServico")] Setting setting)
+        public async Task<IActionResult> Create([Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] Setting setting)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(setting);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Configuration created successfully!";
+                TempData["SuccessMessage"] = "Configuração criada com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
             return View(setting);
@@ -84,7 +84,7 @@ namespace Sistema.Areas.Admin.Controllers
         // POST: Settings/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SettingId,NomeClinica,Email,TelefoneFixo,TelemovelWhatsApp,Endereco,Logo,Icone,LogoRelatorio,TipoRelatorio,Instagram,TipoComissao,ComissaoPadraoExtensao,ComissaoPadraoDesign,PastaImagens,HorarioFuncionamento,DuracaoPadraoServico")] Setting setting)
+        public async Task<IActionResult> Edit(int id, [Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] Setting setting)
         {
             if (id != setting.SettingId)
             {
@@ -97,7 +97,7 @@ namespace Sistema.Areas.Admin.Controllers
                 {
                     _context.Update(setting);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Configuration updated successfully!";
+                    TempData["SuccessMessage"] = "Configuração atualizada com sucesso!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -143,7 +143,11 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 _context.Settings.Remove(setting);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Configuration removed successfully!";
+                TempData["SuccessMessage"] = "Configuração excluída com sucesso!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Configuração não encontrada.";
             }
 
             return RedirectToAction(nameof(Index));

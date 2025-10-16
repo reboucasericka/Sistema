@@ -11,7 +11,7 @@
             <h5 class="mb-0 fw-bold">
                 <i class="fas fa-cog me-2"></i>@ViewData["Title"]
             </h5>
-            <a asp-action="Create" class="btn btn-primary btn-sm">
+            <a asp-action="Create" class="btn btn-primary">
                 <i class="fas fa-plus me-1"></i>Nova Configuração
             </a>
         </div>
@@ -63,6 +63,9 @@
                                 <th>
                                     <i class="fas fa-map-marker-alt me-1"></i>Endereço
                                 </th>
+                                <th>
+                                    <i class="fas fa-clock me-1"></i>Horário
+                                </th>
                                 <th class="text-center">
                                     <i class="fas fa-cogs me-1"></i>Ações
                                 </th>
@@ -94,6 +97,9 @@
                                                 @setting.Address
                                             </div>
                                         }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@setting.BusinessHours</small>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1 justify-content-center">
@@ -130,7 +136,6 @@
             }
         </div>
     </div>
-</div>
 
 @section Scripts {
     <script>
@@ -148,3 +153,4 @@
         });
     </script>
 }
+</div>

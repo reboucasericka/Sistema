@@ -107,7 +107,7 @@ namespace Sistema.Areas.Public.Controllers
                     .ThenByDescending(a => a.Time)
                     .Take(5)
                     .ToList(),
-                AvailableServices = await _context.Service
+                AvailableServices = await _context.Services
                     .Include(s => s.Category)
                     .Where(s => s.IsActive)
                     .ToListAsync(),

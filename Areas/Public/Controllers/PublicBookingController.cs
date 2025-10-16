@@ -22,7 +22,7 @@ namespace Sistema.Areas.Public.Controllers
         // GET: Public/Booking
         public async Task<IActionResult> Index()
         {
-            var services = await _context.Service
+                    var services = await _context.Services
                 .Include(s => s.Category)
                 .Where(s => s.IsActive)
                 .OrderBy(s => s.Category.Name)
@@ -35,7 +35,7 @@ namespace Sistema.Areas.Public.Controllers
         // GET: Public/Booking/Schedule/5
         public async Task<IActionResult> Schedule(int id)
         {
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.Category)
                 .Include(s => s.ProfessionalServices)
                     .ThenInclude(ps => ps.Professional)
@@ -76,7 +76,7 @@ namespace Sistema.Areas.Public.Controllers
                 // Aqui você implementaria a lógica de criação do agendamento
                 // Por enquanto, vamos apenas redirecionar para uma página de confirmação
                 
-                var service = await _context.Service
+                var service = await _context.Services
                     .Include(s => s.Category)
                     .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
@@ -95,7 +95,7 @@ namespace Sistema.Areas.Public.Controllers
             }
 
             // Se houver erro, recarregar os dados necessários
-            var serviceForView = await _context.Service
+            var serviceForView = await _context.Services
                 .Include(s => s.Category)
                 .Include(s => s.ProfessionalServices)
                     .ThenInclude(ps => ps.Professional)
@@ -137,7 +137,7 @@ namespace Sistema.Areas.Public.Controllers
 
                     // Criar o agendamento
                     var startTime = model.SelectedDate.Add(TimeSpan.Parse(model.SelectedTime));
-                    var service = await _context.Service.FindAsync(model.ServiceId);
+                    var service = await _context.Services.FindAsync(model.ServiceId);
                     var endTime = startTime.AddMinutes(service?.DurationInMinutes ?? 60);
                     
                     var appointment = new Appointment

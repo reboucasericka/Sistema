@@ -21,7 +21,7 @@ namespace Sistema.Areas.Admin.Controllers
 
         public async Task<IActionResult> Edit(int serviceId)
         {
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.ProfessionalServices)
                 .ThenInclude(ps => ps.Professional)
                 .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
@@ -51,7 +51,7 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminServiceProfessionalViewModel model)
         {
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.ProfessionalServices)
                 .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 

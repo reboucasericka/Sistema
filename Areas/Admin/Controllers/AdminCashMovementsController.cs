@@ -21,15 +21,37 @@ namespace Sistema.Areas.Admin.Controllers
             _userHelper = userHelper;
         }
 
-        // GET: Admin/CashMovements
+        /// <summary>
+        /// Exibe a lista de movimentações de caixa com filtros opcionais
+        /// </summary>
+        /// <param name="type">Tipo da movimentação (Entrada, Saída, Todos)</param>
+        /// <param name="startDate">Data de início para filtrar</param>
+        /// <param name="endDate">Data de fim para filtrar</param>
+        /// <param name="cashRegisterId">ID do caixa para filtrar</param>
+        /// <returns>View com lista de movimentações e totais</returns>
         public async Task<IActionResult> Index(string? type, DateTime? startDate, DateTime? endDate, int? cashRegisterId)
         {
+            // Inicializar ViewBags com valores padrão para evitar NullReferenceException
+            ViewBag.Type = type ?? "Todos";
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.CashRegisterId = cashRegisterId;
+
+            // Carregar lista de caixas para filtro com ordenação
+            ViewBag.CashRegisters = new SelectList(
+                await _context.CashRegisters
+                    .OrderByDescending(cr => cr.Date)
+                    .ToListAsync(),
+                "CashRegisterId", "Date"
+            );
+
+            // Construir query base com relacionamentos necessários
             var query = _context.CashMovements
                 .Include(cm => cm.CashRegister)
                 .AsQueryable();
 
-            // Filtros
-            if (!string.IsNullOrEmpty(type))
+            // Aplicar filtros de forma segura, evitando nulls
+            if (!string.IsNullOrEmpty(type) && type != "Todos")
             {
                 query = query.Where(cm => cm.Type == type);
             }
@@ -49,21 +71,18 @@ namespace Sistema.Areas.Admin.Controllers
                 query = query.Where(cm => cm.CashRegisterId == cashRegisterId.Value);
             }
 
+            // Executar query e calcular totais
             var cashMovements = await query.OrderByDescending(cm => cm.Date).ToListAsync();
 
-            // Calcular totais
-            var totalEntradas = await query.Where(cm => cm.Type == "Entrada").SumAsync(cm => cm.Amount);
-            var totalSaidas = await query.Where(cm => cm.Type == "Saída").SumAsync(cm => cm.Amount);
+            // Calcular totais de forma segura usando LINQ em memória
+            var totalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount);
+            var totalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount);
             var saldoLiquido = totalEntradas - totalSaidas;
 
-            ViewBag.Type = type;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
-            ViewBag.CashRegisterId = cashRegisterId;
+            // Definir ViewBags com totais calculados para exibição
             ViewBag.TotalEntradas = totalEntradas;
             ViewBag.TotalSaidas = totalSaidas;
             ViewBag.SaldoLiquido = saldoLiquido;
-            ViewBag.CashRegisters = new SelectList(_context.CashRegisters, "CashRegisterId", "Date");
 
             return View(cashMovements);
         }

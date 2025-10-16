@@ -21,9 +21,23 @@ namespace Sistema.Areas.Admin.Controllers
             _userHelper = userHelper;
         }
 
-        // GET: Admin/Payables
+        /// <summary>
+        /// Exibe a lista de pagamentos com filtros opcionais
+        /// </summary>
+        /// <param name="status">Status do pagamento (Pending, Paid, Todos)</param>
+        /// <param name="type">Tipo do pagamento (Expense, Commission, Supplier, Todos)</param>
+        /// <param name="startDate">Data de início para filtrar</param>
+        /// <param name="endDate">Data de fim para filtrar</param>
+        /// <returns>View com lista de pagamentos</returns>
         public async Task<IActionResult> Index(string? status, string? type, DateTime? startDate, DateTime? endDate)
         {
+            // Inicializar ViewBags com valores padrão para evitar NullReferenceException
+            ViewBag.Status = status ?? "Todos";
+            ViewBag.Type = type ?? "Todos";
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+
+            // Construir query base com todos os relacionamentos necessários
             var query = _context.Payables
                 .Include(p => p.Professional)
                 .Include(p => p.Supplier)
@@ -31,13 +45,13 @@ namespace Sistema.Areas.Admin.Controllers
                 .Include(p => p.User)
                 .AsQueryable();
 
-            // Filtros
-            if (!string.IsNullOrEmpty(status))
+            // Aplicar filtros de forma segura, evitando nulls
+            if (!string.IsNullOrEmpty(status) && status != "Todos")
             {
                 query = query.Where(p => p.Status == status);
             }
 
-            if (!string.IsNullOrEmpty(type))
+            if (!string.IsNullOrEmpty(type) && type != "Todos")
             {
                 query = query.Where(p => p.Type == type);
             }
@@ -52,13 +66,8 @@ namespace Sistema.Areas.Admin.Controllers
                 query = query.Where(p => p.DueDate <= endDate.Value);
             }
 
+            // Executar query e retornar resultados ordenados por data de criação
             var payables = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
-
-            ViewBag.Status = status;
-            ViewBag.Type = type;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
-
             return View(payables);
         }
 

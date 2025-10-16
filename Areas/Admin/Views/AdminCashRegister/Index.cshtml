@@ -1,320 +1,476 @@
-@model IEnumerable<Sistema.Data.Entities.CashRegister>
-
 @{
-    ViewData["Title"] = "Caixa";
+    ViewData["Title"] = "Caixa (PDV)";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Gestão de Caixa</h1>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="fas fa-cash-register me-2"></i>Caixa (PDV)</h4>
+        <div class="d-flex gap-2">
+            <a href="/Admin/AdminCashRegister" class="btn btn-outline-secondary">
+                <i class="fas fa-list me-1"></i>Histórico de Caixas
+            </a>
+            <a href="/Admin/AdminCashRegister/Open" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i>Abrir Caixa
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Área de Busca de Produtos -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-barcode me-2"></i>Buscar Produto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="barcodeInput" class="form-control form-control-lg" 
+                               placeholder="Digite ou escaneie o código de barras" 
+                               autocomplete="off" />
+                        <button id="addProductBtn" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="productInfo" class="alert alert-info d-none">
+                        <h6 class="mb-1">Produto Encontrado:</h6>
+                        <p class="mb-1"><strong>Nome:</strong> <span id="productName"></span></p>
+                        <p class="mb-1"><strong>Preço:</strong> <span id="productPrice"></span> €</p>
+                        <p class="mb-0"><strong>Estoque:</strong> <span id="productStock"></span> unidades</p>
+                    </div>
+
+                    <div id="productError" class="alert alert-danger d-none">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Caixa</li>
-                </ol>
+
+            <!-- Informações do Caixa -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Status do Caixa</h6>
+                </div>
+                <div class="card-body">
+                    <div id="cashRegisterStatus">
+                        <p class="text-muted mb-0">Carregando status do caixa...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Venda -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Carrinho de Vendas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle" id="pdvTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th width="40%">Produto</th>
+                                    <th width="15%">Qtd</th>
+                                    <th width="20%">Preço Unit.</th>
+                                    <th width="20%">Total</th>
+                                    <th width="5%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartTableBody">
+                                <tr id="emptyCart">
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                                        <br>Carrinho vazio. Adicione produtos para começar a venda.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-8">
+                            <div class="d-flex gap-2">
+                                <button id="clearCartBtn" class="btn btn-outline-warning">
+                                    <i class="fas fa-trash me-1"></i>Limpar Carrinho
+                                </button>
+                                <button id="applyDiscountBtn" class="btn btn-outline-info">
+                                    <i class="fas fa-percentage me-1"></i>Desconto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-end">
+                                <h4 class="mb-0">
+                                    Total: <span id="totalValue" class="text-success">0,00</span> €
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button id="checkoutBtn" class="btn btn-success btn-lg" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Finalizar Venda
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<section class="content">
-    <div class="container-fluid">
-        <!-- Status do Caixa Atual -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="card" id="cashStatusCard">
-                    <div class="card-header">
-                        <h3 class="card-title">Status do Caixa</h3>
-                    </div>
-                    <div class="card-body">
-                        <div id="cashStatusContent">
-                            <div class="text-center">
-                                <i class="fas fa-spinner fa-spin"></i> Carregando status do caixa...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ações do Caixa -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Ações do Caixa</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-success btn-lg btn-block" id="openCashBtn" onclick="openCash()">
-                                    <i class="fas fa-lock-open"></i> Abrir Caixa
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-warning btn-lg btn-block" id="closeCashBtn" onclick="closeCash()" style="display: none;">
-                                    <i class="fas fa-lock"></i> Fechar Caixa
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-info btn-lg btn-block" onclick="viewSummary()">
-                                    <i class="fas fa-chart-line"></i> Resumo do Caixa
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Histórico de Caixas -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Histórico de Caixas</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="cashRegistersTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Valor Inicial</th>
-                                        <th>Valor Final</th>
-                                        <th>Usuário Abertura</th>
-                                        <th>Usuário Fechamento</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var cashRegister in Model)
-                                    {
-                                        <tr>
-                                            <td>@cashRegister.Date.ToString("dd/MM/yyyy")</td>
-                                            <td>€@cashRegister.InitialValue.ToString("N2")</td>
-                                            <td>€@cashRegister.FinalValue.ToString("N2")</td>
-                                            <td>
-                                                @if (cashRegister.UserAbertura != null)
-                                                {
-                                                    @cashRegister.UserAbertura.FirstName @cashRegister.UserAbertura.LastName
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (cashRegister.UserFechamento != null)
-                                                {
-                                                    @cashRegister.UserFechamento.FirstName @cashRegister.UserFechamento.LastName
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (cashRegister.IsClosed)
-                                                {
-                                                    <span class="badge badge-danger">Fechado</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge badge-success">Aberto</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <a href="@Url.Action("Summary", new { id = cashRegister.CashRegisterId })" class="btn btn-info btn-sm">
-                                                        <i class="fas fa-eye"></i> Resumo
-                                                    </a>
-                                                    @if (!cashRegister.IsClosed)
-                                                    {
-                                                        <a href="@Url.Action("Close", new { id = cashRegister.CashRegisterId })" class="btn btn-warning btn-sm">
-                                                            <i class="fas fa-lock"></i> Fechar
-                                                        </a>
-                                                    }
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Modal para Abrir Caixa -->
-<div class="modal fade" id="openCashModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<!-- Modal de Finalização de Venda -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Abrir Caixa</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="checkoutModalLabel">
+                    <i class="fas fa-credit-card me-2"></i>Finalizar Venda
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Resumo da Venda</h6>
+                        <div id="saleSummary" class="border rounded p-3 bg-light">
+                            <!-- Resumo será preenchido via JavaScript -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Informações de Pagamento</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Método de Pagamento</label>
+                            <select id="paymentMethod" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option value="1">Dinheiro</option>
+                                <option value="2">Cartão de Débito</option>
+                                <option value="3">Cartão de Crédito</option>
+                                <option value="4">Transferência</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cliente (Opcional)</label>
+                            <input type="text" id="customerName" class="form-control" placeholder="Nome do cliente">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="confirmSaleBtn" class="btn btn-success">
+                    <i class="fas fa-check me-1"></i>Confirmar Venda
                 </button>
             </div>
-            <form id="openCashForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="initialValue">Valor Inicial do Caixa:</label>
-                        <input type="number" class="form-control" id="initialValue" name="initialValue" step="0.01" min="0" value="0" required>
-                        <small class="form-text text-muted">Digite o valor inicial em dinheiro no caixa.</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Abrir Caixa</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            $('#cashRegistersTable').DataTable({
-                "responsive": true,
-                "lengthChange": false,
-                "autoWidth": false,
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
-                },
-                "order": [[0, "desc"]] // Ordenar por data decrescente
-            });
+<script>
+$(document).ready(function() {
+    let cart = [];
+    let total = 0;
+    let cashRegisterStatus = null;
 
-            // Carregar status do caixa
-            loadCashStatus();
-        });
+    // Carregar status do caixa
+    loadCashRegisterStatus();
 
-        function loadCashStatus() {
-            $.get('@Url.Action("GetOpenRegister")', function(data) {
-                if (data.exists) {
-                    $('#cashStatusContent').html(`
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success"><i class="fas fa-lock-open"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Status</span>
-                                        <span class="info-box-number">Aberto</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Valor Inicial</span>
-                                        <span class="info-box-number">€ ${data.initialValue.toFixed(2).replace('.', ',')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success"><i class="fas fa-arrow-up"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Entradas</span>
-                                        <span class="info-box-number">€ ${data.totalEntradas.toFixed(2).replace('.', ',')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-warning"><i class="fas fa-arrow-down"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Saídas</span>
-                                        <span class="info-box-number">€ ${data.totalSaidas.toFixed(2).replace('.', ',')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-primary"><i class="fas fa-balance-scale"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Saldo Atual</span>
-                                        <span class="info-box-number">€ ${data.saldoAtual.toFixed(2).replace('.', ',')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-secondary"><i class="fas fa-user"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Aberto por</span>
-                                        <span class="info-box-number">${data.openingUser}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                    $('#openCashBtn').hide();
-                    $('#closeCashBtn').show();
-                } else {
-                    $('#cashStatusContent').html(`
-                        <div class="alert alert-warning text-center">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Nenhum caixa aberto!</strong><br>
-                            Abra um caixa para começar a trabalhar.
-                        </div>
-                    `);
-                    $('#openCashBtn').show();
-                    $('#closeCashBtn').hide();
-                }
-            });
-        }
-
-        function openCash() {
-            $('#openCashModal').modal('show');
-        }
-
-        $('#openCashForm').submit(function(e) {
+    // Event listeners
+    $('#barcodeInput').on('keypress', function(e) {
+        if (e.which === 13) { // Enter
             e.preventDefault();
-            var initialValue = $('#initialValue').val();
-            
-            $.post('@Url.Action("Open")', { initialValue: initialValue }, function(response) {
-                if (response.success) {
-                    Swal.fire('Sucesso!', 'Caixa aberto com sucesso!', 'success').then(() => {
-                        location.reload();
-                    });
+            addProductToCart();
+        }
+    });
+
+    $('#addProductBtn').click(addProductToCart);
+    $('#checkoutBtn').click(showCheckoutModal);
+    $('#confirmSaleBtn').click(finalizeSale);
+    $('#clearCartBtn').click(clearCart);
+
+    // Função para carregar status do caixa
+    function loadCashRegisterStatus() {
+        $.get('/Admin/AdminCashRegister/GetOpenRegister')
+            .done(function(data) {
+                if (data.exists) {
+                    cashRegisterStatus = data;
+                    $('#cashRegisterStatus').html(`
+                        <div class="text-success">
+                            <i class="fas fa-check-circle me-1"></i>
+                            <strong>Caixa Aberto</strong>
+                        </div>
+                        <small class="text-muted">
+                            Aberto por: ${data.openingUser}<br>
+                            Saldo atual: ${data.saldoAtual.toFixed(2)} €
+                        </small>
+                    `);
                 } else {
-                    Swal.fire('Erro!', response.message, 'error');
+                    $('#cashRegisterStatus').html(`
+                        <div class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Caixa Fechado</strong>
+                        </div>
+                        <small class="text-muted">Abra um caixa para realizar vendas</small>
+                    `);
+                    $('#checkoutBtn').prop('disabled', true);
+                }
+            })
+            .fail(function() {
+                $('#cashRegisterStatus').html(`
+                    <div class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>Erro ao carregar status</strong>
+                    </div>
+                `);
+            });
+    }
+
+    // Função para adicionar produto ao carrinho
+    function addProductToCart() {
+        const barcode = $('#barcodeInput').val().trim();
+        if (!barcode) {
+            showError('Digite um código de barras');
+            return;
+        }
+
+        $.get('/Admin/AdminCashRegister/GetProductByBarcode', { barcode: barcode })
+            .done(function(product) {
+                hideMessages();
+                showProductInfo(product);
+                
+                // Verificar se produto já está no carrinho
+                const existingItem = cart.find(item => item.ProductId === product.id);
+                if (existingItem) {
+                    existingItem.Quantity += 1;
+                } else {
+                    cart.push({
+                        ProductId: product.id,
+                        Name: product.name,
+                        Quantity: 1,
+                        UnitPrice: product.price,
+                        Barcode: product.barcode
+                    });
+                }
+                
+                updateCartDisplay();
+                $('#barcodeInput').val('').focus();
+            })
+            .fail(function(xhr) {
+                if (xhr.status === 404) {
+                    showError('Produto não encontrado ou sem estoque');
+                } else {
+                    showError('Erro ao buscar produto');
                 }
             });
-        });
+    }
 
-        function closeCash() {
+    // Função para mostrar informações do produto
+    function showProductInfo(product) {
+        $('#productName').text(product.name);
+        $('#productPrice').text(product.price.toFixed(2));
+        $('#productStock').text(product.stockQuantity);
+        $('#productInfo').removeClass('d-none');
+    }
+
+    // Função para mostrar erro
+    function showError(message) {
+        $('#errorMessage').text(message);
+        $('#productError').removeClass('d-none');
+    }
+
+    // Função para esconder mensagens
+    function hideMessages() {
+        $('#productInfo').addClass('d-none');
+        $('#productError').addClass('d-none');
+    }
+
+    // Função para atualizar exibição do carrinho
+    function updateCartDisplay() {
+        const tbody = $('#cartTableBody');
+        total = 0;
+
+        if (cart.length === 0) {
+            tbody.html(`
+                <tr id="emptyCart">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                        <br>Carrinho vazio. Adicione produtos para começar a venda.
+                    </td>
+                </tr>
+            `);
+            $('#checkoutBtn').prop('disabled', true);
+        } else {
+            let html = '';
+            cart.forEach((item, index) => {
+                const itemTotal = item.Quantity * item.UnitPrice;
+                total += itemTotal;
+                
+                html += `
+                    <tr data-index="${index}">
+                        <td>
+                            <strong>${item.Name}</strong>
+                            <br><small class="text-muted">Código: ${item.Barcode}</small>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${index}, -1)">-</button>
+                                <input type="number" class="form-control text-center" value="${item.Quantity}" 
+                                       min="1" max="${item.UnitPrice > 0 ? Math.floor(1000 / item.UnitPrice) : 999}" 
+                                       onchange="setQuantity(${index}, this.value)">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${index}, 1)">+</button>
+                            </div>
+                        </td>
+                        <td>${item.UnitPrice.toFixed(2)} €</td>
+                        <td><strong>${itemTotal.toFixed(2)} €</strong></td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="removeItem(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.html(html);
+            $('#checkoutBtn').prop('disabled', false);
+        }
+
+        $('#totalValue').text(total.toFixed(2));
+    }
+
+    // Funções globais para manipulação do carrinho
+    window.updateQuantity = function(index, change) {
+        cart[index].Quantity = Math.max(1, cart[index].Quantity + change);
+        updateCartDisplay();
+    };
+
+    window.setQuantity = function(index, quantity) {
+        cart[index].Quantity = Math.max(1, parseInt(quantity) || 1);
+        updateCartDisplay();
+    };
+
+    window.removeItem = function(index) {
+        cart.splice(index, 1);
+        updateCartDisplay();
+    };
+
+    // Função para limpar carrinho
+    function clearCart() {
+        if (cart.length > 0) {
             Swal.fire({
-                title: 'Fechar Caixa',
-                text: 'Deseja realmente fechar o caixa atual?',
+                title: 'Limpar Carrinho',
+                text: 'Tem certeza que deseja remover todos os itens?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sim, fechar!',
+                confirmButtonText: 'Sim, limpar!',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = '@Url.Action("Close")';
+                    cart = [];
+                    updateCartDisplay();
+                    hideMessages();
                 }
             });
         }
+    }
 
-        function viewSummary() {
-            window.location.href = '@Url.Action("Summary")';
+    // Função para mostrar modal de finalização
+    function showCheckoutModal() {
+        if (cart.length === 0) return;
+
+        // Preencher resumo da venda
+        let summaryHtml = '';
+        cart.forEach(item => {
+            const itemTotal = item.Quantity * item.UnitPrice;
+            summaryHtml += `
+                <div class="d-flex justify-content-between">
+                    <span>${item.Name} x${item.Quantity}</span>
+                    <span>${itemTotal.toFixed(2)} €</span>
+                </div>
+            `;
+        });
+        summaryHtml += `
+            <hr>
+            <div class="d-flex justify-content-between fw-bold">
+                <span>Total:</span>
+                <span>${total.toFixed(2)} €</span>
+            </div>
+        `;
+        
+        $('#saleSummary').html(summaryHtml);
+        $('#checkoutModal').modal('show');
+    }
+
+    // Função para finalizar venda
+    function finalizeSale() {
+        const paymentMethod = $('#paymentMethod').val();
+        if (!paymentMethod) {
+            Swal.fire('Erro', 'Selecione um método de pagamento', 'error');
+            return;
         }
-    </script>
+
+        const saleData = {
+            Total: total,
+            CustomerId: null, // Opcional para PDV
+            ProfessionalId: null, // Opcional para PDV
+            PaymentMethodId: parseInt(paymentMethod),
+            Items: cart.map(item => ({
+                ProductId: item.ProductId,
+                Name: item.Name,
+                Quantity: item.Quantity,
+                UnitPrice: item.UnitPrice
+            }))
+        };
+
+        $('#confirmSaleBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Processando...');
+
+        $.ajax({
+            url: '/Admin/AdminCashRegister/FinalizeSale',
+            type: 'POST',
+            data: JSON.stringify(saleData),
+            contentType: 'application/json',
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: `Venda finalizada com sucesso! Total: ${response.total.toFixed(2)} €`,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // Limpar carrinho e fechar modal
+                        cart = [];
+                        updateCartDisplay();
+                        hideMessages();
+                        $('#checkoutModal').modal('hide');
+                        
+                        // Recarregar status do caixa
+                        loadCashRegisterStatus();
+                    });
+                } else {
+                    Swal.fire('Erro', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Erro ao finalizar venda';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                Swal.fire('Erro', errorMessage, 'error');
+            },
+            complete: function() {
+                $('#confirmSaleBtn').prop('disabled', false).html('<i class="fas fa-check me-1"></i>Confirmar Venda');
+            }
+        });
+    }
+
+    // Focar no campo de código de barras ao carregar a página
+    $('#barcodeInput').focus();
+});
+</script>
 }

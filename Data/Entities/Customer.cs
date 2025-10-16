@@ -47,7 +47,7 @@ namespace Sistema.Data.Entities
 
         // Propriedade calculada para o caminho completo da imagem
         public string ImageFullPath => ImageId == Guid.Empty
-            ? $"https://supershoptpsi-ftc4dnb4bcbkgmhw.westeurope-01.azurewebsites.net/images/noimage.png"
-            : $"https://supershopcontaarmazename.blob.core.windows.net/customers/{ImageId}.png";
+            ? "/images/noimage.png"
+            : $"/uploads/customers/{ImageId}.png";
     }
 }

@@ -17,7 +17,6 @@ namespace Sistema.Areas.Admin.Controllers
     {
         private readonly SistemaDbContext _context;
         private readonly IProfessionalRepository _professionalRepository;
-        private readonly IBlobHelper _blobHelper;
         private readonly IUserHelper _userHelper;
         private readonly IStorageHelper _storageHelper;
         private readonly UserManager<User> _userManager;
@@ -25,7 +24,6 @@ namespace Sistema.Areas.Admin.Controllers
 
         public AdminProfessionalsController(SistemaDbContext context,
             IProfessionalRepository professionalRepository,
-            IBlobHelper blobHelper,
             IUserHelper userHelper,
             IStorageHelper storageHelper,
             UserManager<User> userManager,
@@ -33,7 +31,6 @@ namespace Sistema.Areas.Admin.Controllers
         {
             _context = context;
             _professionalRepository = professionalRepository;
-            _blobHelper = blobHelper;
             _userHelper = userHelper;
             _storageHelper = storageHelper;
             _userManager = userManager;
@@ -215,7 +212,17 @@ namespace Sistema.Areas.Admin.Controllers
                     // Upload da nova foto se fornecida
                     if (photoFile != null && photoFile.Length > 0)
                     {
-                        professional.ImageId = await _blobHelper.UploadBlobAsync(photoFile, "professionals");
+                        // Deletar a imagem antiga se existir
+                        if (professional.ImageId != Guid.Empty)
+                        {
+                            await _storageHelper.DeleteAsync(professional.ImageId.ToString(), "professionals");
+                        }
+                        
+                        string photoPath = await _storageHelper.UploadAsync(photoFile, "professionals");
+                        if (!string.IsNullOrEmpty(photoPath))
+                        {
+                            professional.ImageId = Guid.Parse(photoPath);
+                        }
                     }
 
                     _context.Update(professional);

@@ -13,9 +13,9 @@
 }
 
 /* Sidebar fixa e responsiva */
-.sidebar {
+.admin-panel .sidebar {
     width: 260px;
-    min-width: 220px;
+    min-height: 100vh;
     flex-shrink: 0;
     background: #212529;
     color: white;
@@ -59,31 +59,32 @@
 
 /* ===== Responsividade ===== */
 @media (max-width: 992px) {
-    .sidebar {
+    .admin-panel .sidebar {
         position: fixed;
+        width: 100%;
+        height: auto;
         z-index: 1030;
-        width: 220px;
-        left: -220px;
+        left: -100%;
         transition: all 0.3s ease;
     }
-    .sidebar.active {
+    .admin-panel .sidebar.active {
         left: 0;
     }
-    .admin-content {
+    .admin-panel .container-fluid {
         padding: 1.5rem;
     }
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        width: 200px;
-        min-width: 200px;
-    }
-    .admin-content {
+    .admin-panel .container-fluid {
         padding: 1rem;
     }
-    .table th, .table td {
+    .admin-panel .table {
+        font-size: 0.9rem;
+    }
+    .admin-panel .table th, .admin-panel .table td {
         font-size: 0.85rem;
+        padding: 8px 6px;
     }
 }
 
@@ -695,4 +696,5 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     color: white !important;
+}
 }

@@ -32,7 +32,7 @@ namespace Sistema.Areas.Admin.Controllers
             ViewData["Title"] = "Agendamento Online";
 
             // Carregar os dados necessários
-            ViewBag.Services = await _context.Service
+            ViewBag.Services = await _context.Services
                 .Include(s => s.Category)
                 .ToListAsync();
 
@@ -120,7 +120,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name");
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty");
-            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name");
+            ViewData["ServiceId"] = new SelectList(_context.Services, "ServiceId", "Name");
             return View();
         }
 
@@ -140,7 +140,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 
@@ -160,7 +160,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 
@@ -199,7 +199,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
             ViewData["ProfessionalId"] = new SelectList(_context.Professionals, "ProfessionalId", "Specialty", appointment.ProfessionalId);
-            ViewData["ServiceId"] = new SelectList(_context.Service, "ServiceId", "Name", appointment.ServiceId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "ServiceId", "Name", appointment.ServiceId);
             return View(appointment);
         }
 

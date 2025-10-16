@@ -17,7 +17,7 @@ namespace Sistema.Areas.Public.Controllers
         // GET: Public/Services
         public async Task<IActionResult> Index()
         {
-            var services = await _context.Service
+            var services = await _context.Services
                 .Include(s => s.Category)
                 .Where(s => s.IsActive)
                 .OrderBy(s => s.Name)
@@ -29,7 +29,7 @@ namespace Sistema.Areas.Public.Controllers
         // GET: Public/Services/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var service = await _context.Service
+            var service = await _context.Services
                 .Include(s => s.Category)
                 .FirstOrDefaultAsync(s => s.ServiceId == id);
 

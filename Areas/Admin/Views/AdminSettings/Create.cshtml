@@ -1,127 +1,125 @@
 @model Sistema.Data.Entities.Setting
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "New Configuration";
+    ViewData["Title"] = "Nova Configuração";
 }
 
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">New Configuration</h1>
-            <p class="text-muted">Add a new clinic configuration</p>
+<div class="container-fluid px-4">
+    <!-- Cabeçalho da página -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-plus me-2"></i>@ViewData["Title"]
+            </h5>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
         </div>
-        <a href="@Url.Action("Index")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Clinic Information</h6>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="ClinicName" class="control-label">Clinic Name *</label>
-                                    <input asp-for="ClinicName" class="form-control" placeholder="Enter clinic name" />
-                                    <span asp-validation-for="ClinicName" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Email" class="control-label">Email *</label>
-                                    <input asp-for="Email" type="email" class="form-control" placeholder="clinic@example.com" />
-                                    <span asp-validation-for="Email" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="LandlinePhone" class="control-label">Phone</label>
-                                    <input asp-for="LandlinePhone" class="form-control" placeholder="+351 123 456 789" />
-                                    <span asp-validation-for="LandlinePhone" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="WhatsAppPhone" class="control-label">WhatsApp</label>
-                                    <input asp-for="WhatsAppPhone" class="form-control" placeholder="+351 987 654 321" />
-                                    <span asp-validation-for="WhatsAppPhone" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label asp-for="Address" class="control-label">Address</label>
-                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter clinic address"></textarea>
-                            <span asp-validation-for="Address" class="text-danger"></span>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="BusinessHours" class="control-label">Business Hours</label>
-                                    <input asp-for="BusinessHours" class="form-control" placeholder="09:00-18:00" />
-                                    <span asp-validation-for="BusinessHours" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="DefaultServiceDuration" class="control-label">Default Service Duration (minutes)</label>
-                                    <input asp-for="DefaultServiceDuration" type="number" class="form-control" placeholder="60" />
-                                    <span asp-validation-for="DefaultServiceDuration" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Configuration
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Information</h6>
-                </div>
-                <div class="card-body">
-                    <h6>Required Fields:</h6>
-                    <ul class="list-unstyled">
-                        <li><strong>Clinic Name:</strong> Your clinic's name</li>
-                        <li><strong>Email:</strong> Contact email</li>
-                    </ul>
-                    
-                    <hr>
-                    
-                    <h6>Optional Fields:</h6>
-                    <ul class="list-unstyled text-muted">
-                        <li>• Phone number</li>
-                        <li>• WhatsApp number</li>
-                        <li>• Address</li>
-                        <li>• Business hours</li>
-                        <li>• Default service duration</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">Adicione uma nova configuração da clínica</p>
         </div>
     </div>
+
+    <!-- Formulário -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-clinic-medical me-2"></i>Informações da Clínica
+            </h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="ClinicName" class="form-label">Nome da Clínica *</label>
+                        <input asp-for="ClinicName" class="form-control" placeholder="Digite o nome da clínica" required />
+                        <span asp-validation-for="ClinicName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label">Email *</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="clinic@example.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="LandlinePhone" class="form-label">Telefone Fixo</label>
+                        <input asp-for="LandlinePhone" class="form-control" placeholder="+351 123 456 789" />
+                        <span asp-validation-for="LandlinePhone" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="WhatsAppPhone" class="form-label">WhatsApp</label>
+                        <input asp-for="WhatsAppPhone" class="form-control" placeholder="+351 987 654 321" />
+                        <span asp-validation-for="WhatsAppPhone" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="Address" class="form-label">Endereço</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Digite o endereço da clínica"></textarea>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="BusinessHours" class="form-label">Horário de Funcionamento</label>
+                        <input asp-for="BusinessHours" class="form-control" placeholder="09:00-18:00" />
+                        <span asp-validation-for="BusinessHours" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DefaultServiceDuration" class="form-label">Duração Padrão do Serviço (minutos)</label>
+                        <input asp-for="DefaultServiceDuration" type="number" class="form-control" placeholder="60" />
+                        <span asp-validation-for="DefaultServiceDuration" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="DefaultExtensionCommission" class="form-label">Comissão Padrão Extensão (%)</label>
+                        <input asp-for="DefaultExtensionCommission" type="number" step="0.01" class="form-control" placeholder="20.00" />
+                        <span asp-validation-for="DefaultExtensionCommission" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DefaultDesignCommission" class="form-label">Comissão Padrão Design (%)</label>
+                        <input asp-for="DefaultDesignCommission" type="number" step="0.01" class="form-control" placeholder="15.00" />
+                        <span asp-validation-for="DefaultDesignCommission" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Instagram" class="form-label">Instagram</label>
+                        <input asp-for="Instagram" class="form-control" placeholder="Instagram" />
+                        <span asp-validation-for="Instagram" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ReportType" class="form-label">Tipo de Relatório</label>
+                        <select asp-for="ReportType" class="form-select">
+                            <option value="">Selecione...</option>
+                            <option value="PDF">PDF</option>
+                            <option value="Excel">Excel</option>
+                        </select>
+                        <span asp-validation-for="ReportType" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Salvar Configuração
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 @section Scripts {

@@ -21,7 +21,7 @@ namespace Sistema.Data
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
-        public DbSet<Service> Service { get; set; }
+        public DbSet<Service> Services { get; set; }
         public DbSet<Category> Categories { get; set; }
 
         public DbSet<Reminder> Reminders { get; set; }

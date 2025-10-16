@@ -23,7 +23,7 @@ namespace Sistema.Controllers
             // Busca serviços em destaque (apenas se autenticado)
             if (User.Identity.IsAuthenticated)
             {
-                var featuredServices = await _context.Service
+                var featuredServices = await _context.Services
                     .Include(s => s.Category)
                     .Take(6)
                     .ToListAsync();

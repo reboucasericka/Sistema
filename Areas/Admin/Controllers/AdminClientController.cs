@@ -113,7 +113,7 @@ namespace Sistema.Areas.Admin.Controllers
         // GET: Novo Agendamento
         public async Task<IActionResult> NewAppointment()
         {
-            var services = await _context.Service
+            var services = await _context.Services
                 .Include(s => s.Category)
                 .Where(s => s.IsActive)
                 .ToListAsync();
@@ -179,7 +179,7 @@ namespace Sistema.Areas.Admin.Controllers
             }
 
             // Recarregar dados para a view
-            var services = await _context.Service
+            var services = await _context.Services
                 .Include(s => s.Category)
                 .Where(s => s.IsActive)
                 .ToListAsync();

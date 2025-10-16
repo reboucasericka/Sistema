@@ -16,7 +16,7 @@
     <!-- CSS Específico do Painel Admin -->
     <link rel="stylesheet" href="~/css/admin-panel.css" asp-append-version="true" />
 </head>
-<body class="admin-panel">
+<body class="bg-light admin-panel d-flex flex-nowrap">
     <!-- Toggle para mobile -->
     <button id="sidebarToggle" class="btn btn-dark d-lg-none position-fixed m-3" style="z-index: 1040;">
         <i class="fas fa-bars"></i>
@@ -76,6 +76,7 @@
                         <li><a class="dropdown-item" href="/Admin/AdminPayables"><i class="fas fa-arrow-up me-1"></i>Pagamentos</a></li>
                         <li><a class="dropdown-item" href="/Admin/AdminCashMovements"><i class="fas fa-exchange-alt me-1"></i>Movimentações</a></li>
                         <li><a class="dropdown-item" href="/Admin/AdminCashRegister"><i class="fas fa-cash-register me-1"></i>Caixa</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminCashRegister/Index"><i class="fas fa-shopping-cart me-1"></i>PDV</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/Admin/AdminReports"><i class="fas fa-chart-bar me-1"></i>Relatórios</a></li>
                     </ul>

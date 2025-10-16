@@ -4,26 +4,23 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid px-4">
-    <!-- Cabeçalho da página -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold">
-                <i class="fas fa-chart-line me-2"></i>@ViewData["Title"]
-            </h5>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportToPDF()">
-                    <i class="fas fa-file-pdf me-1"></i>PDF
-                </button>
-                <button type="button" class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel me-1"></i>Excel
-                </button>
-            </div>
-        </div>
-        <div class="card-body">
-            <p class="text-muted mb-0">Análise detalhada da performance financeira da clínica</p>
+<div class="content-header">
+    <h1><i class="fas fa-chart-line me-2"></i>@ViewData["Title"]</h1>
+    <p class="text-muted">Análise detalhada da performance financeira da clínica</p>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-2"></i>PDF
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Excel
+            </button>
         </div>
     </div>
+</div>
 
     <!-- Filtros de Período -->
     <div class="card shadow-sm mb-4">
@@ -187,7 +184,6 @@
             </div>
         </div>
     </div>
-</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
