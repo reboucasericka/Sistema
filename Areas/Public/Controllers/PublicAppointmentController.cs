@@ -5,6 +5,8 @@ using Sistema.Data;
 using Sistema.Data.Entities;
 using Sistema.Data.Repository.Interfaces;
 using Sistema.Models.Public;
+using Sistema.Services;
+using Sistema.Models;
 
 namespace Sistema.Areas.Public.Controllers
 {
@@ -14,12 +16,21 @@ namespace Sistema.Areas.Public.Controllers
         private readonly SistemaDbContext _context;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly IGoogleCalendarSyncService _calendarSyncService;
+        private readonly ILogger<PublicAppointmentController> _logger;
 
-        public PublicAppointmentController(SistemaDbContext context, IAppointmentRepository appointmentRepository, ICustomerRepository customerRepository)
+        public PublicAppointmentController(
+            SistemaDbContext context, 
+            IAppointmentRepository appointmentRepository, 
+            ICustomerRepository customerRepository,
+            IGoogleCalendarSyncService calendarSyncService,
+            ILogger<PublicAppointmentController> logger)
         {
             _context = context;
             _appointmentRepository = appointmentRepository;
             _customerRepository = customerRepository;
+            _calendarSyncService = calendarSyncService;
+            _logger = logger;
         }
 
         // GET: Appointment

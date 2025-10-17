@@ -1,0 +1,486 @@
+@model IEnumerable<Sistema.Data.Entities.Appointment>
+
+@{
+    ViewData["Title"] = "Meus Compromissos";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+}
+
+<!-- Título da Página -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-calendar-check me-3"></i>
+                Meus Compromissos
+            </h1>
+            <p class="page-subtitle">Gerencie e visualize todos os seus agendamentos</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportHistoryPdf" class="btn btn-primary">
+                <i class="bi bi-file-earmark-pdf me-2"></i>
+                📄 Exportar Histórico em PDF
+            </a>
+            <a asp-action="Stats" class="btn btn-outline-primary">
+                <i class="bi bi-bar-chart me-2"></i>
+                📊 Estatísticas
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-container">
+    <h5 class="filters-title">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros
+    </h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Data Inicial</label>
+            <input type="date" class="form-control" id="startDate" name="startDate" 
+                   value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">Data Final</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" 
+                   value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">Todos os status</option>
+                <option value="Agendado" selected="@(ViewBag.Status == "Agendado")">Agendado</option>
+                <option value="Confirmado" selected="@(ViewBag.Status == "Confirmado")">Confirmado</option>
+                <option value="Cancelado" selected="@(ViewBag.Status == "Cancelado")">Cancelado</option>
+                <option value="Concluído" selected="@(ViewBag.Status == "Concluído")">Concluído</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="bi bi-search me-1"></i> Filtrar
+            </button>
+            <a asp-action="MyAppointments" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i> Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Calendário de Agendamentos -->
+<div class="calendar-container">
+    <h3 class="calendar-title">
+        <i class="bi bi-calendar3 me-2"></i>
+        Calendário de Agendamentos
+    </h3>
+    <div id="calendar"></div>
+</div>
+
+<!-- Lista de Agendamentos -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="bi bi-list-ul me-2"></i> 
+            Lista de Agendamentos
+            <span class="badge bg-primary ms-2">@Model.Count()</span>
+        </h5>
+    </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Profissional</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Status</th>
+                                <th>Preço</th>
+                                <th>Avaliar</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (appointment.Service?.ImageId != Guid.Empty)
+                                            {
+                                                <img src="@appointment.Service.ImageFullPath" 
+                                                     alt="@appointment.Service.Name" 
+                                                     class="rounded-circle me-2" 
+                                                     width="40" height="40">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="bi bi-scissors text-white"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <strong>@appointment.Service?.Name</strong>
+                                                <br>
+                                                <small class="text-muted">@appointment.Service?.Category?.Name</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person text-muted me-2"></i>
+                                            <span>@(appointment.Professional?.Name ?? "Não definido")</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-calendar text-muted me-1"></i>
+                                        @appointment.StartTime.ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-clock text-muted me-1"></i>
+                                        @appointment.StartTime.ToString("HH:mm")
+                                    </td>
+                                    <td>
+                                        @switch (appointment.Status?.ToLower())
+                                        {
+                                            case "agendado":
+                                            case "scheduled":
+                                                <span class="badge bg-primary">Agendado</span>
+                                                break;
+                                            case "confirmado":
+                                            case "confirmed":
+                                                <span class="badge bg-success">Confirmado</span>
+                                                break;
+                                            case "cancelado":
+                                            case "canceled":
+                                                <span class="badge bg-danger">Cancelado</span>
+                                                break;
+                                            case "concluído":
+                                            case "completed":
+                                                <span class="badge bg-info">Concluído</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@appointment.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">
+                                            @String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", appointment.Service?.Price)
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        @if (appointment.Status?.ToLower() == "concluído" || appointment.Status?.ToLower() == "completed")
+                                        {
+                                            <a asp-controller="PublicFeedback" asp-action="Add" asp-route-appointmentId="@appointment.AppointmentId" 
+                                               class="btn btn-warning btn-sm">
+                                                <i class="bi bi-star me-1"></i>
+                                                Avaliar
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-info btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#detailsModal_@appointment.AppointmentId"
+                                                    title="Ver detalhes">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            
+                                            @if (appointment.Status?.ToLower() == "agendado" || appointment.Status?.ToLower() == "scheduled")
+                                            {
+                                                <button type="button" class="btn btn-warning btn-sm" 
+                                                        onclick="cancelAppointment(@appointment.AppointmentId)"
+                                                        title="Cancelar agendamento">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            }
+                                            
+                                            <a asp-controller="PublicBooking" asp-action="Index" 
+                                               class="btn btn-primary btn-sm" title="Agendar novo serviço">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal de Detalhes -->
+                                <div class="modal fade" id="detailsModal_@appointment.AppointmentId" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-calendar-check me-2"></i> 
+                                                    Detalhes do Agendamento
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        @if (appointment.Service?.ImageId != Guid.Empty)
+                                                        {
+                                                            <img src="@appointment.Service.ImageFullPath" 
+                                                                 alt="@appointment.Service.Name" 
+                                                                 class="img-fluid rounded">
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" 
+                                                                 style="height: 150px;">
+                                                                <i class="bi bi-scissors" style="font-size: 3rem;"></i>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <h5>@appointment.Service?.Name</h5>
+                                                        <p class="text-muted">@appointment.Service?.Description</p>
+                                                        
+                                                        <dl class="row">
+                                                            <dt class="col-sm-4">Data:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-calendar text-primary me-1"></i>
+                                                                @appointment.StartTime.ToString("dd/MM/yyyy")
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Horário:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-clock text-primary me-1"></i>
+                                                                @appointment.StartTime.ToString("HH:mm")
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Duração:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-hourglass-split text-primary me-1"></i>
+                                                                @appointment.Service?.Duration
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Profissional:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-person text-primary me-1"></i>
+                                                                @(appointment.Professional?.Name ?? "Não definido")
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Categoria:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-tag text-primary me-1"></i>
+                                                                @appointment.Service?.Category?.Name
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Preço:</dt>
+                                                            <dd class="col-sm-8">
+                                                                <i class="bi bi-currency-euro text-success me-1"></i>
+                                                                <strong>@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", appointment.Service?.Price)</strong>
+                                                            </dd>
+                                                            
+                                                            <dt class="col-sm-4">Status:</dt>
+                                                            <dd class="col-sm-8">
+                                                                @switch (appointment.Status?.ToLower())
+                                                                {
+                                                                    case "agendado":
+                                                                    case "scheduled":
+                                                                        <span class="badge bg-primary">Agendado</span>
+                                                                        break;
+                                                                    case "confirmado":
+                                                                    case "confirmed":
+                                                                        <span class="badge bg-success">Confirmado</span>
+                                                                        break;
+                                                                    case "cancelado":
+                                                                    case "canceled":
+                                                                        <span class="badge bg-danger">Cancelado</span>
+                                                                        break;
+                                                                    case "concluído":
+                                                                    case "completed":
+                                                                        <span class="badge bg-info">Concluído</span>
+                                                                        break;
+                                                                    default:
+                                                                        <span class="badge bg-secondary">@appointment.Status</span>
+                                                                        break;
+                                                                }
+                                                            </dd>
+                                                            
+                                                            @if (!string.IsNullOrEmpty(appointment.Notes))
+                                                            {
+                                                                <dt class="col-sm-4">Observações:</dt>
+                                                                <dd class="col-sm-8">
+                                                                    <i class="bi bi-sticky text-primary me-1"></i>
+                                                                    @appointment.Notes
+                                                                </dd>
+                                                            }
+                                                        </dl>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="bi bi-x-circle me-1"></i> Fechar
+                                                </button>
+                                                @if (appointment.Status?.ToLower() == "agendado" || appointment.Status?.ToLower() == "scheduled")
+                                                {
+                                                    <button type="button" class="btn btn-danger" 
+                                                            onclick="cancelAppointment(@appointment.AppointmentId)">
+                                                        <i class="bi bi-x-circle me-1"></i> Cancelar Agendamento
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <h4>Nenhum agendamento encontrado</h4>
+                    <p>
+                        @if (ViewBag.StartDate != null || ViewBag.EndDate != null || !string.IsNullOrEmpty(ViewBag.Status?.ToString()))
+                        {
+                            <span>Nenhum agendamento corresponde aos filtros aplicados.</span>
+                        }
+                        else
+                        {
+                            <span>Você ainda não possui agendamentos.</span>
+                        }
+                    </p>
+                    <div class="mt-3">
+                        <a asp-controller="PublicBooking" asp-action="Index" class="btn btn-primary me-2">
+                            <i class="bi bi-plus-circle me-1"></i> Fazer um Agendamento
+                        </a>
+                        @if (ViewBag.StartDate != null || ViewBag.EndDate != null || !string.IsNullOrEmpty(ViewBag.Status?.ToString()))
+                        {
+                            <a asp-action="MyAppointments" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Limpar Filtros
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar FullCalendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Hoje',
+                    month: 'Mês',
+                    week: 'Semana',
+                    day: 'Dia'
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    // Carregar eventos dos agendamentos
+                    var events = [];
+                    
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var appointment in Model)
+                        {
+                            <text>
+                            events.push({
+                                id: '@appointment.AppointmentId',
+                                title: '@Html.Raw(appointment.Service?.Name ?? "Serviço")',
+                                start: '@appointment.StartTime.ToString("yyyy-MM-ddTHH:mm:ss")',
+                                end: '@appointment.EndTime.ToString("yyyy-MM-ddTHH:mm:ss")',
+                                className: getEventClass('@appointment.Status'),
+                                extendedProps: {
+                                    service: '@Html.Raw(appointment.Service?.Name ?? "")',
+                                    professional: '@Html.Raw(appointment.Professional?.Name ?? "")',
+                                    price: '@(appointment.Service?.Price.ToString("C2", new System.Globalization.CultureInfo("pt-PT")) ?? "N/A")',
+                                    status: '@appointment.Status'
+                                }
+                            });
+                            </text>
+                        }
+                    }
+                    
+                    successCallback(events);
+                },
+                eventClick: function(info) {
+                    // Mostrar detalhes do evento
+                    var event = info.event;
+                    var modal = new bootstrap.Modal(document.getElementById('detailsModal_' + event.id));
+                    modal.show();
+                },
+                eventMouseEnter: function(info) {
+                    // Tooltip com informações básicas
+                    var event = info.event;
+                    var tooltip = event.extendedProps;
+                    
+                    // Criar tooltip personalizado se necessário
+                    info.el.title = tooltip.service + ' - ' + tooltip.professional + ' (' + tooltip.price + ')';
+                }
+            });
+            
+            calendar.render();
+            
+            // Função para determinar a classe CSS do evento
+            function getEventClass(status) {
+                switch (status?.toLowerCase()) {
+                    case 'agendado':
+                    case 'scheduled':
+                        return 'fc-event-agendado';
+                    case 'cancelado':
+                    case 'canceled':
+                        return 'fc-event-cancelado';
+                    case 'concluído':
+                    case 'completed':
+                        return 'fc-event-concluido';
+                    default:
+                        return 'fc-event-agendado';
+                }
+            }
+        });
+
+        function cancelAppointment(appointmentId) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                return;
+            }
+
+            fetch(`@Url.Action("CancelAppointment")/${appointmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Recarregar a página para atualizar a lista
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao cancelar agendamento:', error);
+                alert('Erro ao cancelar agendamento. Tente novamente.');
+            });
+        }
+    </script>
+}
+
+<!-- Token para CSRF -->
+@Html.AntiForgeryToken()

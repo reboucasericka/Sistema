@@ -1,0 +1,90 @@
+@model Sistema.Models.Account.RegisterNewUserViewModel
+@{
+    ViewData["Title"] = "Criar Conta";
+    //Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    Layout = "_AuthLayout";
+}
+
+<!--Views/Account/Login.cshtml-->
+
+
+<div class="container" style="max-width: 720px; margin-top: 40px;">
+    <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-header bg-primary text-white text-center rounded-top-4">
+            <h3 class="mb-0">Criar Conta</h3>
+            <p class="mb-0">Junte-se à Ewellin Jordão</p>
+            <p class="mb-0">Crie sua conta para começar a usar nossos serviços.</p>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control" placeholder="Seu nome" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control" placeholder="Seu sobrenome" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="seu@email.com" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" placeholder="+351 123 456 789" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control" placeholder="seu_username" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" placeholder="Mínimo 5 caracteres" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Confirm" class="form-label"></label>
+                    <input asp-for="Confirm" class="form-control" placeholder="Confirme sua senha" type="password" />
+                    <span asp-validation-for="Confirm" class="text-danger"></span>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Criar Conta
+                    </button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <div class="text-center">
+                <p class="mb-0">Já tem uma conta?</p>
+                <a href="/Account/Login" class="btn btn-outline-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

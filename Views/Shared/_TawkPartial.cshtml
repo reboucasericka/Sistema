@@ -1,0 +1,33 @@
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+    // Identificação do visitante autenticado
+    var Tawk_API = Tawk_API || {};
+    Tawk_API.visitor = {
+        name: '@User.Identity.Name',
+        email: '@User.FindFirst("email")?.Value'
+    };
+    var Tawk_LoadStart = new Date();
+
+    (function () {
+        var s1 = document.createElement("script"),
+            s0 = document.getElementsByTagName("script")[0];
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/68f249eb531fcd1951982761/1j7p71fuu';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        s0.parentNode.insertBefore(s1, s0);
+    })();
+
+    // Tratamento básico de erro e fallback
+    window.addEventListener('error', function (e) {
+        console.warn('Tawk.to falhou ao carregar:', e.message);
+    });
+
+    // Configuração opcional de departamentos
+    Tawk_API.setAttributes({
+        'Departamento': 'Clientes'
+    }, function (error) {
+        if (error) console.log('Erro ao definir departamento:', error);
+    });
+</script>
+<!--End of Tawk.to Script-->

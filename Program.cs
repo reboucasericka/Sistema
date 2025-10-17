@@ -107,6 +107,19 @@ builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// Serviços de comunicação
+builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+builder.Services.AddScoped<IAppointmentNotificationService, AppointmentNotificationService>();
+
+// Serviços Google Calendar e Lembretes
+//builder.Services.AddSingleton<IGoogleCalendarSyncService, GoogleCalendarSyncService>();
+builder.Services.AddScoped<IGoogleCalendarSyncService, GoogleCalendarSyncService>();
+
+builder.Services.AddHostedService<AppointmentReminderService>();
+
+// HttpClient para serviços que fazem requisições HTTP
+builder.Services.AddHttpClient();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
@@ -180,6 +193,13 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
+// Rota adicional para área Public
+app.MapControllerRoute(
+    name: "public_area",
+    pattern: "Public/{controller=PublicHome}/{action=Index}/{id?}",
+    defaults: new { area = "Public" });
+
+
 // 2) Default depois
 app.MapControllerRoute(
     name: "default",
@@ -204,6 +224,12 @@ app.MapControllerRoute(
     name: "PublicRecrutamento",
     pattern: "Public/PublicRecrutamento/{action=Index}/{id?}",
     defaults: new { area = "Public", controller = "PublicRecrutamento" });
+
+// Rota personalizada para o Painel do Cliente
+app.MapControllerRoute(
+    name: "clientpanel",
+    pattern: "{area=Public}/minhaarea/{action=Index}/{id?}",
+    defaults: new { area = "Public", controller = "PublicClientPanel" });
 
 
 app.MapHub<Sistema.Services.NotificationHub>("/notificationHub");

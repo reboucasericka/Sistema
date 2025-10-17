@@ -43,6 +43,8 @@ namespace Sistema.Data
 
         public DbSet<ServiceReview> ServiceReviews { get; set; }
 
+        public DbSet<Feedback> Feedbacks { get; set; }
+
         public DbSet<Setting> Settings { get; set; }
 
         public DbSet<StockMovement> StockMovements { get; set; }

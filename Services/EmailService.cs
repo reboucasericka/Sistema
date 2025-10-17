@@ -27,8 +27,10 @@ namespace Sistema.Services
             _smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
             _smtpUsername = _configuration["Email:SmtpUsername"] ?? "";
             _smtpPassword = _configuration["Email:SmtpPassword"] ?? "";
-            _fromEmail = _configuration["Email:FromEmail"] ?? "";
-            _fromName = _configuration["Email:FromName"] ?? "Ewellin Jordão";
+            
+            // Remetente fixo conforme especificado
+            _fromEmail = "ewellinjordaobeauty@gmail.com";
+            _fromName = "Ewellin Jordão";
         }
 
         public async Task SendActivationEmailAsync(string email, string firstName, string activationLink)

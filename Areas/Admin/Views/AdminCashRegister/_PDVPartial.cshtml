@@ -1,0 +1,291 @@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="row">
+    <!-- Painel de Produtos -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Produtos</h3>
+            </div>
+            <div class="card-body">
+                <!-- Busca por código de barras -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" id="barcodeInput" class="form-control" placeholder="Digite o código de barras ou nome do produto">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button" id="searchProductBtn">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success btn-block" id="btnAddProduct" disabled>
+                            <i class="fas fa-plus"></i> Adicionar Produto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resultado da busca -->
+                <div id="productSearchResult" class="mb-3" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 id="productName"></h5>
+                            <p class="mb-1">Preço: <strong id="productPrice"></strong></p>
+                            <p class="mb-1">Estoque: <span id="productStock"></span></p>
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <label>Quantidade:</label>
+                                    <input type="number" id="productQuantity" class="form-control" value="1" min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Preço Unitário:</label>
+                                    <input type="number" id="productUnitPrice" class="form-control" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Subtotal:</label>
+                                    <input type="text" id="productSubtotal" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de produtos adicionados -->
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="cartTable">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th width="100">Qtd</th>
+                                <th width="120">Preço Unit.</th>
+                                <th width="120">Subtotal</th>
+                                <th width="80">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems">
+                            <!-- Itens serão adicionados dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+        <!-- Resumo e Pagamento -->
+        <hr class="mt-4 mb-3">
+
+        <div class="row g-3">
+            <!-- Total -->
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-semibold">Total (€)</span>
+                    <input type="text" id="txtTotal" class="form-control text-end fw-bold" readonly value="0.00">
+                </div>
+            </div>
+
+            <!-- Forma de Pagamento -->
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-semibold">Pagamento</span>
+                    <select id="paymentMethod" class="form-select">
+                        <option value="">Selecione...</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão">Cartão</option>
+                        <option value="Pix">Pix</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Valor Recebido -->
+            <div class="col-md-4" id="cashReceivedGroup" style="display:none;">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-semibold">Recebido (€)</span>
+                    <input type="number" id="txtCashReceived" step="0.01" min="0" class="form-control text-end">
+                </div>
+            </div>
+        </div>
+
+        <!-- Troco -->
+        <div class="row mt-3" id="changeRow" style="display:none;">
+            <div class="col-md-4 offset-md-8">
+                <div class="alert alert-info py-2">
+                    <strong>Troco:</strong> €<span id="lblChange">0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão Finalizar -->
+        <div class="text-end mt-4">
+            <button id="btnFinalizeSale" class="btn btn-success btn-lg">
+                <i class="fas fa-check-circle me-2"></i>Finalizar Venda
+            </button>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel de Venda -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Finalizar Venda</h3>
+            </div>
+            <div class="card-body">
+                <form id="saleForm">
+                    <!-- Cliente -->
+                    <div class="form-group">
+                        <label for="customerId">Cliente:</label>
+                        <div class="input-group">
+                        <select id="customerId" class="form-control" required>
+                            <option value="">Selecione um cliente</option>
+                            <!-- Opções serão carregadas via AJAX -->
+                        </select>
+                            <button id="btnSelectClient" class="btn btn-outline-primary btn-sm" type="button">
+                                <i class="fas fa-user"></i> Selecionar Cliente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Profissional -->
+                    <div class="form-group">
+                        <label for="professionalId">Profissional:</label>
+                        <div class="input-group">
+                        <select id="professionalId" class="form-control" required>
+                            <option value="">Selecione um profissional</option>
+                            <!-- Opções serão carregadas via AJAX -->
+                        </select>
+                            <button id="btnSelectProfessional" class="btn btn-outline-secondary btn-sm" type="button">
+                                <i class="fas fa-user-tie"></i> Selecionar Profissional
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Método de Pagamento -->
+                    <div class="form-group">
+                        <label for="paymentMethodId">Método de Pagamento:</label>
+                        <select id="paymentMethodId" class="form-control" required>
+                            <option value="">Selecione o método</option>
+                            <!-- Opções serão carregadas via AJAX -->
+                        </select>
+                    </div>
+
+                    <!-- Totais -->
+                    <div class="form-group">
+                        <label>Subtotal:</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">€</span>
+                            </div>
+                            <input type="text" id="totalAmount" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="discount">Desconto:</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">€</span>
+                            </div>
+                            <input type="number" id="discount" class="form-control" step="0.01" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Final:</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">€</span>
+                            </div>
+                            <input type="text" id="finalTotal" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Comissão -->
+                    <div class="form-group">
+                        <label>Comissão Profissional:</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">€</span>
+                            </div>
+                            <input type="text" id="commissionAmount" class="form-control" readonly>
+                        </div>
+                        <small class="form-text text-muted" id="commissionPercentage"></small>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-block mb-2" id="clearCartBtn">
+                            <i class="fas fa-trash"></i> Limpar Carrinho
+                        </button>
+                        <button type="submit" class="btn btn-success btn-block" id="finalizeSaleBtn" disabled>
+                            <i class="fas fa-check"></i> Finalizar Venda
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal fade" id="modalSelectClient" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="clientSelect" class="form-select">
+                    <option value="">Selecione um cliente...</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" id="btnConfirmClient">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Profissional -->
+<div class="modal fade" id="modalSelectProfessional" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Profissional</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="professionalSelect" class="form-select">
+                    <option value="">Selecione um profissional...</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" id="btnConfirmProfessional">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pdv.js" asp-append-version="true"></script>
+}

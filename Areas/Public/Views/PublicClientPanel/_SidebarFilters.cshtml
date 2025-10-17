@@ -1,0 +1,150 @@
+@{
+    var categories = ViewBag.Categories as IEnumerable<Sistema.Data.Entities.Category> ?? new List<Sistema.Data.Entities.Category>();
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+        <h6 class="card-title mb-0">
+            <i class="fas fa-filter"></i> Filtros
+        </h6>
+    </div>
+    <div class="card-body">
+        <form id="filter-form">
+            <!-- Data de Agendamento -->
+            <div class="mb-3">
+                <label for="appointment-date" class="form-label">
+                    <i class="fas fa-calendar"></i> Quando deseja agendar?
+                </label>
+                <input type="date" class="form-control" id="appointment-date" name="appointmentDate" 
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")">
+            </div>
+
+            <!-- Faixa de Preço -->
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="fas fa-euro-sign"></i> Faixa de Preço
+                </label>
+                <div class="row">
+                    <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" 
+                               placeholder="Min" min="0" max="200" step="0.01" name="minPrice">
+                    </div>
+                    <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" 
+                               placeholder="Max" min="0" max="200" step="0.01" name="maxPrice">
+                    </div>
+                </div>
+                <small class="text-muted">€0 - €200</small>
+            </div>
+
+            <!-- Categorias -->
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="fas fa-tags"></i> Categorias
+                </label>
+                <div id="categories-list" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Categorias serão carregadas via AJAX -->
+                </div>
+            </div>
+
+            <!-- Facilidades -->
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="fas fa-star"></i> Facilidades
+                </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="facility-parking" name="facilities" value="parking">
+                    <label class="form-check-label" for="facility-parking">
+                        <i class="fas fa-parking text-success"></i> Estacionamento
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="facility-wifi" name="facilities" value="wifi">
+                    <label class="form-check-label" for="facility-wifi">
+                        <i class="fas fa-wifi text-primary"></i> Wi-Fi Gratuito
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="facility-accessibility" name="facilities" value="accessibility">
+                    <label class="form-check-label" for="facility-accessibility">
+                        <i class="fas fa-wheelchair text-info"></i> Acessibilidade
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="facility-payment" name="facilities" value="payment">
+                    <label class="form-check-label" for="facility-payment">
+                        <i class="fas fa-credit-card text-warning"></i> Pagamento Digital
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-search"></i> Aplicar Filtros
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="clear-filters">
+                    <i class="fas fa-times"></i> Limpar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Card de Informações Rápidas -->
+<div class="card mt-3 shadow-sm border-0">
+    <div class="card-header bg-info text-white">
+        <h6 class="card-title mb-0">
+            <i class="fas fa-info-circle"></i> Informações
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-clock text-primary me-2"></i>
+            <small>Horário de Funcionamento</small>
+        </div>
+        <small class="text-muted d-block mb-2">Seg - Sex: 9h - 18h</small>
+        <small class="text-muted d-block mb-3">Sáb: 9h - 16h</small>
+
+        <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-phone text-success me-2"></i>
+            <small>Contato</small>
+        </div>
+        <small class="text-muted d-block mb-2">+351 123 456 789</small>
+        <small class="text-muted d-block">info@estabelecimento.pt</small>
+    </div>
+</div>
+
+<script>
+    // Carregar categorias quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategories();
+    });
+
+    function loadCategories() {
+        fetch('@Url.Action("GetCategories")')
+            .then(response => response.json())
+            .then(categories => {
+                const container = document.getElementById('categories-list');
+                container.innerHTML = '';
+
+                categories.forEach(category => {
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'form-check';
+                    checkbox.innerHTML = `
+                        <input class="form-check-input" type="checkbox" id="category-${category.id}" 
+                               name="categories" value="${category.id}">
+                        <label class="form-check-label" for="category-${category.id}">
+                            ${category.name}
+                        </label>
+                    `;
+                    container.appendChild(checkbox);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar categorias:', error);
+                document.getElementById('categories-list').innerHTML = 
+                    '<small class="text-muted">Erro ao carregar categorias</small>';
+            });
+    }
+</script>

@@ -89,7 +89,7 @@ namespace Sistema.Controllers
                     }
 
                     // Se for cliente com e-mail confirmado, vai para o perfil
-                    return RedirectToAction("Profile", "PublicProfile");
+                    return RedirectToAction("Index", "PublicAppointment", new { area = "Public" });
                 }
 
                 ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
@@ -310,160 +310,11 @@ namespace Sistema.Controllers
         }
 
 
-
-
-
         // =======================
-        // REGISTRO CLIENTE
+        // ATIVAÇÃO DE CONTA MOVIDA PARA PublicAccountController
         // =======================
-        [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterNewUserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Verifica se o usuário já existe
-                    var existingUser = await _userHelper.GetUserByEmailAsync(model.Email);
-                    if (existingUser != null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Já existe um usuário com este e-mail.");
-                        return View(model);
-                    }
-
-                    // Cria novo usuário
-                    var user = new User
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        Email = model.Email,
-                        UserName = model.Username,
-                        PhoneNumber = model.Phone,
-                        EmailConfirmed = true // Para simplificar, confirmamos automaticamente
-                    };
-
-                    var result = await _userHelper.AddUserAsync(user, model.Password);
-                    if (result.Succeeded)
-                    {
-                        // Adiciona role de Customer
-                        await _userHelper.AddUserToRoleAsync(user, "Customer");
-
-                        // Log do novo registro
-                        await LogAccess(user, "Register");
-
-                        // Login automático após registro
-                        var loginViewModel = new LoginViewModel
-                        {
-                            Username = model.Username,
-                            Password = model.Password,
-                            RememberMe = false
-                        };
-
-                        var loginResult = await _userHelper.LoginAsync(loginViewModel);
-                        if (loginResult.Succeeded)
-                        {
-                            TempData["SuccessMessage"] = "Conta criada com sucesso! Bem-vindo(a)!";
-                            return RedirectToAction("Profile", "PublicProfile");
-                        }
-                        else
-                        {
-                            // Se não conseguir fazer login, redireciona para login
-                            TempData["SuccessMessage"] = "Conta criada com sucesso! Faça login para continuar.";
-                            return RedirectToAction("Login");
-                        }
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro no registro: {ex.Message}");
-                    ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
-                }
-            }
-
-            return View(model);
-        }
-
-
-                        /*
-                        // Role Customer
-                        await _userHelper.AddUserToRoleAsync(user, "Customer");
-
-                        // Send activation email
-                        var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                        var activationLink = Url.Action("ActivateAccount", "Account", new { userId = user.Id, token }, Request.Scheme);
-
-                        await _emailService.SendActivationEmailAsync(user.Email, user.FirstName, activationLink);
-
-                        TempData["ShowActivationPopup"] = true;
-                        TempData["UserEmail"] = user.Email;
-                        TempData["UserName"] = user.FirstName;
-                        
-
-
-                        // Redireciona para Login
-                        return Redirect("/Account/Login");
-                }
-
-                ModelState.AddModelError(string.Empty, "Já existe um usuário com este e-mail.");
-            }
-
-            return View(model);
-        }
-*/
-
-
-        // =======================
-        // ATIVAR CONTA
-        // =======================
-        public async Task<IActionResult> ActivateAccount(string userId, string token)
-        {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
-            {
-                TempData["ErrorMessage"] = "Link de ativação inválido.";
-                return Redirect("/Account/Login");
-            }
-
-            var user = await _userHelper.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "Usuário não encontrado.";
-                return Redirect("/Account/Login");
-            }
-
-            var result = await _userHelper.ConfirmEmailAsync(user, token);
-            if (result.Succeeded)
-            {
-                // Log successful account activation
-                await LogAccess(user, "ActivateAccount");
-                
-                TempData["SuccessMessage"] = "Conta ativada com sucesso! Agora você pode entrar.";
-                
-                // Redirect based on user role
-                if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                    return Redirect("/Admin/Admin");
-                else if (await _userHelper.IsUserInRoleAsync(user, "Customer"))
-                    return Redirect("/Public/PublicAppointment/Index");
-                else
-                    return Redirect("/Public/PublicAppointment/Index"); // Default to Customer area
-            }
-
-            TempData["ErrorMessage"] = "Erro ao ativar a conta. Link pode ter expirado.";
-            return Redirect("/Account/Login");
-        }
+        // Método ActivateAccount movido para PublicAccountController
+        // para separar fluxo público (clientes) do fluxo interno (admin)
 
         // =======================
         // DIAGNÓSTICO ADMIN

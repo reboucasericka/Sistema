@@ -3,590 +3,343 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
-using Sistema.Helpers;
+using Sistema.Models.Admin;
+using Sistema.Services;
 
 namespace Sistema.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Recepcionista")]
+    [Authorize(Roles = "Admin")]
     public class AdminCashRegisterController : Controller
     {
         private readonly SistemaDbContext _context;
-        private readonly IUserHelper _userHelper;
+        private readonly ICommunicationService _communicationService;
 
-        public AdminCashRegisterController(SistemaDbContext context, IUserHelper userHelper)
+        public AdminCashRegisterController(SistemaDbContext context, ICommunicationService communicationService)
         {
             _context = context;
-            _userHelper = userHelper;
+            _communicationService = communicationService;
         }
 
-        /// <summary>
-        /// Exibe a lista de caixas com histórico completo
-        /// </summary>
-        /// <returns>View com lista de caixas ordenados por data</returns>
+        // Página principal do Caixa
         public async Task<IActionResult> Index()
         {
-            // Carregar caixas com todos os relacionamentos necessários
-            var cashRegisters = await _context.CashRegisters
-                .Include(cr => cr.UserAbertura)
-                .Include(cr => cr.UserFechamento)
-                .OrderByDescending(cr => cr.Date)
-                .ToListAsync();
-
-            return View(cashRegisters);
-        }
-
-        // GET: Admin/CashRegister/Open
-        public IActionResult Open()
-        {
-            return View();
-        }
-
-        // POST: Admin/CashRegister/Open
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Open(decimal initialValue)
-        {
-            // Verificar se já existe caixa aberto
-            var openCashRegister = await _context.CashRegisters
-                .Where(cr => !cr.IsClosed)
-                .FirstOrDefaultAsync();
-
-            if (openCashRegister != null)
+            var hoje = DateTime.Today;
+            var viewModel = new CashRegisterViewModel
             {
-                TempData["ErrorMessage"] = "Já existe um caixa aberto. Feche o caixa atual antes de abrir um novo.";
-                return RedirectToAction(nameof(Index));
-            }
+                CurrentBalance = await GetCurrentBalance(),
+                IsOpen = await IsCashRegisterOpen(),
+                RecentMovements = await GetRecentMovements(),
+                Products = await GetProductsForSale(),
+                TotalEntradasHoje = await GetTotalEntradasHoje(hoje),
+                TotalSaidasHoje = await GetTotalSaidasHoje(hoje),
+                SaldoAtual = await GetCurrentBalance()
+            };
+            return View(viewModel);
+        }
+
+        // Abrir caixa
+        [HttpPost]
+        public async Task<IActionResult> OpenCashRegister(decimal initialAmount)
+        {
+            if (await IsCashRegisterOpen())
+                return BadRequest("Caixa já está aberto.");
 
             var cashRegister = new CashRegister
             {
                 Date = DateTime.Now,
-                InitialValue = initialValue,
-                FinalValue = initialValue,
-                UserIdAbertura = _userHelper.GetUserId(User),
+                InitialValue = initialAmount,
+                FinalValue = initialAmount,
                 IsClosed = false,
-                Status = "Open"
+                Status = "Open",
+                UserIdAbertura = User.Identity?.Name ?? "System"
             };
 
-            _context.Add(cashRegister);
+            _context.CashRegisters.Add(cashRegister);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Caixa aberto com sucesso!";
-            return RedirectToAction(nameof(Summary), new { id = cashRegister.CashRegisterId });
+            return Ok(new { success = true, message = "Caixa aberto com sucesso!" });
         }
 
-        // GET: Admin/CashRegister/Close/5
-        public async Task<IActionResult> Close(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cashRegister = await _context.CashRegisters
-                .Include(cr => cr.UserAbertura)
-                .Include(cr => cr.CashMovements)
-                .FirstOrDefaultAsync(cr => cr.CashRegisterId == id);
-
-            if (cashRegister == null)
-            {
-                return NotFound();
-            }
-
-            if (cashRegister.IsClosed)
-            {
-                TempData["ErrorMessage"] = "Este caixa já está fechado.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Calcular totais
-            var totalEntradas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Entrada")
-                .Sum(cm => cm.Amount);
-
-            var totalSaidas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Saída")
-                .Sum(cm => cm.Amount);
-
-            var saldoEsperado = cashRegister.InitialValue + totalEntradas - totalSaidas;
-
-            ViewBag.TotalEntradas = totalEntradas;
-            ViewBag.TotalSaidas = totalSaidas;
-            ViewBag.SaldoEsperado = saldoEsperado;
-
-            return View(cashRegister);
-        }
-
-        // POST: Admin/CashRegister/Close/5
+        // Fechar caixa
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Close(int id, decimal finalValue, string? notes)
+        public async Task<IActionResult> CloseCashRegister()
         {
             var cashRegister = await _context.CashRegisters
-                .Include(cr => cr.CashMovements)
-                .FirstOrDefaultAsync(cr => cr.CashRegisterId == id);
+                .Where(cr => !cr.IsClosed && cr.Status == "Open")
+                .FirstOrDefaultAsync();
 
             if (cashRegister == null)
-            {
-                return NotFound();
-            }
+                return BadRequest("Nenhum caixa aberto encontrado.");
 
-            if (cashRegister.IsClosed)
-            {
-                TempData["ErrorMessage"] = "Este caixa já está fechado.";
-                return RedirectToAction(nameof(Index));
-            }
+            // Calcular totais do dia
+            var hoje = DateTime.Today;
+            var entradas = await GetTotalEntradasHoje(hoje);
+            var saidas = await GetTotalSaidasHoje(hoje);
+            var saldo = entradas - saidas;
 
-            // Calcular saldo esperado
-            var totalEntradas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Entrada")
-                .Sum(cm => cm.Amount);
-
-            var totalSaidas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Saída")
-                .Sum(cm => cm.Amount);
-
-            var saldoEsperado = cashRegister.InitialValue + totalEntradas - totalSaidas;
-
-            cashRegister.FinalValue = finalValue;
-            cashRegister.UserIdFechamento = _userHelper.GetUserId(User);
             cashRegister.IsClosed = true;
             cashRegister.Status = "Closed";
-            cashRegister.Notes = notes;
+            cashRegister.UserIdFechamento = User.Identity?.Name ?? "System";
 
             _context.Update(cashRegister);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Caixa fechado com sucesso!";
-            return RedirectToAction(nameof(Index));
+            // Enviar notificações SMS e WhatsApp
+            // TODO: Implementar SendCashRegisterCloseNotificationAsync no ICommunicationService
+            // await _communicationService.SendCashRegisterCloseNotificationAsync(entradas, saidas, saldo);
+
+            return Ok(new { success = true, message = "Caixa fechado com sucesso!" });
         }
 
-        // GET: Admin/CashRegister/Summary/5
-        public async Task<IActionResult> Summary(int? id)
-        {
-            if (id == null)
-            {
-                // Buscar caixa aberto atual
-                var openCashRegister = await _context.CashRegisters
-                    .Include(cr => cr.UserAbertura)
-                    .Include(cr => cr.CashMovements)
-                    .Where(cr => !cr.IsClosed)
-                    .OrderByDescending(cr => cr.Date)
-                    .FirstOrDefaultAsync();
-
-                if (openCashRegister == null)
-                {
-                    TempData["ErrorMessage"] = "Não há caixa aberto.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return await Summary(openCashRegister.CashRegisterId);
-            }
-
-            var cashRegister = await _context.CashRegisters
-                .Include(cr => cr.UserAbertura)
-                .Include(cr => cr.UserFechamento)
-                .Include(cr => cr.CashMovements)
-                .FirstOrDefaultAsync(cr => cr.CashRegisterId == id);
-
-            if (cashRegister == null)
-            {
-                return NotFound();
-            }
-
-            // Calcular totais
-            var totalEntradas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Entrada")
-                .Sum(cm => cm.Amount);
-
-            var totalSaidas = cashRegister.CashMovements
-                .Where(cm => cm.Type == "Saída")
-                .Sum(cm => cm.Amount);
-
-            var saldoEsperado = cashRegister.InitialValue + totalEntradas - totalSaidas;
-            var diferenca = cashRegister.FinalValue - saldoEsperado;
-
-            ViewBag.TotalEntradas = totalEntradas;
-            ViewBag.TotalSaidas = totalSaidas;
-            ViewBag.SaldoEsperado = saldoEsperado;
-            ViewBag.Diferenca = diferenca;
-
-            return View(cashRegister);
-        }
-
-        // GET: Admin/CashRegister/GetOpenRegister
-        public async Task<IActionResult> GetOpenRegister()
-        {
-            var openCashRegister = await _context.CashRegisters
-                .Include(cr => cr.UserAbertura)
-                .Include(cr => cr.CashMovements)
-                .Where(cr => !cr.IsClosed)
-                .OrderByDescending(cr => cr.Date)
-                .FirstOrDefaultAsync();
-
-            if (openCashRegister == null)
-            {
-                return Json(new { exists = false });
-            }
-
-            var totalEntradas = openCashRegister.CashMovements
-                .Where(cm => cm.Type == "Entrada")
-                .Sum(cm => cm.Amount);
-
-            var totalSaidas = openCashRegister.CashMovements
-                .Where(cm => cm.Type == "Saída")
-                .Sum(cm => cm.Amount);
-
-            var saldoAtual = openCashRegister.InitialValue + totalEntradas - totalSaidas;
-
-            return Json(new
-            {
-                exists = true,
-                cashRegisterId = openCashRegister.CashRegisterId,
-                date = openCashRegister.Date,
-                initialValue = openCashRegister.InitialValue,
-                totalEntradas,
-                totalSaidas,
-                saldoAtual,
-                openingUser = openCashRegister.UserAbertura?.FirstName + " " + openCashRegister.UserAbertura?.LastName
-            });
-        }
-
-        // POST: Admin/CashRegister/FinalizeSale
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FinalizeSale([FromBody] SaleViewModel saleData)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                // 1. Buscar caixa aberto
-                var openCashRegister = await _context.CashRegisters
-                    .Where(cr => !cr.IsClosed)
-                    .OrderByDescending(cr => cr.Date)
-                    .FirstOrDefaultAsync();
-
-                if (openCashRegister == null)
-                {
-                    return Json(new { success = false, message = "Não há caixa aberto." });
-                }
-
-                // 2. Criar a venda
-                var sale = new Sale
-                {
-                    CustomerId = saleData.CustomerId,
-                    ProfessionalId = saleData.ProfessionalId,
-                    PaymentMethodId = saleData.PaymentMethodId,
-                    TotalAmount = saleData.TotalAmount,
-                    FinalTotal = saleData.FinalTotal,
-                    UserId = _userHelper.GetUserId(User),
-                    SaleDate = DateTime.Now
-                };
-
-                _context.Add(sale);
-                await _context.SaveChangesAsync();
-
-                // 3. Criar itens da venda
-                foreach (var item in saleData.Items)
-                {
-                    var saleItem = new SaleItem
-                    {
-                        SaleId = sale.SaleId,
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice
-                    };
-                    _context.Add(saleItem);
-                }
-
-                // 4. Criar Receivable
-                var receivable = new Receivable
-                {
-                    Description = $"Venda #{sale.SaleId}",
-                    Amount = sale.FinalTotal,
-                    CustomerId = sale.CustomerId,
-                    ProfessionalId = sale.ProfessionalId,
-                    SaleId = sale.SaleId,
-                    PaymentMethodId = sale.PaymentMethodId,
-                    UserId = _userHelper.GetUserId(User),
-                    Status = "Paid", // Venda à vista
-                    IsPaid = true,
-                    PaymentDate = DateTime.Now
-                };
-
-                _context.Add(receivable);
-
-                // 5. Criar movimento de entrada
-                var entradaMovement = new CashMovement
-                {
-                    CashRegisterId = openCashRegister.CashRegisterId,
-                    Type = "Entrada",
-                    Amount = sale.FinalTotal,
-                    Description = $"Venda #{sale.SaleId}",
-                    Date = DateTime.Now,
-                    ReferenceId = receivable.ReceivableId,
-                    ReferenceType = "Receivable"
-                };
-
-                _context.Add(entradaMovement);
-
-                // 6. Calcular comissão do profissional
-                var professional = await _context.Professionals.FindAsync(sale.ProfessionalId);
-                if (professional != null && professional.CommissionPercentage > 0)
-                {
-                    var commission = sale.FinalTotal * (professional.CommissionPercentage / 100);
-
-                    // 7. Criar Payable (comissão)
-                    var payable = new Payable
-                    {
-                        Description = $"Comissão - Venda #{sale.SaleId}",
-                        Amount = commission,
-                        DueDate = DateTime.Now.AddDays(7), // Comissão paga em 7 dias
-                        Type = "Commission",
-                        ProfessionalId = sale.ProfessionalId,
-                        SaleId = sale.SaleId,
-                        UserId = _userHelper.GetUserId(User),
-                        Status = "Pending"
-                    };
-
-                    _context.Add(payable);
-
-                    // 8. Criar movimento de saída (comissão)
-                    var saidaMovement = new CashMovement
-                    {
-                        CashRegisterId = openCashRegister.CashRegisterId,
-                        Type = "Saída",
-                        Amount = commission,
-                        Description = $"Comissão - Venda #{sale.SaleId}",
-                        Date = DateTime.Now,
-                        ReferenceId = payable.PayableId,
-                        ReferenceType = "Payable"
-                    };
-
-                    _context.Add(saidaMovement);
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return Json(new { success = true, message = "Venda finalizada com sucesso!", saleId = sale.SaleId });
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return Json(new { success = false, message = "Erro ao finalizar venda: " + ex.Message });
-            }
-        }
-
-        // =====================================================================
-        // MÓDULO PDV (PONTO DE VENDA)
-        // =====================================================================
-
-        /// <summary>
-        /// Exibe a interface do PDV (Ponto de Venda)
-        /// </summary>
-        /// <returns>View do PDV</returns>
-        [Authorize(Roles = "Admin")]
-        public IActionResult PDV()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Busca produto por código de barras para o PDV
-        /// </summary>
-        /// <param name="barcode">Código de barras do produto</param>
-        /// <returns>Dados do produto em JSON</returns>
+        // Buscar produto por código de barras
         [HttpGet]
         public async Task<IActionResult> GetProductByBarcode(string barcode)
         {
             if (string.IsNullOrEmpty(barcode))
-                return BadRequest("Código de barras não informado.");
+                return BadRequest("Código inválido");
 
             var product = await _context.Products
-                .Where(p => p.ProductId.ToString() == barcode && p.Stock > 0)
-                .Select(p => new { 
-                    Id = p.ProductId, 
-                    Name = p.Name, 
-                    Price = p.SalePrice, 
-                    StockQuantity = p.Stock,
-                    Barcode = p.ProductId.ToString()
-                })
+                .Where(p => p.ProductId.ToString() == barcode || p.Name.Contains(barcode))
+                .Select(p => new { Id = p.ProductId, Name = p.Name, Price = p.SalePrice, Stock = p.Stock })
                 .FirstOrDefaultAsync();
 
             if (product == null)
-                return NotFound("Produto não encontrado ou sem estoque.");
+                return NotFound();
 
             return Json(product);
         }
 
-        /// <summary>
-        /// Finaliza uma venda do PDV
-        /// </summary>
-        /// <param name="sale">Dados da venda</param>
-        /// <returns>Resultado da operação</returns>
-        [HttpPost]
-        public async Task<IActionResult> FinalizeSale([FromBody] PDVSaleViewModel sale)
+        // API para obter clientes
+        [HttpGet]
+        public async Task<IActionResult> GetClients()
         {
-            if (sale == null || !sale.Items.Any())
-                return BadRequest("Nenhum item informado.");
+            var clients = await _context.Customers
+                .Where(c => c.IsActive)
+                .Select(c => new { CustomerId = c.CustomerId, Name = c.Name })
+                .ToListAsync();
+            return Json(clients);
+        }
+
+        // API para obter profissionais
+        [HttpGet]
+        public async Task<IActionResult> GetProfessionals()
+        {
+            var professionals = await _context.Professionals
+                .Where(p => p.IsActive)
+                .Select(p => new { 
+                    ProfessionalId = p.ProfessionalId, 
+                    Name = p.Name,
+                    CommissionPercentage = p.CommissionPercentage
+                })
+                .ToListAsync();
+            return Json(professionals);
+        }
+
+        // API para obter métodos de pagamento
+        [HttpGet]
+        public async Task<IActionResult> GetPaymentMethods()
+        {
+            var methods = await _context.PaymentMethods
+                .Where(pm => pm.IsActive)
+                .Select(pm => new { PaymentMethodId = pm.PaymentMethodId, Name = pm.Name })
+                .ToListAsync();
+            return Json(methods);
+        }
+
+        // Finalizar venda
+        [HttpPost]
+        public async Task<IActionResult> FinalizeSale([FromBody] SalePaymentViewModel data)
+        {
+            if (data == null || data.Total <= 0)
+                return BadRequest("Dados inválidos");
+
+            if (!await IsCashRegisterOpen())
+                return BadRequest("Caixa não está aberto.");
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Verificar se há caixa aberto
-                var openCashRegister = await _context.CashRegisters
-                    .Where(cr => !cr.IsClosed)
-                    .OrderByDescending(cr => cr.Date)
+                // Registrar movimentação de caixa
+                var cashRegister = await _context.CashRegisters
+                    .Where(cr => !cr.IsClosed && cr.Status == "Open")
                     .FirstOrDefaultAsync();
 
-                if (openCashRegister == null)
+                if (cashRegister != null)
                 {
-                    return Json(new { success = false, message = "Não há caixa aberto. Abra um caixa antes de realizar vendas." });
-                }
-
-                // 2. Validar estoque dos produtos
-                foreach (var item in sale.Items)
-                {
-                    var product = await _context.Products.FindAsync(item.ProductId);
-                    if (product == null)
+                    var cashMovement = new CashMovement
                     {
-                        return Json(new { success = false, message = $"Produto ID {item.ProductId} não encontrado." });
-                    }
-
-                    if (product.Stock < item.Quantity)
-                    {
-                        return Json(new { success = false, message = $"Estoque insuficiente para o produto {product.Name}. Disponível: {product.Stock}" });
-                    }
-                }
-
-                // 3. Criar a venda
-                var saleEntity = new Sale
-                {
-                    CustomerId = sale.CustomerId ?? 1, // Cliente padrão se não especificado
-                    ProfessionalId = sale.ProfessionalId ?? 1, // Profissional padrão se não especificado
-                    PaymentMethodId = sale.PaymentMethodId,
-                    TotalAmount = sale.Total,
-                    FinalTotal = sale.Total,
-                    UserId = _userHelper.GetUserId(User),
-                    SaleDate = DateTime.Now
-                };
-
-                _context.Add(saleEntity);
-                await _context.SaveChangesAsync();
-
-                // 4. Criar itens da venda e atualizar estoque
-                foreach (var item in sale.Items)
-                {
-                    var saleItem = new SaleItem
-                    {
-                        SaleId = saleEntity.SaleId,
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice
+                        Date = DateTime.Now,
+                        Type = "Entrada",
+                        Description = $"Venda PDV - {data.PaymentMethod}",
+                        Amount = data.Total,
+                        CashRegisterId = cashRegister.CashRegisterId
                     };
-                    _context.Add(saleItem);
+                    _context.CashMovements.Add(cashMovement);
+                }
 
-                    // Atualizar estoque
+                // Atualizar estoque dos produtos
+                foreach (var item in data.Items)
+                {
                     var product = await _context.Products.FindAsync(item.ProductId);
                     if (product != null)
                     {
+                        if (product.Stock < item.Quantity)
+                            return BadRequest($"Estoque insuficiente para o produto {product.Name}");
+
                         product.Stock -= item.Quantity;
                         _context.Update(product);
                     }
                 }
 
-                // 5. Criar Receivable
-                var receivable = new Receivable
+                // Atualizar saldo do caixa
+                if (cashRegister != null)
                 {
-                    Description = $"Venda PDV #{saleEntity.SaleId}",
-                    Amount = saleEntity.FinalTotal,
-                    CustomerId = sale.CustomerId ?? 1,
-                    ProfessionalId = sale.ProfessionalId ?? 1,
-                    SaleId = saleEntity.SaleId,
-                    PaymentMethodId = sale.PaymentMethodId,
-                    UserId = _userHelper.GetUserId(User),
-                    Status = "Paid",
-                    IsPaid = true,
-                    PaymentDate = DateTime.Now
-                };
-
-                _context.Add(receivable);
-
-                // 6. Criar movimento de entrada no caixa
-                var cashMovement = new CashMovement
-                {
-                    CashRegisterId = openCashRegister.CashRegisterId,
-                    Type = "Entrada",
-                    Amount = saleEntity.FinalTotal,
-                    Description = $"Venda PDV #{saleEntity.SaleId}",
-                    Date = DateTime.Now,
-                    ReferenceId = receivable.ReceivableId,
-                    ReferenceType = "Receivable"
-                };
-
-                _context.Add(cashMovement);
+                    cashRegister.FinalValue += data.Total;
+                    _context.Update(cashRegister);
+                }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return Json(new { 
+                // Gerar número de recibo
+                var receiptId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
+                return Ok(new { 
                     success = true, 
-                    message = "Venda finalizada com sucesso!", 
-                    saleId = saleEntity.SaleId,
-                    total = saleEntity.FinalTotal
+                    message = "Venda finalizada com sucesso!",
+                    receiptId = receiptId,
+                    paymentMethod = data.PaymentMethod,
+                    total = data.Total,
+                    received = data.Received,
+                    change = data.Change,
+                    date = DateTime.Now
                 });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return Json(new { success = false, message = "Erro ao finalizar venda: " + ex.Message });
+                return BadRequest($"Erro ao processar venda: {ex.Message}");
             }
         }
 
-        private bool CashRegisterExists(int id)
+        // Registrar movimentação manual
+        [HttpPost]
+        public async Task<IActionResult> AddCashMovement([FromBody] CashMovementViewModel movement)
         {
-            return _context.CashRegisters.Any(e => e.CashRegisterId == id);
+            if (!await IsCashRegisterOpen())
+                return BadRequest("Caixa não está aberto.");
+
+            var cashRegister = await _context.CashRegisters
+                .Where(cr => !cr.IsClosed && cr.Status == "Open")
+                .FirstOrDefaultAsync();
+
+            if (cashRegister == null)
+                return BadRequest("Nenhum caixa aberto encontrado.");
+
+            var cashMovement = new CashMovement
+            {
+                Date = DateTime.Now,
+                Type = movement.Type,
+                Description = movement.Description,
+                Amount = movement.Amount,
+                CashRegisterId = cashRegister.CashRegisterId
+            };
+
+            _context.CashMovements.Add(cashMovement);
+
+            // Atualizar saldo do caixa
+            if (movement.Type == "Entrada")
+                cashRegister.FinalValue += movement.Amount;
+            else
+                cashRegister.FinalValue -= movement.Amount;
+
+            _context.Update(cashRegister);
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Movimentação registrada com sucesso!" });
         }
-    }
 
-    // ViewModel para finalização de vendas
-    public class SaleViewModel
-    {
-        public int CustomerId { get; set; }
-        public int ProfessionalId { get; set; }
-        public int PaymentMethodId { get; set; }
-        public decimal TotalAmount { get; set; }
-        public decimal FinalTotal { get; set; }
-        public List<SaleItemViewModel> Items { get; set; } = new();
-    }
+        // Métodos auxiliares
+        private async Task<decimal> GetCurrentBalance()
+        {
+            var cashRegister = await _context.CashRegisters
+                .Where(cr => !cr.IsClosed && cr.Status == "Open")
+                .FirstOrDefaultAsync();
 
-    public class SaleItemViewModel
-    {
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal TotalPrice { get; set; }
-    }
+            return cashRegister?.FinalValue ?? 0;
+        }
 
-    // ViewModel específico para PDV
-    public class PDVSaleViewModel
-    {
-        public decimal Total { get; set; }
-        public int? CustomerId { get; set; }
-        public int? ProfessionalId { get; set; }
-        public int PaymentMethodId { get; set; }
-        public List<PDVSaleItemViewModel> Items { get; set; } = new();
-    }
+        private async Task<bool> IsCashRegisterOpen()
+        {
+            return await _context.CashRegisters
+                .AnyAsync(cr => !cr.IsClosed && cr.Status == "Open");
+        }
 
-    public class PDVSaleItemViewModel
-    {
-        public int ProductId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal TotalPrice => Quantity * UnitPrice;
+        private async Task<List<CashMovement>> GetRecentMovements()
+        {
+            return await _context.CashMovements
+                .Include(cm => cm.CashRegister)
+                .OrderByDescending(cm => cm.Date)
+                .Take(10)
+                .ToListAsync();
+        }
+
+        private async Task<List<Product>> GetProductsForSale()
+        {
+            return await _context.Products
+                .Where(p => p.Stock > 0)
+                .Include(p => p.ProductCategory)
+                .ToListAsync();
+        }
+
+        private async Task<decimal> GetTotalEntradasHoje(DateTime hoje)
+        {
+            return await _context.CashMovements
+                .Where(c => c.Date.Date == hoje && c.Type == "Entrada")
+                .SumAsync(c => (decimal?)c.Amount) ?? 0;
+        }
+
+        private async Task<decimal> GetTotalSaidasHoje(DateTime hoje)
+        {
+            return await _context.CashMovements
+                .Where(c => c.Date.Date == hoje && c.Type == "Saída")
+                .SumAsync(c => (decimal?)c.Amount) ?? 0;
+        }
+
+        // API para dados do gráfico de fluxo de caixa
+        [HttpGet]
+        public IActionResult GetCashFlowData()
+        {
+            var hoje = DateTime.Today;
+            var ultimosDias = Enumerable.Range(0, 7)
+                .Select(i => hoje.AddDays(-i))
+                .OrderBy(d => d)
+                .ToList();
+
+            var data = ultimosDias.Select(dia => new {
+                Data = dia.ToString("dd/MM"),
+                Entradas = _context.CashMovements
+                    .Where(c => c.Date.Date == dia && c.Type == "Entrada")
+                    .Sum(c => (decimal?)c.Amount) ?? 0,
+                Saidas = _context.CashMovements
+                    .Where(c => c.Date.Date == dia && c.Type == "Saída")
+                    .Sum(c => (decimal?)c.Amount) ?? 0
+            }).ToList();
+
+            var labels = data.Select(d => d.Data).ToList();
+            var entradas = data.Select(d => d.Entradas).ToList();
+            var saidas = data.Select(d => d.Saidas).ToList();
+
+            // Saldo acumulado
+            var saldo = new List<decimal>();
+            decimal acumulado = 0;
+            foreach (var item in data)
+            {
+                acumulado += item.Entradas - item.Saidas;
+                saldo.Add(acumulado);
+            }
+
+            return Json(new { labels, entradas, saidas, saldo });
+        }
     }
 }

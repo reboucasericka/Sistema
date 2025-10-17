@@ -221,6 +221,10 @@ namespace Sistema.Migrations
                     b.Property<bool>("ExportedToPdf")
                         .HasColumnType("bit");
 
+                    b.Property<string>("GoogleEventId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -559,6 +563,39 @@ namespace Sistema.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Feedback", b =>
+                {
+                    b.Property<int>("FeedbackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.HasKey("FeedbackId");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Notification", b =>
@@ -1950,6 +1987,25 @@ namespace Sistema.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Sistema.Data.Entities.Feedback", b =>
+                {
+                    b.HasOne("Sistema.Data.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sistema.Data.Entities.Customer", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("Sistema.Data.Entities.Payable", b =>

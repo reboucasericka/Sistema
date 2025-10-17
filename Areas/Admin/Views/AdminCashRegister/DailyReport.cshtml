@@ -1,7 +1,7 @@
 @model Sistema.Data.Entities.CashRegister
 
 @{
-    ViewData["Title"] = "Relatório Diário do Caixa";
+    ViewData["Title"] = "Relatório Diário";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var movements = ViewBag.Movements as List<Sistema.Data.Entities.CashMovement>;
     var totalEntries = (decimal)ViewBag.TotalEntries;
@@ -11,10 +11,14 @@
 }
 
 <div class="content-header">
-    <h1><i class="fas fa-chart-bar me-2"></i>@ViewData["Title"]</h1>
-    <p class="text-muted">Visualize o relatório diário de movimentações do caixa</p>
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-file-invoice-dollar me-2"></i>@ViewData["Title"]</h1>
+        </div>
+    </div>
 </div>
-    <div class="container-fluid">
+
+<section class="content">
         <div class="row">
             <div class="col-12">
                 <div class="card">

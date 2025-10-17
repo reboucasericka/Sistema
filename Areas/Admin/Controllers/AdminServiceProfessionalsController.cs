@@ -19,6 +19,25 @@ namespace Sistema.Areas.Admin.Controllers
             _context = context;
         }
 
+        public async Task<IActionResult> Index()
+        {
+            var lista = await _context.ProfessionalServices
+                .Include(ps => ps.Professional)
+                .Include(ps => ps.Service)
+                .Select(ps => new
+                {
+                    Id = ps.ProfessionalServiceId,
+                    ProfessionalName = ps.Professional.Name,
+                    ServiceName = ps.Service.Name,
+                    Duration = ps.Service.Duration,
+                    Price = ps.Service.Price,
+                    Commission = ps.Commission
+                })
+                .ToListAsync();
+
+            return View(lista);
+        }
+
         public async Task<IActionResult> Edit(int serviceId)
         {
             var service = await _context.Services

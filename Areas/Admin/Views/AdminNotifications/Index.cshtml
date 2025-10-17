@@ -5,136 +5,139 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+<!-- Content Header -->
 <div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Notificações</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Notificações</li>
-                </ol>
-            </div>
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-bell me-2"></i>Notificações</h1>
         </div>
     </div>
 </div>
 
+<!-- Main Content -->
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Lista de Notificações</h3>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createNotificationModal">
-                                <i class="fas fa-plus"></i> Nova Notificação
-                            </button>
-                            <button type="button" class="btn btn-success btn-sm" id="markAllAsReadBtn">
-                                <i class="fas fa-check"></i> Marcar Todas como Lidas
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="notificationsTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Status</th>
-                                        <th>Tipo</th>
-                                        <th>Mensagem</th>
-                                        <th>Data</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var notification in Model)
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNotificationModal">
+                    <i class="fas fa-plus me-2"></i>Nova Notificação
+                </button>
+                <button type="button" class="btn btn-success" id="markAllAsReadBtn">
+                    <i class="fas fa-check me-2"></i>Marcar Todas como Lidas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Notificações
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="notificationsTable" class="table table-hover align-middle">
+                    <thead class="table-light text-uppercase small">
+                        <tr>
+                            <th><i class="fas fa-toggle-on me-1"></i>Status</th>
+                            <th><i class="fas fa-tag me-1"></i>Tipo</th>
+                            <th><i class="fas fa-comment me-1"></i>Mensagem</th>
+                            <th><i class="fas fa-calendar me-1"></i>Data</th>
+                            <th class="text-center"><i class="fas fa-cogs me-1"></i>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var notification in Model)
+                        {
+                            <tr class="@(notification.IsRead ? "" : "table-warning")">
+                                <td>
+                                    @if (notification.IsRead)
                                     {
-                                        <tr class="@(notification.IsRead ? "" : "table-warning")">
-                                            <td>
-                                                @if (notification.IsRead)
-                                                {
-                                                    <span class="badge badge-success">Lida</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge badge-warning">Não Lida</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @switch (notification.Type)
-                                                {
-                                                    case "info":
-                                                        <span class="badge badge-info">Informação</span>
-                                                        break;
-                                                    case "warning":
-                                                        <span class="badge badge-warning">Aviso</span>
-                                                        break;
-                                                    case "error":
-                                                        <span class="badge badge-danger">Erro</span>
-                                                        break;
-                                                    case "success":
-                                                        <span class="badge badge-success">Sucesso</span>
-                                                        break;
-                                                    default:
-                                                        <span class="badge badge-secondary">@notification.Type</span>
-                                                        break;
-                                                }
-                                            </td>
-                                            <td>@notification.Message</td>
-                                            <td>@notification.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="@Url.Action("Details", new { id = notification.NotificationId })" 
-                                                       class="btn btn-info btn-sm" title="Visualizar">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    @if (!notification.IsRead)
-                                                    {
-                                                        <button type="button" class="btn btn-success btn-sm mark-as-read-btn" 
-                                                                data-id="@notification.NotificationId" title="Marcar como Lida">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    }
-                                                    <a href="@Url.Action("Delete", new { id = notification.NotificationId })" 
-                                                       class="btn btn-danger btn-sm" title="Excluir">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Lida
+                                        </span>
                                     }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                                    else
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Não Lida
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (notification.Type)
+                                    {
+                                        case "info":
+                                            <span class="badge bg-info">Informação</span>
+                                            break;
+                                        case "warning":
+                                            <span class="badge bg-warning">Aviso</span>
+                                            break;
+                                        case "error":
+                                            <span class="badge bg-danger">Erro</span>
+                                            break;
+                                        case "success":
+                                            <span class="badge bg-success">Sucesso</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">@notification.Type</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 300px;" title="@notification.Message">
+                                        @notification.Message
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@notification.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a asp-action="Details" asp-route-id="@notification.NotificationId" 
+                                           class="btn btn-info btn-sm" title="Visualizar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (!notification.IsRead)
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm mark-as-read-btn" 
+                                                    data-id="@notification.NotificationId" title="Marcar como Lida">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        <a asp-action="Delete" asp-route-id="@notification.NotificationId" 
+                                           class="btn btn-danger btn-sm" title="Excluir">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Modal para Criar Notificação -->
-<div class="modal fade" id="createNotificationModal" tabindex="-1" role="dialog" aria-labelledby="createNotificationModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="createNotificationModal" tabindex="-1" aria-labelledby="createNotificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createNotificationModalLabel">Nova Notificação</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="Create" method="post">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="Message" class="control-label">Mensagem</label>
+                    <div class="mb-3">
+                        <label for="Message" class="form-label">Mensagem</label>
                         <textarea name="Message" class="form-control" rows="3" placeholder="Digite a mensagem da notificação..." required></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="Type" class="control-label">Tipo</label>
-                        <select name="Type" class="form-control" required>
+                    <div class="mb-3">
+                        <label for="Type" class="form-label">Tipo</label>
+                        <select name="Type" class="form-select" required>
                             <option value="">Selecione um tipo</option>
                             <option value="info">Informação</option>
                             <option value="warning">Aviso</option>
@@ -144,7 +147,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Criar Notificação</button>
                 </div>
             </form>

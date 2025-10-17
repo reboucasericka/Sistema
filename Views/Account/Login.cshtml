@@ -18,14 +18,14 @@
         </div>
 
         <!-- Formulário direita -->
-        <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <div class="auth-card w-100" style="max-width: 450px;">
+        <div class="col-md-6 d-flex align-items-center justify-content-start">
+            <div class="auth-card" style="width: 100%; max-width: 400px; margin-left: 40px;">
                 <div class="auth-header">
                     <h2><i class="fas fa-sign-in-alt me-2"></i>Entrar</h2>
                     <p>Acesse sua conta para continuar Views/Account/Login.cshtml</p>
                 </div>
 
-                <div class="p-4">
+                <div class="p-3">
                     <form asp-controller="Account" asp-action="Login" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
@@ -58,12 +58,16 @@
                         </div>
 
 
-                        <!--AQUI VAI PARA ONDE ?????-->
+                        <!-- Botões principais -->
                         <div class="d-grid gap-2 mb-3">
-                            <a asp-action="" class="btn btn-outline-primary">
-                                <i class="fas fa-user-plus me-1"></i>Cadastre-se aqui
-                            </a>    
                             <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                        </div>
+
+                        <!-- Link para registro -->
+                        <div class="text-center mt-3">
+                            <p class="mb-2">Não tem uma conta?</p>
+                            <a asp-area="Public" asp-controller="PublicAccount" asp-action="Register" class="btn btn-outline-primary"><i class="fas fa-user-plus me-1"></i>Cadastre-se aqui</a>
+
                         </div>
 
                         <!-- Login Social -->
@@ -80,13 +84,7 @@
                                 Google
                             </a>
                         </div>
-                        <!-- Link para registro -->
-                        <div class="text-center mt-3">
-                            <p class="mb-2">Não tem uma conta?</p>
-                            <a asp-action="Register" class="btn btn-outline-primary">
-                                <i class="fas fa-user-plus me-1"></i>Cadastre-se aqui
-                            </a>
-                        </div>
+                       
 
                     </form>
                 </div>

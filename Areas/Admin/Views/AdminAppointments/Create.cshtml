@@ -5,33 +5,25 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+<!-- Content Header -->
 <div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Novo Agendamento</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Agendamentos</a></li>
-                    <li class="breadcrumb-item active">Novo</li>
-                </ol>
-            </div>
-        </div>
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-calendar-alt me-2"></i>@ViewData["Title"]</h1>
+        </div>        
     </div>
 </div>
 
+<!-- Main Content -->
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Dados do Agendamento</h3>
-                    </div>
-                    <form asp-action="Create" method="post">
-                        <div class="card-body">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-calendar-plus me-2"></i>Dados do Agendamento
+            </h5>
+        </div>
+        <form asp-action="Create" method="post">
+            <div class="card-body">
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             
                             <div class="row">
@@ -106,20 +98,17 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Salvar
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Voltar
-                            </a>
-                        </div>
-                    </form>
-                </div>
             </div>
-        </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
+        </form>
     </div>
 </section>
 

@@ -1,386 +1,152 @@
 
+@model Sistema.Models.Admin.AdminReportsViewModel
 @{
-    ViewData["Title"] = "Relatórios Financeiros";
+    ViewData["Title"] = "Relatórios Administrativos";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="content-header">
-    <h1><i class="fas fa-chart-line me-2"></i>@ViewData["Title"]</h1>
-    <p class="text-muted">Análise detalhada da performance financeira da clínica</p>
-</div>
-
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-primary" onclick="exportToPDF()">
-                <i class="fas fa-file-pdf me-2"></i>PDF
-            </button>
-            <button type="button" class="btn btn-outline-success" onclick="exportToExcel()">
-                <i class="fas fa-file-excel me-2"></i>Excel
-            </button>
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-chart-line me-2"></i>Relatórios Administrativos</h1>
         </div>
+        
     </div>
 </div>
 
-    <!-- Filtros de Período -->
+<section class="content">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm border-start-success">
+                <div class="card-body">
+                    <h6 class="text-muted">Entradas</h6>
+                    <h3 class="fw-bold text-success">€@Model.TotalEntradas.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm border-start-danger">
+                <div class="card-body">
+                    <h6 class="text-muted">Saídas</h6>
+                    <h3 class="fw-bold text-danger">€@Model.TotalSaidas.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm border-start-primary">
+                <div class="card-body">
+                    <h6 class="text-muted">Saldo Atual</h6>
+                    <h3 class="fw-bold text-primary">€@Model.SaldoAtual.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico Financeiro -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-filter me-2"></i>Filtros de Período
-            </h5>
+        <div class="card-header bg-light">
+            <h5 class="m-0"><i class="fas fa-chart-bar me-2"></i>Fluxo Financeiro (7 dias)</h5>
         </div>
         <div class="card-body">
-            <form id="reportFilters" class="row g-3">
-                <div class="col-md-4">
-                    <label for="startDate" class="form-label">
-                        <i class="fas fa-calendar-alt me-1"></i>Data Início
-                    </label>
-                    <input type="date" id="startDate" class="form-control" value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")" />
-                </div>
-                <div class="col-md-4">
-                    <label for="endDate" class="form-label">
-                        <i class="fas fa-calendar-alt me-1"></i>Data Fim
-                    </label>
-                    <input type="date" id="endDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="button" class="btn btn-primary w-100" onclick="applyFilters()">
-                        <i class="fas fa-filter me-1"></i>Aplicar Filtros
-                    </button>
-                </div>
-            </form>
+            <canvas id="cashFlowChart" height="100"></canvas>
         </div>
     </div>
 
-    <!-- Cards de Relatórios -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>Vendas</h3>
-                    <p>Relatório de Vendas</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-bar"></i>
-                </div>
-                <a href="@Url.Action("SalesReport")" class="small-box-footer">
-                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
-                </a>
-            </div>
+    <!-- Serviços Mais Vendidos -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="m-0"><i class="fas fa-spa me-2"></i>Serviços Mais Realizados</h5>
         </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>Caixa</h3>
-                    <p>Fluxo de Caixa</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <a href="@Url.Action("CashFlowReport")" class="small-box-footer">
-                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>Comissões</h3>
-                    <p>Relatório de Comissões</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-percentage"></i>
-                </div>
-                <a href="@Url.Action("CommissionsReport")" class="small-box-footer">
-                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>Resumo</h3>
-                    <p>Resumo Financeiro</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-                <a href="@Url.Action("FinancialSummary")" class="small-box-footer">
-                    Ver Relatório <i class="fas fa-arrow-circle-right"></i>
-                </a>
-            </div>
+        <div class="card-body">
+            <ul class="list-group">
+                @foreach (var s in Model.ServicosMaisVendidos)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @s.Label
+                        <span class="badge bg-primary rounded-pill">@s.Value</span>
+                    </li>
+                }
+            </ul>
         </div>
     </div>
 
-    <!-- Gráficos em Tempo Real -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Vendas por Dia
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="salesChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-exchange-alt me-2"></i>Fluxo de Caixa
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="cashFlowChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Exportação -->
+    <!-- Relatório de Clientes -->
     <div class="card shadow-sm">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-download me-2"></i>Exportação de Relatórios
-            </h5>
+        <div class="card-header bg-light">
+            <h5 class="m-0"><i class="fas fa-users me-2"></i>Clientes</h5>
         </div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">Exportar para PDF</h6>
-                            <p class="text-muted mb-2">Gere relatórios em formato PDF para impressão ou arquivo.</p>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf me-1"></i>Exportar PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="fas fa-file-excel fa-2x text-success"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">Exportar para Excel</h6>
-                            <p class="text-muted mb-2">Gere planilhas em formato Excel para análise detalhada.</p>
-                            <button type="button" class="btn btn-success btn-sm" onclick="exportToExcel()">
-                                <i class="fas fa-file-excel me-1"></i>Exportar Excel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <p><strong>Total de Clientes:</strong> @Model.ClientesTotais</p>
+            <p><strong>Novos no último mês:</strong> @Model.ClientesNovos</p>
         </div>
     </div>
+
+    <!-- Botões de Exportação -->
+    <div class="text-end mt-4">
+        <a asp-action="ExportToPdf" class="btn btn-outline-danger me-2">
+            <i class="fas fa-file-pdf me-2"></i>Exportar Relatório PDF
+        </a>
+        <a asp-action="ExportToExcel" class="btn btn-outline-success">
+            <i class="fas fa-file-excel me-2"></i>Exportar Excel
+        </a>
+    </div>
+
+</section>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let salesChart, cashFlowChart;
+        document.addEventListener("DOMContentLoaded", async function () {
+            const ctx = document.getElementById("cashFlowChart").getContext("2d");
+            const response = await fetch("/Admin/AdminReports/GetCashFlowChartData");
+            const data = await response.json();
 
-        $(document).ready(function() {
-            loadCharts();
-        });
+            const labels = data.map(x => x.Day);
+            const entradas = data.map(x => x.Entradas);
+            const saidas = data.map(x => x.Saidas);
 
-        function applyFilters() {
-            loadCharts();
-        }
-
-        function loadCharts() {
-            var startDate = $('#startDate').val();
-            var endDate = $('#endDate').val();
-
-            // Carregar dados de vendas
-            $.get('@Url.Action("GetChartData")', { 
-                chartType: 'sales', 
-                startDate: startDate, 
-                endDate: endDate 
-            }, function(data) {
-                updateSalesChart(data);
-            });
-
-            // Carregar dados de fluxo de caixa
-            $.get('@Url.Action("GetChartData")', { 
-                chartType: 'cashflow', 
-                startDate: startDate, 
-                endDate: endDate 
-            }, function(data) {
-                updateCashFlowChart(data);
-            });
-        }
-
-        function updateSalesChart(data) {
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            
-            if (salesChart) {
-                salesChart.destroy();
-            }
-
-            salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(item => new Date(item.date).toLocaleDateString('pt-PT')),
-                    datasets: [{
-                        label: 'Vendas (€)',
-                        data: data.map(item => item.total),
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '€ ' + value.toFixed(2).replace('.', ',');
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateCashFlowChart(data) {
-            const ctx = document.getElementById('cashFlowChart').getContext('2d');
-            
-            if (cashFlowChart) {
-                cashFlowChart.destroy();
-            }
-
-            // Agrupar dados por data
-            const groupedData = {};
-            data.forEach(item => {
-                if (!groupedData[item.date]) {
-                    groupedData[item.date] = { entrada: 0, saida: 0 };
-                }
-                groupedData[item.date][item.type.toLowerCase()] = item.total;
-            });
-
-            const labels = Object.keys(groupedData).map(date => new Date(date).toLocaleDateString('pt-PT'));
-            const entradas = Object.values(groupedData).map(item => item.entrada);
-            const saidas = Object.values(groupedData).map(item => item.saida);
-
-            cashFlowChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Entradas',
+                            label: 'Entradas (€)',
                             data: entradas,
-                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                            borderColor: 'rgb(75, 192, 192)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)'
                         },
                         {
-                            label: 'Saídas',
+                            label: 'Saídas (€)',
                             data: saidas,
-                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                            borderColor: 'rgb(255, 99, 132)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)'
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '€ ' + value.toFixed(2).replace('.', ',');
-                                }
-                            }
+                            ticks: { stepSize: 50 }
                         }
                     }
                 }
             });
-        }
-
-        function exportToPDF() {
-            var startDate = $('#startDate').val();
-            var endDate = $('#endDate').val();
-            
-            // Criar um formulário para fazer o download
-            var form = $('<form>', {
-                'method': 'POST',
-                'action': '@Url.Action("ExportToPDF")',
-                'target': '_blank'
-            });
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'reportType',
-                'value': 'summary'
-            }));
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'startDate',
-                'value': startDate
-            }));
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'endDate',
-                'value': endDate
-            }));
-            
-            $('body').append(form);
-            form.submit();
-            form.remove();
-        }
-
-        function exportToExcel() {
-            var startDate = $('#startDate').val();
-            var endDate = $('#endDate').val();
-            
-            // Criar um formulário para fazer o download
-            var form = $('<form>', {
-                'method': 'POST',
-                'action': '@Url.Action("ExportToExcel")',
-                'target': '_blank'
-            });
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'reportType',
-                'value': 'summary'
-            }));
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'startDate',
-                'value': startDate
-            }));
-            
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'endDate',
-                'value': endDate
-            }));
-            
-            $('body').append(form);
-            form.submit();
-            form.remove();
-        }
+        });
     </script>
 }

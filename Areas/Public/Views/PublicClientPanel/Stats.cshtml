@@ -1,0 +1,254 @@
+@{
+    ViewData["Title"] = "O Meu Desempenho na Ewellin Jordão";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+}
+
+<!-- Título da Página -->
+<div class="page-header mb-4">
+    <h1 class="page-title">
+        <i class="bi bi-bar-chart me-3"></i>
+        O Meu Desempenho na Ewellin Jordão
+    </h1>
+    <p class="page-subtitle">Acompanhe suas estatísticas e evolução</p>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="stats-content">
+                <h3 id="totalAppointments">-</h3>
+                <p>Total de Agendamentos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="bi bi-currency-euro"></i>
+            </div>
+            <div class="stats-content">
+                <h3 id="totalSpent">-</h3>
+                <p>Total Gasto</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="stats-content">
+                <h3 id="averageFrequency">-</h3>
+                <p>Média de Frequência (dias)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="bi bi-star"></i>
+            </div>
+            <div class="stats-content">
+                <h3 id="averageRating">-</h3>
+                <p>Avaliação Média</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h5>
+                    <i class="bi bi-pie-chart me-2"></i>
+                    Serviços Mais Utilizados
+                </h5>
+            </div>
+            <div class="chart-body">
+                <canvas id="servicesChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h5>
+                    <i class="bi bi-bar-chart me-2"></i>
+                    Profissionais Mais Escolhidos
+                </h5>
+            </div>
+            <div class="chart-body">
+                <canvas id="professionalsChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo Adicional -->
+<div class="row">
+    <div class="col-12">
+        <div class="summary-card">
+            <div class="summary-header">
+                <h5>
+                    <i class="bi bi-info-circle me-2"></i>
+                    Resumo Detalhado
+                </h5>
+            </div>
+            <div class="summary-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">Agendamentos Concluídos:</span>
+                            <span class="summary-value" id="completedAppointments">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">Taxa de Conclusão:</span>
+                            <span class="summary-value" id="completionRate">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">Última Visita:</span>
+                            <span class="summary-value" id="lastVisit">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatsData();
+        });
+
+        async function loadStatsData() {
+            try {
+                const response = await fetch('/Public/PublicClientPanel/GetStatsData');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Erro ao carregar dados:', data.error);
+                    return;
+                }
+
+                // Atualizar cards de estatísticas
+                document.getElementById('totalAppointments').textContent = data.totalAppointments;
+                document.getElementById('totalSpent').textContent = new Intl.NumberFormat('pt-PT', {
+                    style: 'currency',
+                    currency: 'EUR'
+                }).format(data.totalSpent);
+                document.getElementById('averageFrequency').textContent = data.averageFrequency;
+                document.getElementById('averageRating').textContent = data.averageRating > 0 ? data.averageRating.toFixed(1) + ' ⭐' : 'N/A';
+
+                // Calcular taxa de conclusão
+                const completionRate = data.totalAppointments > 0 ? 
+                    ((data.completedAppointments / data.totalAppointments) * 100).toFixed(1) + '%' : '0%';
+                document.getElementById('completedAppointments').textContent = data.completedAppointments;
+                document.getElementById('completionRate').textContent = completionRate;
+
+                // Criar gráfico de serviços
+                createServicesChart(data.topServices);
+                
+                // Criar gráfico de profissionais
+                createProfessionalsChart(data.topProfessionals);
+
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        function createServicesChart(servicesData) {
+            const ctx = document.getElementById('servicesChart').getContext('2d');
+            
+            const colors = [
+                'rgba(201, 125, 93, 0.8)',   // --accent-terracotta
+                'rgba(217, 167, 145, 0.8)',  // --accent-peach
+                'rgba(138, 145, 109, 0.8)',  // --secondary-olive
+                'rgba(230, 198, 182, 0.8)',  // --primary-beige
+                'rgba(42, 49, 14, 0.8)'      // --neutral-dark
+            ];
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: servicesData.map(item => item.name),
+                    datasets: [{
+                        data: servicesData.map(item => item.count),
+                        backgroundColor: colors.slice(0, servicesData.length),
+                        borderColor: colors.slice(0, servicesData.length).map(color => color.replace('0.8', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createProfessionalsChart(professionalsData) {
+            const ctx = document.getElementById('professionalsChart').getContext('2d');
+            
+            const colors = [
+                'rgba(201, 125, 93, 0.8)',   // --accent-terracotta
+                'rgba(217, 167, 145, 0.8)',  // --accent-peach
+                'rgba(138, 145, 109, 0.8)',  // --secondary-olive
+                'rgba(230, 198, 182, 0.8)',  // --primary-beige
+                'rgba(42, 49, 14, 0.8)'      // --neutral-dark
+            ];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: professionalsData.map(item => item.name),
+                    datasets: [{
+                        label: 'Agendamentos',
+                        data: professionalsData.map(item => item.count),
+                        backgroundColor: colors.slice(0, professionalsData.length),
+                        borderColor: colors.slice(0, professionalsData.length).map(color => color.replace('0.8', '1')),
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

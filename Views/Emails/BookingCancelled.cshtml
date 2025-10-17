@@ -1,0 +1,218 @@
+@model Sistema.Data.Entities.Appointment
+@using System.Globalization
+
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O seu agendamento foi cancelado – Ewellin Jordão</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .appointment-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #dc3545;
+        }
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+        .detail-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 25px;
+            text-align: center;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+        .detail-value {
+            color: #333;
+            flex: 1;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f16e00 0%, #ff8c42 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #555;
+        }
+        .signature {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer .company-name {
+            font-weight: 600;
+            color: #f16e00;
+        }
+        @@media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .detail-label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <img src="https://localhost:7036/images/logo.png" alt="Ewellin Jordão" class="logo" />
+            <h1>Agendamento Cancelado</h1>
+            <p>O seu compromisso foi cancelado conforme solicitado</p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="content">
+            <div class="greeting">
+                Olá <strong>@Model.Customer.Name</strong>,
+            </div>
+
+            <div class="message">
+                Informamos que o seu agendamento foi cancelado conforme o seu pedido.
+            </div>
+
+            <!-- Detalhes do Agendamento Cancelado -->
+            <div class="appointment-details">
+                <div class="detail-row">
+                    <span class="detail-icon">💇</span>
+                    <span class="detail-label">Serviço:</span>
+                    <span class="detail-value">@Model.Service.Name</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">👩‍🎨</span>
+                    <span class="detail-label">Profissional:</span>
+                    <span class="detail-value">@Model.Professional.Name</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">❌</span>
+                    <span class="detail-label">Data e hora original:</span>
+                    <span class="detail-value">@Model.StartTime.ToString("dd/MM/yyyy HH:mm", new CultureInfo("pt-PT"))</span>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <p class="message">
+                    Se desejar reagendar, pode fazê-lo facilmente no seu painel:
+                </p>
+                <a href="https://localhost:7036/minhaarea/meuscompromissos" class="cta-button">
+                    Reagendar Serviço
+                </a>
+            </div>
+
+            <div class="message">
+                <strong>Esperamos vê-la novamente em breve! 💖</strong>
+            </div>
+
+            <!-- Assinatura -->
+            <div class="signature">
+                <p>Com carinho,<br><strong>Equipa Ewellin Jordão</strong></p>
+            </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><span class="company-name">© 2025 Ewellin Jordão</span> | Coimbra, Portugal</p>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+            <p>Para questões ou suporte, contacte-nos através dos nossos canais oficiais.</p>
+        </div>
+    </div>
+</body>
+</html>

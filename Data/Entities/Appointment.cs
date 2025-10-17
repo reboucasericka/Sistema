@@ -56,6 +56,9 @@ namespace Sistema.Data.Entities
         public bool ExportedToExcel { get; set; } = false; // Indica se o agendamento foi exportado para Excel
         public bool ExportedToPdf { get; set; } = false; // Indica se o agendamento foi exportado para PDF
 
+        [StringLength(100)]
+        public string? GoogleEventId { get; set; } // ID do evento no Google Calendar (para integração futura)
+
         // 🔗 Relação 1:N → um agendamento pode ter vários lembretes
         public ICollection<Reminder> Reminders { get; set; } // Navegação
     }

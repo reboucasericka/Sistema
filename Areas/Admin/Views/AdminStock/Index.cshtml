@@ -5,47 +5,40 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+<!-- Content Header -->
 <div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Controle de Estoque</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Estoque</li>
-                </ol>
-            </div>
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-box me-2"></i>@ViewData["Title"]</h1>
         </div>
     </div>
 </div>
 
+<!-- Main Content -->
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Produtos em Estoque</h3>
-                        <div class="card-tools">
-                            <a href="@Url.Action("Entry")" class="btn btn-success btn-sm">
-                                <i class="fas fa-plus"></i> Entrada
-                            </a>
-                            <a href="@Url.Action("Output")" class="btn btn-warning btn-sm">
-                                <i class="fas fa-minus"></i> Saída
-                            </a>
-                            <a href="@Url.Action("Adjust")" class="btn btn-info btn-sm">
-                                <i class="fas fa-edit"></i> Ajuste
-                            </a>
-                            <a href="@Url.Action("Movements")" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-history"></i> Movimentações
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="stockTable" class="table table-bordered table-striped">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-boxes me-2"></i>Produtos em Estoque
+            </h5>
+            <div class="card-tools">
+                <a asp-action="Entry" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Entrada
+                </a>
+                <a asp-action="Output" class="btn btn-warning btn-sm">
+                    <i class="fas fa-minus me-1"></i>Saída
+                </a>
+                <a asp-action="Adjust" class="btn btn-info btn-sm">
+                    <i class="fas fa-edit me-1"></i>Ajuste
+                </a>
+                <a asp-action="Movements" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-history me-1"></i>Movimentações
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="stockTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
                                         <th>Produto</th>
@@ -124,14 +117,11 @@
                                             </td>
                                         </tr>
                                     }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 </section>
 
 @section Scripts {

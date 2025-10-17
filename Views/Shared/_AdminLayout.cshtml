@@ -62,9 +62,21 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
                         <li><a class="dropdown-item" href="/Admin/AdminServices">Serviços</a></li>
-                        <li><a class="dropdown-item" href="/Admin/AdminServiceProfessionals">Por Profissional</a></li>
+                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="AdminServiceProfessionals" asp-action="Index">Por Profissional</a></li>
                     </ul>
                 </li>
+
+                <!-- Dropdown: CAIXA -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                        <i class="fas fa-concierge-bell me-1"></i>CAIXA
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/Admin/AdminCashRegister"><i class="fas fa-cash-register me-1"></i>Caixa</a></li>
+                    </ul>
+                </li>
+
+
 
                 <!-- Dropdown: Financeiro -->
                 <li class="nav-item dropdown">
@@ -74,9 +86,7 @@
                     <ul class="dropdown-menu dropdown-menu-dark">
                         <li><a class="dropdown-item" href="/Admin/AdminReceivables"><i class="fas fa-arrow-down me-1"></i>Recebimentos</a></li>
                         <li><a class="dropdown-item" href="/Admin/AdminPayables"><i class="fas fa-arrow-up me-1"></i>Pagamentos</a></li>
-                        <li><a class="dropdown-item" href="/Admin/AdminCashMovements"><i class="fas fa-exchange-alt me-1"></i>Movimentações</a></li>
-                        <li><a class="dropdown-item" href="/Admin/AdminCashRegister"><i class="fas fa-cash-register me-1"></i>Caixa</a></li>
-                        <li><a class="dropdown-item" href="/Admin/AdminCashRegister/Index"><i class="fas fa-shopping-cart me-1"></i>PDV</a></li>
+                        <li><a class="dropdown-item" href="/Admin/AdminCashMovements"><i class="fas fa-exchange-alt me-1"></i>Movimentações</a></li>                                             
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/Admin/AdminReports"><i class="fas fa-chart-bar me-1"></i>Relatórios</a></li>
                     </ul>

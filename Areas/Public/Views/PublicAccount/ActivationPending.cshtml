@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Verificar E-mail";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-envelope-open-text text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="text-primary mb-4">Verifique seu e-mail 📬</h2>
+                    
+                    <div class="alert alert-info">
+                        <p class="mb-3">Enviamos um link de ativação para:</p>
+                        <p class="h5 text-primary"><strong>@TempData["UserEmail"]</strong></p>
+                    </div>
+                    
+                    <p class="lead mb-4">
+                        Clique no link do e-mail para confirmar sua conta e começar a agendar seus serviços.
+                    </p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> Verifique também a pasta de spam/lixo eletrônico.
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="/Account/Login" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Ir para o Login
+                        </a>
+                        <a href="/Public/PublicAccount/Register" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar ao Registro
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

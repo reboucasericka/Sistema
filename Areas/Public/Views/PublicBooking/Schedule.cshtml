@@ -56,17 +56,13 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label asp-for="SelectedTime" class="form-label"></label>
-                                    <select asp-for="SelectedTime" class="form-control">
-                                        <option value="">Selecione um horário</option>
-                                        @if (ViewBag.AvailableTimes != null)
-                                        {
-                                            @foreach (var time in ViewBag.AvailableTimes as List<string>)
-                                            {
-                                                <option value="@time">@time</option>
-                                            }
-                                        }
+                                    <select asp-for="SelectedTime" class="form-control" id="timeSelect" disabled>
+                                        <option value="">Selecione primeiro a data e o profissional</option>
                                     </select>
                                     <span asp-validation-for="SelectedTime" class="text-danger"></span>
+                                    <div id="loadingSlots" class="text-muted small mt-1" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i> Carregando horários disponíveis...
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +78,7 @@
                                             <div class="card">
                                                 <div class="card-body p-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="ProfessionalId" value="@professional.ProfessionalId" id="professional_@professional.ProfessionalId">
+                                                        <input class="form-check-input professional-radio" type="radio" name="ProfessionalId" value="@professional.ProfessionalId" id="professional_@professional.ProfessionalId">
                                                         <label class="form-check-label" for="professional_@professional.ProfessionalId">
                                                             <div class="d-flex align-items-center">
                                                                 @if (professional.ImageId != Guid.Empty)
@@ -131,10 +127,102 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        // Atualizar horários disponíveis quando a data mudar
+        let selectedProfessionalId = null;
+        let selectedDate = null;
+
+        // Event listeners para data e profissional
         document.getElementById('SelectedDate').addEventListener('change', function() {
-            // Aqui você pode implementar lógica para carregar horários disponíveis
-            // baseados na data selecionada
+            selectedDate = this.value;
+            loadAvailableSlots();
+        });
+
+        document.querySelectorAll('.professional-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedProfessionalId = this.value;
+                    loadAvailableSlots();
+                }
+            });
+        });
+
+        function loadAvailableSlots() {
+            const timeSelect = document.getElementById('timeSelect');
+            const loadingSlots = document.getElementById('loadingSlots');
+
+            // Verificar se temos data e profissional selecionados
+            if (!selectedDate || !selectedProfessionalId) {
+                timeSelect.disabled = true;
+                timeSelect.innerHTML = '<option value="">Selecione primeiro a data e o profissional</option>';
+                return;
+            }
+
+            // Mostrar loading
+            loadingSlots.style.display = 'block';
+            timeSelect.disabled = true;
+            timeSelect.innerHTML = '<option value="">Carregando...</option>';
+
+            // Fazer requisição AJAX
+            fetch(`@Url.Action("GetAvailableSlots")?professionalId=${selectedProfessionalId}&serviceId=${@Model.ServiceId}&date=${selectedDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    loadingSlots.style.display = 'none';
+                    
+                    if (data.success && data.slots.length > 0) {
+                        timeSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                        data.slots.forEach(slot => {
+                            const option = document.createElement('option');
+                            option.value = slot.time;
+                            option.textContent = slot.time;
+                            timeSelect.appendChild(option);
+                        });
+                        timeSelect.disabled = false;
+                    } else {
+                        timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
+                        timeSelect.disabled = true;
+                        
+                        if (data.message) {
+                            showAlert('info', data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    loadingSlots.style.display = 'none';
+                    timeSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+                    timeSelect.disabled = true;
+                    console.error('Erro ao carregar horários:', error);
+                    showAlert('danger', 'Erro ao carregar horários disponíveis. Tente novamente.');
+                });
+        }
+
+        function showAlert(type, message) {
+            // Criar alerta Bootstrap
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Inserir no topo do formulário
+            const form = document.querySelector('form');
+            form.insertBefore(alertDiv, form.firstChild);
+            
+            // Remover automaticamente após 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Validação do formulário
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const timeSelect = document.getElementById('timeSelect');
+            if (!timeSelect.value) {
+                e.preventDefault();
+                showAlert('warning', 'Por favor, selecione um horário disponível.');
+                return false;
+            }
         });
     </script>
 }

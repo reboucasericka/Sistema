@@ -1,0 +1,410 @@
+@{
+    ViewData["Title"] = "Minha Área - Painel do Cliente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-calendar-alt"></i>
+                                Minha Área
+                            </h2>
+                            <p class="mb-0 opacity-75">Bem-vindo, @ViewBag.CustomerName!</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="MyAppointments" class="btn btn-light btn-sm">
+                                <i class="fas fa-list"></i> Meus Compromissos
+                            </a>
+                            <a asp-controller="PublicBooking" asp-action="Index" class="btn btn-warning btn-sm">
+                                <i class="fas fa-plus"></i> Novo Agendamento
+                            </a>
+                            <button class="btn btn-outline-light btn-sm" onclick="linkGoogleCalendar()">
+                                <i class="fab fa-google"></i> Google Calendar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar com Filtros -->
+        <div class="col-md-3 col-lg-2">
+            @await Html.PartialAsync("_SidebarFilters")
+        </div>
+
+        <!-- Área Principal -->
+        <div class="col-md-9 col-lg-10">
+
+            <!-- Calendário -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar"></i> Calendário de Agendamentos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="calendar" style="min-height: 500px;"></div>
+                </div>
+            </div>
+
+            <!-- Serviços Disponíveis -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-concierge-bell"></i> Serviços Disponíveis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="services-container" class="row">
+                        <!-- Loading spinner -->
+                        <div class="col-12 text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Carregando serviços...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes do Agendamento -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Agendamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="appointment-details">
+                    <!-- Conteúdo será preenchido via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-danger" id="cancel-appointment-btn" style="display: none;">
+                    <i class="fas fa-times"></i> Cancelar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/pt-br.global.min.js"></script>
+
+    <script>
+        let calendar;
+        let currentAppointmentId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCalendar();
+            loadServices();
+            setupEventListeners();
+        });
+
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: function(info, successCallback, failureCallback) {
+                    fetch('@Url.Action("GetCalendarData")')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                console.error('Erro ao carregar eventos:', data.error);
+                                failureCallback(data.error);
+                            } else {
+                                successCallback(data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro na requisição:', error);
+                            failureCallback(error);
+                        });
+                },
+                eventClick: function(info) {
+                    showAppointmentDetails(info.event);
+                },
+                eventDidMount: function(info) {
+                    // Adicionar tooltip com informações do agendamento
+                    info.el.setAttribute('title', 
+                        `${info.event.title}\nProfissional: ${info.event.extendedProps.professional}\nPreço: €${info.event.extendedProps.price}\nStatus: ${info.event.extendedProps.status}`
+                    );
+                }
+            });
+
+            calendar.render();
+        }
+
+        function showAppointmentDetails(event) {
+            const details = `
+                <div class="row">
+                    <div class="col-12">
+                        <h6><strong>${event.title}</strong></h6>
+                        <p class="text-muted">${event.extendedProps.description || 'Sem descrição'}</p>
+                        
+                        <dl class="row">
+                            <dt class="col-sm-4">Data:</dt>
+                            <dd class="col-sm-8">${event.start.toLocaleDateString('pt-PT')}</dd>
+                            
+                            <dt class="col-sm-4">Horário:</dt>
+                            <dd class="col-sm-8">${event.start.toLocaleTimeString('pt-PT', {hour: '2-digit', minute: '2-digit'})}</dd>
+                            
+                            <dt class="col-sm-4">Duração:</dt>
+                            <dd class="col-sm-8">${event.extendedProps.duration || 'Não informado'}</dd>
+                            
+                            <dt class="col-sm-4">Profissional:</dt>
+                            <dd class="col-sm-8">${event.extendedProps.professional}</dd>
+                            
+                            <dt class="col-sm-4">Preço:</dt>
+                            <dd class="col-sm-8">€${event.extendedProps.price}</dd>
+                            
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-${getStatusBadgeClass(event.extendedProps.status)}">
+                                    ${event.extendedProps.status}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('appointment-details').innerHTML = details;
+            
+            // Mostrar botão de cancelar apenas se o status permitir
+            const cancelBtn = document.getElementById('cancel-appointment-btn');
+            if (event.extendedProps.status.toLowerCase() === 'agendado' || 
+                event.extendedProps.status.toLowerCase() === 'scheduled') {
+                cancelBtn.style.display = 'inline-block';
+                currentAppointmentId = event.id;
+            } else {
+                cancelBtn.style.display = 'none';
+                currentAppointmentId = null;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status.toLowerCase()) {
+                case 'agendado':
+                case 'scheduled':
+                    return 'primary';
+                case 'confirmado':
+                case 'confirmed':
+                    return 'success';
+                case 'cancelado':
+                case 'canceled':
+                    return 'danger';
+                case 'concluído':
+                case 'completed':
+                    return 'info';
+                default:
+                    return 'secondary';
+            }
+        }
+
+        function loadServices() {
+            fetch('@Url.Action("GetServices")')
+                .then(response => response.json())
+                .then(services => {
+                    const container = document.getElementById('services-container');
+                    container.innerHTML = '';
+
+                    if (services.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Nenhum serviço encontrado</h5>
+                                    <p class="text-muted">Tente ajustar os filtros ou entre em contato conosco.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    services.forEach(service => {
+                        const serviceCard = createServiceCard(service);
+                        container.appendChild(serviceCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar serviços:', error);
+                    document.getElementById('services-container').innerHTML = 
+                        '<div class="col-12"><div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar serviços. Tente novamente.</div></div>';
+                });
+        }
+
+        function createServiceCard(service) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-3';
+
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">${service.name}</h6>
+                            <span class="badge bg-primary">${service.category}</span>
+                        </div>
+                        <p class="card-text text-muted small mb-3">${service.description || 'Sem descrição'}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> ${service.duration}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-success fs-5">€${parseFloat(service.price).toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <a href="@Url.Action("Schedule", "PublicBooking")/${service.id}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-calendar-plus"></i> Agendar
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            return col;
+        }
+
+        function setupEventListeners() {
+            // Botão de cancelar agendamento
+            document.getElementById('cancel-appointment-btn').addEventListener('click', function() {
+                if (currentAppointmentId) {
+                    cancelAppointment(currentAppointmentId);
+                }
+            });
+
+            // Filtros da sidebar
+            document.getElementById('filter-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                applyFilters();
+            });
+
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                clearFilters();
+            });
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                return;
+            }
+
+            fetch(`@Url.Action("CancelAppointment")/${appointmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    calendar.refetchEvents();
+                    bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao cancelar agendamento:', error);
+                alert('Erro ao cancelar agendamento. Tente novamente.');
+            });
+        }
+
+        function applyFilters() {
+            const formData = new FormData(document.getElementById('filter-form'));
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) params.append(key, value);
+            }
+
+            fetch(`@Url.Action("GetServices")?${params.toString()}`)
+                .then(response => response.json())
+                .then(services => {
+                    const container = document.getElementById('services-container');
+                    container.innerHTML = '';
+
+                    services.forEach(service => {
+                        const serviceCard = createServiceCard(service);
+                        container.appendChild(serviceCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao aplicar filtros:', error);
+                });
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-form').reset();
+            loadServices();
+        }
+
+        function linkGoogleCalendar() {
+            // Exportar agendamentos para Google Calendar
+            fetch('@Url.Action("ExportToGoogleCalendar")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Criar URL do Google Calendar com os eventos
+                        const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+                        const events = data.appointments;
+                        
+                        if (events.length === 0) {
+                            alert('Você não possui agendamentos para exportar.');
+                            return;
+                        }
+
+                        // Para múltiplos eventos, vamos criar um link para o primeiro e mostrar opções
+                        const firstEvent = events[0];
+                        const googleUrl = `${baseUrl}&text=${encodeURIComponent(firstEvent.title)}&dates=${firstEvent.start}/${firstEvent.end}&details=${encodeURIComponent(firstEvent.description)}&location=${encodeURIComponent(firstEvent.location)}`;
+                        
+                        if (confirm(`Você possui ${events.length} agendamento(s). Deseja abrir o Google Calendar para adicionar o primeiro evento?`)) {
+                            window.open(googleUrl, '_blank');
+                        }
+                    } else {
+                        alert('Erro ao exportar agendamentos: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao exportar para Google Calendar:', error);
+                    alert('Erro ao exportar agendamentos. Tente novamente.');
+                });
+        }
+    </script>
+}
+
+<!-- Token para CSRF -->
+@Html.AntiForgeryToken()

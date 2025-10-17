@@ -1,476 +1,760 @@
+@model Sistema.Models.Admin.CashRegisterViewModel
+
 @{
-    ViewData["Title"] = "Caixa (PDV)";
+    ViewData["Title"] = "Caixa";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0"><i class="fas fa-cash-register me-2"></i>Caixa (PDV)</h4>
-        <div class="d-flex gap-2">
-            <a href="/Admin/AdminCashRegister" class="btn btn-outline-secondary">
-                <i class="fas fa-list me-1"></i>Histórico de Caixas
-            </a>
-            <a href="/Admin/AdminCashRegister/Open" class="btn btn-success">
-                <i class="fas fa-plus me-1"></i>Abrir Caixa
-            </a>
+<!-- Content Header -->
+<div class="content-header">
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0"><i class="fas fa-cash-register me-2"></i>Caixa (PDV)</h1>
+        </div>        
+    </div>
+</div>
+
+<!-- Cards Financeiros de Resumo -->
+<section class="content mb-4">
+    <div class="row text-center">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-arrow-up me-2"></i>Entradas Hoje
+                    </h5>
+                    <h3>€@Model.TotalEntradasHoje.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-arrow-down me-2"></i>Saídas Hoje
+                    </h5>
+                    <h3>€@Model.TotalSaidasHoje.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-wallet me-2"></i>Saldo Atual
+                    </h5>
+                    <h3>€@Model.SaldoAtual.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gráfico de Fluxo de Caixa -->
+<section class="content mb-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="m-0">
+                <i class="fas fa-chart-line me-2 text-primary"></i>Fluxo de Caixa - Últimos 7 Dias
+            </h5>
+        </div>
+        <div class="card-body">
+            <canvas id="fluxoCaixaChart" height="120"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- PDV - Sistema de Vendas -->
+<section class="content mb-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="m-0">
+                <i class="fas fa-store me-2 text-secondary"></i>Ponto de Venda (PDV)
+            </h5>
+        </div>
+        <div class="card-body">
+            @Html.Partial("_PDVPartial")
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="content">
+    <!-- Status do Caixa -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="fas fa-cash-register me-2"></i>Status do Caixa
+                    </h5>
+                    @if (Model.IsOpen)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>Caixa Aberto
+                        </div>
+                        <h4 class="text-success">Saldo: €@Model.CurrentBalance.ToString("N2")</h4>
+                        <button id="closeCashBtn" class="btn btn-danger">
+                            <i class="fas fa-lock me-2"></i>Fechar Caixa
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-lock me-2"></i>Caixa Fechado
+                        </div>
+                        <button id="openCashBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#openCashModal">
+                            <i class="fas fa-unlock me-2"></i>Abrir Caixa
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="fas fa-tools me-2"></i>Ações Rápidas
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newSaleModal" @(Model.IsOpen ? "" : "disabled")>
+                            <i class="fas fa-plus me-2"></i>Nova Venda
+                        </button>
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addMovementModal" @(Model.IsOpen ? "" : "disabled")>
+                            <i class="fas fa-exchange-alt me-2"></i>Movimentação
+                        </button>
+                        <button class="btn btn-outline-secondary" data-bs-toggle="offcanvas" data-bs-target="#calcCaixa">
+                            <i class="fas fa-calculator me-2"></i>Calculadora
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Área de Busca de Produtos -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-barcode me-2"></i>Buscar Produto</h5>
-                </div>
-                <div class="card-body">
-                    <div class="input-group mb-3">
-                        <input type="text" id="barcodeInput" class="form-control form-control-lg" 
-                               placeholder="Digite ou escaneie o código de barras" 
-                               autocomplete="off" />
-                        <button id="addProductBtn" class="btn btn-primary btn-lg">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                    
-                    <div id="productInfo" class="alert alert-info d-none">
-                        <h6 class="mb-1">Produto Encontrado:</h6>
-                        <p class="mb-1"><strong>Nome:</strong> <span id="productName"></span></p>
-                        <p class="mb-1"><strong>Preço:</strong> <span id="productPrice"></span> €</p>
-                        <p class="mb-0"><strong>Estoque:</strong> <span id="productStock"></span> unidades</p>
-                    </div>
-
-                    <div id="productError" class="alert alert-danger d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <span id="errorMessage"></span>
-                    </div>
-                </div>
+    <!-- PDV - Sistema de Vendas -->
+    @if (Model.IsOpen)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shopping-cart me-2"></i>Sistema de Vendas (PDV)
+                </h5>
             </div>
-
-            <!-- Informações do Caixa -->
-            <div class="card shadow-sm mt-3">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Status do Caixa</h6>
+            <div class="card-body">
+                <!-- Campo de busca de produto -->
+                <div class="input-group mb-3">
+                    <input type="text" id="barcodeInput" class="form-control" placeholder="Digite ou escaneie o código de barras" />
+                    <button id="addProductBtn" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Adicionar
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div id="cashRegisterStatus">
-                        <p class="text-muted mb-0">Carregando status do caixa...</p>
-                    </div>
+
+                <!-- Tabela de itens -->
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle" id="pdvTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Preço Unitário</th>
+                                <th>Total</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <h5 class="mb-0">Total: <span id="totalValue" class="fw-bold text-success">0.00 €</span></h5>
+                    <button id="checkoutBtn" class="btn btn-success">
+                        <i class="fas fa-credit-card me-2"></i>Finalizar Venda
+                    </button>
                 </div>
             </div>
         </div>
+    }
 
-        <!-- Área de Venda -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Carrinho de Vendas</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle" id="pdvTable">
-                            <thead class="table-dark">
+    <!-- Movimentações Recentes -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Movimentações Recentes
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.RecentMovements.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Descrição</th>
+                                <th>Operador</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var movement in Model.RecentMovements)
+                            {
                                 <tr>
-                                    <th width="40%">Produto</th>
-                                    <th width="15%">Qtd</th>
-                                    <th width="20%">Preço Unit.</th>
-                                    <th width="20%">Total</th>
-                                    <th width="5%"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="cartTableBody">
-                                <tr id="emptyCart">
-                                    <td colspan="5" class="text-center text-muted py-4">
-                                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
-                                        <br>Carrinho vazio. Adicione produtos para começar a venda.
+                                    <td>@movement.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge @(movement.Type == "Entrada" ? "bg-success" : "bg-danger")">
+                                            @movement.Type
+                                        </span>
                                     </td>
+                                    <td class="fw-bold @(movement.Type == "Entrada" ? "text-success" : "text-danger")">
+                                        €@movement.Amount.ToString("N2")
+                                    </td>
+                                    <td>@movement.Description</td>
+                                    <td>@movement.CashRegister?.UserAbertura?.Email</td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma movimentação encontrada</h5>
+                    <p class="text-muted">As movimentações aparecerão aqui conforme forem registradas.</p>
+                </div>
+            }
+        </div>
+    </div>
 
-                    <div class="row mt-3">
-                        <div class="col-md-8">
-                            <div class="d-flex gap-2">
-                                <button id="clearCartBtn" class="btn btn-outline-warning">
-                                    <i class="fas fa-trash me-1"></i>Limpar Carrinho
-                                </button>
-                                <button id="applyDiscountBtn" class="btn btn-outline-info">
-                                    <i class="fas fa-percentage me-1"></i>Desconto
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-end">
-                                <h4 class="mb-0">
-                                    Total: <span id="totalValue" class="text-success">0,00</span> €
-                                </h4>
-                            </div>
-                        </div>
-                    </div>
+</section>
 
-                    <hr>
-
-                    <div class="d-grid gap-2">
-                        <button id="checkoutBtn" class="btn btn-success btn-lg" disabled>
-                            <i class="fas fa-credit-card me-2"></i>Finalizar Venda
-                        </button>
+<!-- Modal: Abrir Caixa -->
+<div class="modal fade" id="openCashModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-unlock me-2"></i>Abrir Caixa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="openCashForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Valor Inicial do Caixa</label>
+                        <input type="number" id="initialAmount" class="form-control" step="0.01" min="0" value="0.00" required>
+                        <div class="form-text">Digite o valor inicial para abertura do caixa.</div>
                     </div>
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-unlock me-2"></i>Abrir Caixa
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modal de Finalização de Venda -->
-<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<!-- Modal: Nova Venda -->
+<div class="modal fade" id="newSaleModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="checkoutModalLabel">
-                    <i class="fas fa-credit-card me-2"></i>Finalizar Venda
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shopping-cart me-2"></i>Nova Venda
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Resumo da Venda</h6>
-                        <div id="saleSummary" class="border rounded p-3 bg-light">
-                            <!-- Resumo será preenchido via JavaScript -->
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Informações de Pagamento</h6>
-                        <div class="mb-3">
-                            <label class="form-label">Método de Pagamento</label>
-                            <select id="paymentMethod" class="form-select" required>
-                                <option value="">Selecione...</option>
-                                <option value="1">Dinheiro</option>
-                                <option value="2">Cartão de Débito</option>
-                                <option value="3">Cartão de Crédito</option>
-                                <option value="4">Transferência</option>
+            <form id="newSaleForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Produto</label>
+                            <select id="productSelect" class="form-select" required>
+                                <option value="">Selecione um produto</option>
+                                @foreach (var product in Model.Products)
+                                {
+                                    <option value="@product.ProductId" data-price="@product.SalePrice" data-stock="@product.Stock">
+                                        @product.Name - €@product.SalePrice.ToString("N2") (Estoque: @product.Stock)
+                                    </option>
+                                }
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cliente (Opcional)</label>
-                            <input type="text" id="customerName" class="form-control" placeholder="Nome do cliente">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Quantidade</label>
+                            <input type="number" id="quantity" class="form-control" min="1" value="1" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Valor Unitário</label>
+                            <input type="text" id="unitPrice" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total</label>
+                            <input type="text" id="totalPrice" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Estoque Disponível</label>
+                            <input type="text" id="availableStock" class="form-control" readonly>
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Registrar Venda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adicionar Movimentação -->
+<div class="modal fade" id="addMovementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>Nova Movimentação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="confirmSaleBtn" class="btn btn-success">
-                    <i class="fas fa-check me-1"></i>Confirmar Venda
-                </button>
+            <form id="addMovementForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select id="movementType" class="form-select" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="Entrada">Entrada</option>
+                            <option value="Saída">Saída</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Valor</label>
+                        <input type="number" id="movementAmount" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea id="movementDescription" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Adicionar Movimentação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Calculadora Offcanvas -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="calcCaixa">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <i class="fas fa-calculator me-2"></i>Calculadora
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <input type="text" id="calcDisplay" class="form-control mb-3" readonly />
+        <div class="d-grid gap-2">
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="calcInput('7')">7</button>
+                <button class="btn btn-secondary" onclick="calcInput('8')">8</button>
+                <button class="btn btn-secondary" onclick="calcInput('9')">9</button>
+                <button class="btn btn-danger" onclick="calcClear()">C</button>
             </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="calcInput('4')">4</button>
+                <button class="btn btn-secondary" onclick="calcInput('5')">5</button>
+                <button class="btn btn-secondary" onclick="calcInput('6')">6</button>
+                <button class="btn btn-primary" onclick="calcInput('/')">÷</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="calcInput('1')">1</button>
+                <button class="btn btn-secondary" onclick="calcInput('2')">2</button>
+                <button class="btn btn-secondary" onclick="calcInput('3')">3</button>
+                <button class="btn btn-primary" onclick="calcInput('*')">×</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="calcInput('0')">0</button>
+                <button class="btn btn-secondary" onclick="calcInput('.')">.</button>
+                <button class="btn btn-success" onclick="calcEqual()">=</button>
+                <button class="btn btn-primary" onclick="calcInput('-')">−</button>
+            </div>
+            <button class="btn btn-primary w-100 mt-2" onclick="calcInput('+')">+</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
-$(document).ready(function() {
-    let cart = [];
+$(function(){
     let total = 0;
-    let cashRegisterStatus = null;
+    const tableBody = $('#pdvTable tbody');
 
-    // Carregar status do caixa
-    loadCashRegisterStatus();
+    // Abrir Caixa
+    $('#openCashForm').submit(function(e){
+        e.preventDefault();
+        const initialAmount = parseFloat($('#initialAmount').val());
+        
+        $.ajax({
+            url: '/Admin/AdminCashRegister/OpenCashRegister',
+            type: 'POST',
+            data: { initialAmount: initialAmount },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Erro ao abrir caixa.');
+            }
+        });
+    });
 
-    // Event listeners
-    $('#barcodeInput').on('keypress', function(e) {
-        if (e.which === 13) { // Enter
-            e.preventDefault();
-            addProductToCart();
+    // Fechar Caixa
+    $('#closeCashBtn').click(function(){
+        if (confirm('Tem certeza que deseja fechar o caixa?')) {
+            $.ajax({
+                url: '/Admin/AdminCashRegister/CloseCashRegister',
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao fechar caixa.');
+                }
+            });
         }
     });
 
-    $('#addProductBtn').click(addProductToCart);
-    $('#checkoutBtn').click(showCheckoutModal);
-    $('#confirmSaleBtn').click(finalizeSale);
-    $('#clearCartBtn').click(clearCart);
+    // Adicionar produto por código de barras
+    $('#addProductBtn').click(function(){
+        const barcode = $('#barcodeInput').val();
+        if (!barcode) return;
 
-    // Função para carregar status do caixa
-    function loadCashRegisterStatus() {
-        $.get('/Admin/AdminCashRegister/GetOpenRegister')
-            .done(function(data) {
-                if (data.exists) {
-                    cashRegisterStatus = data;
-                    $('#cashRegisterStatus').html(`
-                        <div class="text-success">
-                            <i class="fas fa-check-circle me-1"></i>
-                            <strong>Caixa Aberto</strong>
-                        </div>
-                        <small class="text-muted">
-                            Aberto por: ${data.openingUser}<br>
-                            Saldo atual: ${data.saldoAtual.toFixed(2)} €
-                        </small>
-                    `);
-                } else {
-                    $('#cashRegisterStatus').html(`
-                        <div class="text-danger">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
-                            <strong>Caixa Fechado</strong>
-                        </div>
-                        <small class="text-muted">Abra um caixa para realizar vendas</small>
-                    `);
-                    $('#checkoutBtn').prop('disabled', true);
-                }
-            })
-            .fail(function() {
-                $('#cashRegisterStatus').html(`
-                    <div class="text-danger">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        <strong>Erro ao carregar status</strong>
-                    </div>
-                `);
-            });
-    }
-
-    // Função para adicionar produto ao carrinho
-    function addProductToCart() {
-        const barcode = $('#barcodeInput').val().trim();
-        if (!barcode) {
-            showError('Digite um código de barras');
-            return;
-        }
-
-        $.get('/Admin/AdminCashRegister/GetProductByBarcode', { barcode: barcode })
-            .done(function(product) {
-                hideMessages();
-                showProductInfo(product);
-                
-                // Verificar se produto já está no carrinho
-                const existingItem = cart.find(item => item.ProductId === product.id);
-                if (existingItem) {
-                    existingItem.Quantity += 1;
-                } else {
-                    cart.push({
-                        ProductId: product.id,
-                        Name: product.name,
-                        Quantity: 1,
-                        UnitPrice: product.price,
-                        Barcode: product.barcode
-                    });
-                }
-                
-                updateCartDisplay();
-                $('#barcodeInput').val('').focus();
-            })
-            .fail(function(xhr) {
-                if (xhr.status === 404) {
-                    showError('Produto não encontrado ou sem estoque');
-                } else {
-                    showError('Erro ao buscar produto');
-                }
-            });
-    }
-
-    // Função para mostrar informações do produto
-    function showProductInfo(product) {
-        $('#productName').text(product.name);
-        $('#productPrice').text(product.price.toFixed(2));
-        $('#productStock').text(product.stockQuantity);
-        $('#productInfo').removeClass('d-none');
-    }
-
-    // Função para mostrar erro
-    function showError(message) {
-        $('#errorMessage').text(message);
-        $('#productError').removeClass('d-none');
-    }
-
-    // Função para esconder mensagens
-    function hideMessages() {
-        $('#productInfo').addClass('d-none');
-        $('#productError').addClass('d-none');
-    }
-
-    // Função para atualizar exibição do carrinho
-    function updateCartDisplay() {
-        const tbody = $('#cartTableBody');
-        total = 0;
-
-        if (cart.length === 0) {
-            tbody.html(`
-                <tr id="emptyCart">
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
-                        <br>Carrinho vazio. Adicione produtos para começar a venda.
-                    </td>
-                </tr>
-            `);
-            $('#checkoutBtn').prop('disabled', true);
-        } else {
-            let html = '';
-            cart.forEach((item, index) => {
-                const itemTotal = item.Quantity * item.UnitPrice;
-                total += itemTotal;
-                
-                html += `
-                    <tr data-index="${index}">
-                        <td>
-                            <strong>${item.Name}</strong>
-                            <br><small class="text-muted">Código: ${item.Barcode}</small>
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${index}, -1)">-</button>
-                                <input type="number" class="form-control text-center" value="${item.Quantity}" 
-                                       min="1" max="${item.UnitPrice > 0 ? Math.floor(1000 / item.UnitPrice) : 999}" 
-                                       onchange="setQuantity(${index}, this.value)">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${index}, 1)">+</button>
-                            </div>
-                        </td>
-                        <td>${item.UnitPrice.toFixed(2)} €</td>
-                        <td><strong>${itemTotal.toFixed(2)} €</strong></td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="removeItem(${index})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+        $.get('/Admin/AdminCashRegister/GetProductByBarcode', { barcode }, function(product){
+            if (product.stock <= 0) {
+                alert('Produto sem estoque disponível.');
+                return;
+            }
             
-            tbody.html(html);
-            $('#checkoutBtn').prop('disabled', false);
-        }
+            const row = `
+                <tr data-id="${product.id}">
+                    <td>${product.name}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm quantity-input" value="1" min="1" max="${product.stock}" style="width: 80px;">
+                    </td>
+                    <td>€${product.price.toFixed(2)}</td>
+                    <td class="item-total">€${product.price.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm remove">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            tableBody.append(row);
+            updateTotal();
+            $('#barcodeInput').val('');
+        }).fail(() => alert('Produto não encontrado.'));
+    });
 
-        $('#totalValue').text(total.toFixed(2));
-    }
-
-    // Funções globais para manipulação do carrinho
-    window.updateQuantity = function(index, change) {
-        cart[index].Quantity = Math.max(1, cart[index].Quantity + change);
-        updateCartDisplay();
-    };
-
-    window.setQuantity = function(index, quantity) {
-        cart[index].Quantity = Math.max(1, parseInt(quantity) || 1);
-        updateCartDisplay();
-    };
-
-    window.removeItem = function(index) {
-        cart.splice(index, 1);
-        updateCartDisplay();
-    };
-
-    // Função para limpar carrinho
-    function clearCart() {
-        if (cart.length > 0) {
-            Swal.fire({
-                title: 'Limpar Carrinho',
-                text: 'Tem certeza que deseja remover todos os itens?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sim, limpar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    cart = [];
-                    updateCartDisplay();
-                    hideMessages();
-                }
-            });
-        }
-    }
-
-    // Função para mostrar modal de finalização
-    function showCheckoutModal() {
-        if (cart.length === 0) return;
-
-        // Preencher resumo da venda
-        let summaryHtml = '';
-        cart.forEach(item => {
-            const itemTotal = item.Quantity * item.UnitPrice;
-            summaryHtml += `
-                <div class="d-flex justify-content-between">
-                    <span>${item.Name} x${item.Quantity}</span>
-                    <span>${itemTotal.toFixed(2)} €</span>
-                </div>
-            `;
-        });
-        summaryHtml += `
-            <hr>
-            <div class="d-flex justify-content-between fw-bold">
-                <span>Total:</span>
-                <span>${total.toFixed(2)} €</span>
-            </div>
-        `;
+    // Atualizar quantidade e recalcular total
+    tableBody.on('change', '.quantity-input', function(){
+        const row = $(this).closest('tr');
+        const quantity = parseInt($(this).val());
+        const unitPrice = parseFloat(row.find('td:eq(2)').text().replace('€', ''));
+        const total = (quantity * unitPrice).toFixed(2);
         
-        $('#saleSummary').html(summaryHtml);
-        $('#checkoutModal').modal('show');
-    }
+        row.find('.item-total').text('€' + total);
+        updateTotal();
+    });
 
-    // Função para finalizar venda
-    function finalizeSale() {
-        const paymentMethod = $('#paymentMethod').val();
-        if (!paymentMethod) {
-            Swal.fire('Erro', 'Selecione um método de pagamento', 'error');
+    // Remover item
+    tableBody.on('click', '.remove', function(){
+        $(this).closest('tr').remove();
+        updateTotal();
+    });
+
+    // Finalizar venda
+    $('#checkoutBtn').click(function(){
+        if (tableBody.find('tr').length === 0) {
+            alert('Adicione pelo menos um produto.');
             return;
         }
 
-        const saleData = {
-            Total: total,
-            CustomerId: null, // Opcional para PDV
-            ProfessionalId: null, // Opcional para PDV
-            PaymentMethodId: parseInt(paymentMethod),
-            Items: cart.map(item => ({
-                ProductId: item.ProductId,
-                Name: item.Name,
-                Quantity: item.Quantity,
-                UnitPrice: item.UnitPrice
-            }))
-        };
+        const items = [];
+        $('#pdvTable tbody tr').each(function(){
+            const productId = $(this).data('id');
+            const quantity = parseInt($(this).find('.quantity-input').val());
+            const unitPrice = parseFloat($(this).find('td:eq(2)').text().replace('€', ''));
+            
+            items.push({
+                ProductId: productId,
+                Quantity: quantity,
+                UnitPrice: unitPrice
+            });
+        });
 
-        $('#confirmSaleBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Processando...');
+        const sale = { Total: total, Items: items };
 
         $.ajax({
             url: '/Admin/AdminCashRegister/FinalizeSale',
             type: 'POST',
-            data: JSON.stringify(saleData),
+            data: JSON.stringify(sale),
             contentType: 'application/json',
             success: function(response) {
                 if (response.success) {
-                    Swal.fire({
-                        title: 'Sucesso!',
-                        text: `Venda finalizada com sucesso! Total: ${response.total.toFixed(2)} €`,
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        // Limpar carrinho e fechar modal
-                        cart = [];
-                        updateCartDisplay();
-                        hideMessages();
-                        $('#checkoutModal').modal('hide');
-                        
-                        // Recarregar status do caixa
-                        loadCashRegisterStatus();
-                    });
+                    alert('Venda finalizada com sucesso!');
+                    tableBody.empty();
+                    total = 0;
+                    $('#totalValue').text('0.00 €');
+                    location.reload();
                 } else {
-                    Swal.fire('Erro', response.message, 'error');
+                    alert('Erro: ' + response.message);
                 }
             },
-            error: function(xhr) {
-                let errorMessage = 'Erro ao finalizar venda';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                Swal.fire('Erro', errorMessage, 'error');
-            },
-            complete: function() {
-                $('#confirmSaleBtn').prop('disabled', false).html('<i class="fas fa-check me-1"></i>Confirmar Venda');
+            error: function() {
+                alert('Erro ao registrar venda.');
             }
         });
+    });
+
+    // Modal Nova Venda
+    $('#productSelect').change(function(){
+        const selectedOption = $(this).find('option:selected');
+        const price = parseFloat(selectedOption.data('price'));
+        const stock = parseInt(selectedOption.data('stock'));
+        
+        $('#unitPrice').val('€' + price.toFixed(2));
+        $('#availableStock').val(stock);
+        $('#quantity').attr('max', stock);
+        calculateSaleTotal();
+    });
+
+    $('#quantity').on('input', calculateSaleTotal);
+
+    function calculateSaleTotal() {
+        const quantity = parseInt($('#quantity').val()) || 0;
+        const unitPrice = parseFloat($('#unitPrice').val().replace('€', '')) || 0;
+        const total = (quantity * unitPrice).toFixed(2);
+        $('#totalPrice').val('€' + total);
     }
 
-    // Focar no campo de código de barras ao carregar a página
-    $('#barcodeInput').focus();
+    $('#newSaleForm').submit(function(e){
+        e.preventDefault();
+        
+        const productId = $('#productSelect').val();
+        const quantity = parseInt($('#quantity').val());
+        const unitPrice = parseFloat($('#unitPrice').val().replace('€', ''));
+        
+        if (!productId || quantity <= 0) {
+            alert('Preencha todos os campos corretamente.');
+            return;
+        }
+
+        const sale = {
+            Total: quantity * unitPrice,
+            Items: [{
+                ProductId: parseInt(productId),
+                Quantity: quantity,
+                UnitPrice: unitPrice
+            }]
+        };
+
+        $.ajax({
+            url: '/Admin/AdminCashRegister/FinalizeSale',
+            type: 'POST',
+            data: JSON.stringify(sale),
+            contentType: 'application/json',
+            success: function(response) {
+                if (response.success) {
+                    alert('Venda registrada com sucesso!');
+                    $('#newSaleModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Erro ao registrar venda.');
+            }
+        });
+    });
+
+    // Modal Movimentação
+    $('#addMovementForm').submit(function(e){
+        e.preventDefault();
+        
+        const movement = {
+            Type: $('#movementType').val(),
+            Description: $('#movementDescription').val(),
+            Amount: parseFloat($('#movementAmount').val())
+        };
+
+        $.ajax({
+            url: '/Admin/AdminCashRegister/AddCashMovement',
+            type: 'POST',
+            data: JSON.stringify(movement),
+            contentType: 'application/json',
+            success: function(response) {
+                if (response.success) {
+                    alert('Movimentação registrada com sucesso!');
+                    $('#addMovementModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Erro ao registrar movimentação.');
+            }
+        });
+    });
+
+    // Função para atualizar total
+    function updateTotal() {
+        total = 0;
+        $('#pdvTable tbody tr').each(function(){
+            const itemTotal = parseFloat($(this).find('.item-total').text().replace('€', ''));
+            total += itemTotal;
+        });
+        $('#totalValue').text('€' + total.toFixed(2));
+    }
+
+    // Inicializar gráfico de fluxo de caixa
+    initializeCashFlowChart();
 });
+
+// Calculadora Offcanvas
+let calcDisplay = document.getElementById("calcDisplay");
+
+function calcInput(val) { 
+    calcDisplay.value += val; 
+}
+
+function calcClear() { 
+    calcDisplay.value = ""; 
+}
+
+function calcEqual() { 
+    try { 
+        calcDisplay.value = eval(calcDisplay.value); 
+    } catch { 
+        calcDisplay.value = "Erro"; 
+    } 
+}
+
+// Função para inicializar o gráfico de fluxo de caixa
+function initializeCashFlowChart() {
+    fetch('/Admin/AdminCashRegister/GetCashFlowData')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('fluxoCaixaChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: 'Entradas',
+                                data: data.entradas,
+                                borderColor: 'rgba(40, 167, 69, 0.9)',
+                                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                                tension: 0.3,
+                                fill: false
+                            },
+                            {
+                                label: 'Saídas',
+                                data: data.saidas,
+                                borderColor: 'rgba(220, 53, 69, 0.9)',
+                                backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                                tension: 0.3,
+                                fill: false
+                            },
+                            {
+                                label: 'Saldo Acumulado',
+                                data: data.saldo,
+                                borderColor: 'rgba(0, 123, 255, 0.9)',
+                                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': €' + context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Data'
+                                }
+                            },
+                            y: { 
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Valor (€)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '€' + value.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados do gráfico:', error);
+        });
+}
 </script>
 }

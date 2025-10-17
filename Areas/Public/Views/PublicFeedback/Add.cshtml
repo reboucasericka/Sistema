@@ -1,0 +1,200 @@
+@model Sistema.Data.Entities.Feedback
+@{
+    ViewData["Title"] = "Avaliar Serviço";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    var appointment = ViewBag.Appointment as Sistema.Data.Entities.Appointment;
+}
+
+<!-- Título da Página -->
+<div class="page-header mb-4">
+    <h1 class="page-title">
+        <i class="bi bi-star me-3"></i>
+        Avaliar Serviço
+    </h1>
+    <p class="page-subtitle">Compartilhe sua experiência conosco</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="feedback-card">
+            <div class="feedback-header">
+                <h5>
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Detalhes do Agendamento
+                </h5>
+            </div>
+            <div class="feedback-body">
+                @if (appointment != null)
+                {
+                    <div class="appointment-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <i class="bi bi-scissors me-2"></i>
+                                    <strong>Serviço:</strong> @appointment.Service?.Name
+                                </div>
+                                <div class="detail-item">
+                                    <i class="bi bi-person me-2"></i>
+                                    <strong>Profissional:</strong> @appointment.Professional?.Name
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <i class="bi bi-calendar me-2"></i>
+                                    <strong>Data:</strong> @appointment.StartTime.ToString("dd/MM/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <i class="bi bi-clock me-2"></i>
+                                    <strong>Horário:</strong> @appointment.StartTime.ToString("HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="feedback-form-card">
+            <div class="feedback-form-header">
+                <h5>
+                    <i class="bi bi-chat-dots me-2"></i>
+                    Sua Avaliação
+                </h5>
+            </div>
+            <div class="feedback-form-body">
+                <form asp-action="Add" method="post">
+                    <input type="hidden" asp-for="AppointmentId" value="@appointment?.AppointmentId" />
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-star me-2"></i>
+                            Avaliação (1-5 estrelas)
+                        </label>
+                        <div class="rating-container">
+                            <div class="star-rating" id="starRating">
+                                <input type="radio" id="star5" name="Rating" value="5" />
+                                <label for="star5" class="star">★</label>
+                                <input type="radio" id="star4" name="Rating" value="4" />
+                                <label for="star4" class="star">★</label>
+                                <input type="radio" id="star3" name="Rating" value="3" />
+                                <label for="star3" class="star">★</label>
+                                <input type="radio" id="star2" name="Rating" value="2" />
+                                <label for="star2" class="star">★</label>
+                                <input type="radio" id="star1" name="Rating" value="1" />
+                                <label for="star1" class="star">★</label>
+                            </div>
+                            <span class="rating-text" id="ratingText">Clique nas estrelas para avaliar</span>
+                        </div>
+                        <span asp-validation-for="Rating" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Comment" class="form-label">
+                            <i class="bi bi-chat-text me-2"></i>
+                            Comentário (opcional)
+                        </label>
+                        <textarea asp-for="Comment" class="form-control" rows="4" 
+                                  placeholder="Compartilhe sua experiência, sugestões ou comentários sobre o serviço..."
+                                  maxlength="300"></textarea>
+                        <div class="form-text">
+                            <span id="charCount">0</span>/300 caracteres
+                        </div>
+                        <span asp-validation-for="Comment" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="MyAppointments" asp-controller="PublicClientPanel" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-2"></i>
+                            Enviar Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contador de caracteres
+            const commentTextarea = document.querySelector('textarea[name="Comment"]');
+            const charCount = document.getElementById('charCount');
+            
+            if (commentTextarea && charCount) {
+                commentTextarea.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+
+            // Sistema de estrelas
+            const stars = document.querySelectorAll('.star-rating input[type="radio"]');
+            const ratingText = document.getElementById('ratingText');
+            
+            const ratingTexts = {
+                1: "Muito insatisfeito",
+                2: "Insatisfeito", 
+                3: "Neutro",
+                4: "Satisfeito",
+                5: "Muito satisfeito"
+            };
+
+            stars.forEach(star => {
+                star.addEventListener('change', function() {
+                    const rating = this.value;
+                    ratingText.textContent = ratingTexts[rating];
+                    ratingText.className = 'rating-text text-primary';
+                });
+            });
+
+            // SweetAlert para sucesso
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Obrigado!',
+                    text: '@TempData["Success"]',
+                    confirmButtonColor: '#C97D5D',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '@Url.Action("MyAppointments", "PublicClientPanel")';
+                });
+                </text>
+            }
+
+            // SweetAlert para erro
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: '@TempData["Error"]',
+                    confirmButtonColor: '#C97D5D',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+
+            // SweetAlert para info
+            @if (TempData["Info"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Informação',
+                    text: '@TempData["Info"]',
+                    confirmButtonColor: '#C97D5D',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+        });
+    </script>
+}

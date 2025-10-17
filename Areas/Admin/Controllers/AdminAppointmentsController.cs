@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
 using Sistema.Data.Repository.Interfaces;
+using Sistema.Services;
+using Sistema.Models;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 
@@ -16,12 +18,21 @@ namespace Sistema.Areas.Admin.Controllers
         private readonly SistemaDbContext _context;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly IGoogleCalendarSyncService _calendarSyncService;
+        private readonly ILogger<AdminAppointmentsController> _logger;
 
-        public AdminAppointmentsController(SistemaDbContext context, IAppointmentRepository appointmentRepository, ICustomerRepository customerRepository)
+        public AdminAppointmentsController(
+            SistemaDbContext context, 
+            IAppointmentRepository appointmentRepository, 
+            ICustomerRepository customerRepository,
+            IGoogleCalendarSyncService calendarSyncService,
+            ILogger<AdminAppointmentsController> logger)
         {
             _context = context;
             _appointmentRepository = appointmentRepository;
             _customerRepository = customerRepository;
+            _calendarSyncService = calendarSyncService;
+            _logger = logger;
         }
 
 
@@ -136,6 +147,18 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 _context.Add(appointment);
                 await _context.SaveChangesAsync();
+
+                // Sincronizar com Google Calendar
+                try
+                {
+                    await _calendarSyncService.CreateOrUpdateEventAsync(appointment);
+                    _logger.LogInformation($"Evento Google Calendar criado para agendamento {appointment.AppointmentId}");
+                }
+                catch (Exception calendarEx)
+                {
+                    _logger.LogError(calendarEx, $"Erro ao sincronizar evento com Google Calendar para agendamento {appointment.AppointmentId}");
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "Name", appointment.CustomerId);
@@ -183,6 +206,17 @@ namespace Sistema.Areas.Admin.Controllers
                 {
                     _context.Update(appointment);
                     await _context.SaveChangesAsync();
+
+                    // Sincronizar com Google Calendar
+                    try
+                    {
+                        await _calendarSyncService.CreateOrUpdateEventAsync(appointment);
+                        _logger.LogInformation($"Evento Google Calendar atualizado para agendamento {appointment.AppointmentId}");
+                    }
+                    catch (Exception calendarEx)
+                    {
+                        _logger.LogError(calendarEx, $"Erro ao sincronizar evento com Google Calendar para agendamento {appointment.AppointmentId}");
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -234,6 +268,20 @@ namespace Sistema.Areas.Admin.Controllers
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment != null)
             {
+                // Remover evento do Google Calendar antes de deletar
+                try
+                {
+                    if (!string.IsNullOrEmpty(appointment.GoogleEventId))
+                    {
+                        await _calendarSyncService.DeleteEventAsync(appointment.GoogleEventId);
+                        _logger.LogInformation($"Evento Google Calendar removido para agendamento {appointment.AppointmentId}");
+                    }
+                }
+                catch (Exception calendarEx)
+                {
+                    _logger.LogError(calendarEx, $"Erro ao remover evento do Google Calendar para agendamento {appointment.AppointmentId}");
+                }
+
                 _context.Appointments.Remove(appointment);
             }
 

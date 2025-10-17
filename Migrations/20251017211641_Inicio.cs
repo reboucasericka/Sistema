@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Sistema.Migrations
 {
     /// <inheritdoc />
-    public partial class INITIAL : Migration
+    public partial class Inicio : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -756,7 +756,8 @@ namespace Sistema.Migrations
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     ReminderSent = table.Column<bool>(type: "bit", nullable: false),
                     ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
-                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
+                    ExportedToPdf = table.Column<bool>(type: "bit", nullable: false),
+                    GoogleEventId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -942,6 +943,35 @@ namespace Sistema.Migrations
                         column: x => x.ProfessionalId,
                         principalTable: "Professionals",
                         principalColumn: "ProfessionalId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Feedbacks",
+                columns: table => new
+                {
+                    FeedbackId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AppointmentId = table.Column<int>(type: "int", nullable: false),
+                    ClientId = table.Column<int>(type: "int", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Feedbacks", x => x.FeedbackId);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "AppointmentId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Customers_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1322,6 +1352,16 @@ namespace Sistema.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_AppointmentId",
+                table: "Feedbacks",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_ClientId",
+                table: "Feedbacks",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payables_ClearUserId",
                 table: "Payables",
                 column: "ClearUserId");
@@ -1601,6 +1641,9 @@ namespace Sistema.Migrations
 
             migrationBuilder.DropTable(
                 name: "CashMovements");
+
+            migrationBuilder.DropTable(
+                name: "Feedbacks");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
