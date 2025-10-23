@@ -28,28 +28,47 @@ $(document).ready(function () {
             $('.nav-mobile').removeClass('active');
             $('body').css('overflow', 'auto');
         }
+        
+        // Fecha dropdowns ao clicar fora
+        if (!$(e.target).closest('.nav-desktop .dropdown').length) {
+            $('.nav-desktop .dropdown-content').fadeOut(200);
+        }
+        
+        // Fecha dropdowns mobile ao clicar fora
+        if (!$(e.target).closest('.dropdown-mobile').length) {
+            $('.dropdown-content-mobile').slideUp(200);
+            $('.dropbtn-mobile').removeClass('active');
+        }
     });
     
-    // Dropdown hover para desktop
-    $('.dropdown').hover(
+    // Dropdown hover para desktop - com especificidade para nav-desktop
+    $('.nav-desktop .dropdown').hover(
         function () {
             if ($(window).width() > 768) {
-                $(this).find('.dropdown-content').stop(true, true).slideDown(200);
+                $(this).find('.dropdown-content').stop(true, true).fadeIn(200);
             }
         },
         function () {
             if ($(window).width() > 768) {
-                $(this).find('.dropdown-content').stop(true, true).slideUp(200);
+                $(this).find('.dropdown-content').stop(true, true).fadeOut(200);
             }
         }
     );
     
-    // Dropdown click para mobile
-    $('.dropdown .dropbtn').click(function (e) {
+    // Dropdown click para mobile (desktop)
+    $('.nav-desktop .dropdown .dropbtn').click(function (e) {
         if ($(window).width() <= 768) {
             e.preventDefault();
-            $(this).next('.dropdown-content').slideToggle(200);
+            e.stopPropagation();
+            $(this).next('.dropdown-content').fadeToggle(200);
         }
+    });
+    
+    // Dropdown click para mobile (menu mobile)
+    $('.dropdown-mobile .dropbtn-mobile').click(function (e) {
+        e.preventDefault();
+        $(this).toggleClass('active');
+        $(this).next('.dropdown-content-mobile').slideToggle(200);
     });
     
     // Fecha dropdowns ao redimensionar a janela
@@ -58,6 +77,8 @@ $(document).ready(function () {
             $('.nav-mobile').removeClass('active');
             $('.menu-hamburguer').removeClass('active');
             $('body').css('overflow', 'auto');
+            $('.dropdown-content-mobile').slideUp(200);
+            $('.dropbtn-mobile').removeClass('active');
         }
     });
     

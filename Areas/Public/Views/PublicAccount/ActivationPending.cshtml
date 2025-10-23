@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "Verificar E-mail";
-    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
@@ -15,12 +15,12 @@
                     <h2 class="text-primary mb-4">Verifique seu e-mail 📬</h2>
                     
                     <div class="alert alert-info">
-                        <p class="mb-3">Enviamos um link de ativação para:</p>
+                        <p class="mb-3">Obrigado por se registrar! Enviamos um e-mail de confirmação para:</p>
                         <p class="h5 text-primary"><strong>@TempData["UserEmail"]</strong></p>
                     </div>
                     
                     <p class="lead mb-4">
-                        Clique no link do e-mail para confirmar sua conta e começar a agendar seus serviços.
+                        Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.
                     </p>
                     
                     <div class="alert alert-warning">

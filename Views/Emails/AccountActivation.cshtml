@@ -1,0 +1,44 @@
+@model Sistema.Models.Emails.AccountActivationEmailModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #C97D5D 0%, #D9A791 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f8f8; padding: 30px; border-radius: 0 0 10px 10px; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #C97D5D 0%, #D9A791 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bem-vinda, @Model.FirstName!</h1>
+            <p>Ative sua conta para começar a agendar</p>
+        </div>
+        <div class="content">
+            <h2>Quase lá! 🎉</h2>
+            <p>Obrigada por se cadastrar no nosso sistema. Para ativar sua conta e começar a agendar seus tratamentos de beleza, clique no botão abaixo:</p>
+            
+            <div style="text-align: center;">
+                <a href="@Model.ActivationLink" class="btn">Ativar Minha Conta</a>
+            </div>
+            
+            <p>Após a ativação, você será redirecionada para nossa página de agendamento onde poderá escolher seus serviços favoritos.</p>
+            
+            <p><strong>Não consegue clicar no botão?</strong><br>
+            Copie e cole este link no seu navegador:<br>
+            <a href="@Model.ActivationLink" style="color: #C97D5D;">@Model.ActivationLink</a></p>
+            
+            <p>Este link expira em 24 horas por motivos de segurança.</p>
+        </div>
+        <div class="footer">
+            <p>Com carinho,<br><strong>Equipe Ewellin Jordão</strong></p>
+            <p>Se você não criou esta conta, pode ignorar este email.</p>
+        </div>
+    </div>
+</body>
+</html>

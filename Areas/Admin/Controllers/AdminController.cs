@@ -114,7 +114,7 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 notifications.Add(new AdminNotification
                 {
-                    Message = $"Agendamento às {nextAppointment.Time:hh\\:mm} com {nextAppointment.Client?.Name}",
+                    Message = $"Agendamento às {nextAppointment.StartTime:HH\\:mm} com {nextAppointment.Customer?.Name}",
                     Icon = "fas fa-clock",
                     Time = "Em 1 hora",
                     Link = "/Appointments/Details/" + nextAppointment.AppointmentId

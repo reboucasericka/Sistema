@@ -21,7 +21,7 @@ namespace Sistema.Data.Entities
         public int ProductsQuantity { get; set; } = 0;
 
         // 🔗 FK → User
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public User User { get; set; }
 
         public bool ExportedToExcel { get; set; } = false;

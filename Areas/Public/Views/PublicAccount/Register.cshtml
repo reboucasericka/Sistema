@@ -1,8 +1,7 @@
 @model Sistema.Models.Account.RegisterNewUserViewModel
 @{
     ViewData["Title"] = "Criar Conta";
-    //Layout = "~/Views/Shared/_ClientLayout.cshtml";
-    Layout = "_AuthLayout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <!--Views/Account/Login.cshtml-->
@@ -63,7 +62,7 @@
                 </div>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                         <i class="fas fa-user-plus me-2"></i>Criar Conta
                     </button>
                 </div>
@@ -73,7 +72,7 @@
 
             <div class="text-center">
                 <p class="mb-0">Já tem uma conta?</p>
-                <a href="/Account/Login" class="btn btn-outline-primary">
+                <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-outline-primary">
                     <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
                 </a>
             </div>
@@ -87,4 +86,12 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    <script>
+        document.querySelector("form").addEventListener("submit", function(e) {
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true;
+            btn.innerHTML = "<span class='spinner-border spinner-border-sm me-2'></span>Enviando...";
+        });
+    </script>
 }

@@ -2,94 +2,118 @@
 
 @{
     ViewData["Title"] = "Agendamento Online";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
 <div class="container-fluid">
+    <!-- Header Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-calendar-plus"></i>
+                                Agendamento Online
+                            </h2>
+                            <p class="mb-0 opacity-75">Escolha seu serviço e agende seu horário</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" asp-controller="PublicClientPanel" class="btn btn-light btn-sm">
+                                <i class="fas fa-home"></i> Minha Área
+                            </a>
+                            <a asp-action="MyAppointments" asp-controller="PublicClientPanel" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-list"></i> Meus Agendamentos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Sidebar de Filtros -->
-        <div class="col-md-3 bg-light p-4">
-            <h5 class="mb-4">Filtros</h5>
-            
-            <!-- Data -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Quando deseja agendar</label>
-                <input type="date" class="form-control" id="bookingDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
-            </div>
+        <div class="col-md-3 col-lg-2">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-filter"></i> Filtros
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Data -->
+                    <div class="mb-3">
+                        <label class="form-label">Quando deseja agendar</label>
+                        <input type="date" class="form-control" id="bookingDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                    </div>
 
-            <!-- Preço -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Preço</label>
-                <div class="d-flex justify-content-between">
-                    <span>€0</span>
-                    <span>€200+</span>
-                </div>
-                <input type="range" class="form-range" min="0" max="200" value="100" id="priceRange">
-            </div>
+                    <!-- Preço -->
+                    <div class="mb-3">
+                        <label class="form-label">Preço</label>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small">€0</span>
+                            <span class="small">€200+</span>
+                        </div>
+                        <input type="range" class="form-range" min="0" max="200" value="100" id="priceRange">
+                    </div>
 
-            <!-- Serviços -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Serviços</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="discountOnly">
-                    <label class="form-check-label" for="discountOnly">
-                        Somente com desconto %
-                    </label>
-                </div>
-            </div>
+                    <!-- Categorias -->
+                    <div class="mb-3">
+                        <label class="form-label">Categorias</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="barbearia">
+                            <label class="form-check-label" for="barbearia">Barbearia</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="cabelos">
+                            <label class="form-check-label" for="cabelos">Cabelos</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="depilacao">
+                            <label class="form-check-label" for="depilacao">Depilação</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="maquiagem">
+                            <label class="form-check-label" for="maquiagem">Maquiagem</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="massagem">
+                            <label class="form-check-label" for="massagem">Massagem e Estética</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="podologia">
+                            <label class="form-check-label" for="podologia">Podologia</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sobrancelhas">
+                            <label class="form-check-label" for="sobrancelhas">Sobrancelhas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="unhas">
+                            <label class="form-check-label" for="unhas">Unhas</label>
+                        </div>
+                    </div>
 
-            <!-- Categorias -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Categorias</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="barbearia">
-                    <label class="form-check-label" for="barbearia">Barbearia</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="cabelos">
-                    <label class="form-check-label" for="cabelos">Cabelos</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="depilacao">
-                    <label class="form-check-label" for="depilacao">Depilação</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="maquiagem">
-                    <label class="form-check-label" for="maquiagem">Maquiagem</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="massagem">
-                    <label class="form-check-label" for="massagem">Massagem e Estética</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="podologia">
-                    <label class="form-check-label" for="podologia">Podologia</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="sobrancelhas">
-                    <label class="form-check-label" for="sobrancelhas">Sobrancelhas</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="unhas">
-                    <label class="form-check-label" for="unhas">Unhas</label>
-                </div>
-            </div>
-
-            <!-- Facilidades -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Facilidades</label>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="badge bg-warning text-dark">Agendamento online</span>
-                    <span class="badge bg-warning text-dark">Aceita cartão de crédito</span>
-                    <span class="badge bg-warning text-dark">Acesso WiFi</span>
-                    <span class="badge bg-warning text-dark">Acesso para deficientes</span>
+                    <!-- Facilidades -->
+                    <div class="mb-3">
+                        <label class="form-label">Facilidades</label>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-warning text-dark small">Agendamento online</span>
+                            <span class="badge bg-warning text-dark small">Aceita cartão</span>
+                            <span class="badge bg-warning text-dark small">WiFi</span>
+                            <span class="badge bg-warning text-dark small">Acessível</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Conteúdo Principal -->
-        <div class="col-md-9 p-4">
+        <div class="col-md-9 col-lg-10">
             <!-- Header do Estabelecimento -->
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-2">
@@ -119,41 +143,32 @@
             </div>
 
             <!-- Lista de Serviços -->
-            <div class="services-list">
+            <div class="row">
                 @foreach (var service in Model)
                 {
-                    <div class="card mb-3 service-card" data-service-id="@service.ServiceId">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    @if (service.ImageId != Guid.Empty)
-                                    {
-                                        <img src="@service.ImageFullPath" alt="@service.Name" class="img-fluid rounded" style="max-height: 80px;">
-                                    }
-                                    else
-                                    {
-                                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" style="height: 80px;">
-                                            <i class="fas fa-concierge-bell fa-2x"></i>
-                                        </div>
-                                    }
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 shadow-sm border-0 service-card" data-service-id="@service.ServiceId">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0">@service.Name</h6>
+                                    <span class="badge bg-primary">@service.Category?.Name</span>
                                 </div>
-                                <div class="col-md-6">
-                                    <h5 class="mb-1">@service.Name</h5>
-                                    <p class="text-muted mb-1">@service.Category?.Name</p>
-                                    <p class="text-muted mb-0">@service.Duration</p>
-                                    @if (!string.IsNullOrEmpty(service.Description))
-                                    {
-                                        <p class="small text-muted">@service.Description</p>
-                                    }
+                                <p class="card-text text-muted small mb-3">@service.Description</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> @service.Duration
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong class="text-success fs-5">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", service.Price)</strong>
+                                    </div>
                                 </div>
-                                <div class="col-md-2 text-center">
-                                    <div class="fw-bold text-primary fs-5">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", service.Price)</div>
-                                </div>
-                                <div class="col-md-2 text-center">
-                                    <a asp-action="Schedule" asp-route-id="@service.ServiceId" class="btn btn-primary">
-                                        <i class="fas fa-calendar-plus"></i> Agendar
-                                    </a>
-                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <a asp-action="Schedule" asp-route-id="@service.ServiceId" class="btn btn-primary btn-sm w-100">
+                                    <i class="fas fa-calendar-plus"></i> Agendar
+                                </a>
                             </div>
                         </div>
                     </div>

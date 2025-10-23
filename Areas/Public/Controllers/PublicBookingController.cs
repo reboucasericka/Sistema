@@ -52,14 +52,19 @@ namespace Sistema.Areas.Public.Controllers
         {
             var service = await _context.Services
                 .Include(s => s.Category)
-                .Include(s => s.ProfessionalServices)
-                    .ThenInclude(ps => ps.Professional)
                 .FirstOrDefaultAsync(s => s.ServiceId == id && s.IsActive);
 
             if (service == null)
             {
                 return NotFound();
             }
+
+            // Buscar profissionais que oferecem este serviço
+            var professionals = await _context.ProfessionalServices
+                .Include(ps => ps.Professional)
+                .Where(ps => ps.ServiceId == id && ps.Professional.IsActive)
+                .Select(ps => ps.Professional)
+                .ToListAsync();
 
             var viewModel = new PublicBookingViewModel
             {
@@ -74,9 +79,7 @@ namespace Sistema.Areas.Public.Controllers
 
             // Gerar horários disponíveis (exemplo: 9h às 18h, intervalos de 30 min)
             ViewBag.AvailableTimes = GenerateAvailableTimes();
-            ViewBag.Professionals = service.ProfessionalServices
-                .Select(ps => ps.Professional)
-                .ToList();
+            ViewBag.Professionals = professionals;
 
             return View(viewModel);
         }
@@ -112,16 +115,19 @@ namespace Sistema.Areas.Public.Controllers
             // Se houver erro, recarregar os dados necessários
             var serviceForView = await _context.Services
                 .Include(s => s.Category)
-                .Include(s => s.ProfessionalServices)
-                    .ThenInclude(ps => ps.Professional)
                 .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
             if (serviceForView != null)
             {
-                ViewBag.AvailableTimes = GenerateAvailableTimes();
-                ViewBag.Professionals = serviceForView.ProfessionalServices
+                // Buscar profissionais que oferecem este serviço
+                var professionals = await _context.ProfessionalServices
+                    .Include(ps => ps.Professional)
+                    .Where(ps => ps.ServiceId == model.ServiceId && ps.Professional.IsActive)
                     .Select(ps => ps.Professional)
-                    .ToList();
+                    .ToListAsync();
+
+                ViewBag.AvailableTimes = GenerateAvailableTimes();
+                ViewBag.Professionals = professionals;
             }
 
             return View(model);
@@ -146,7 +152,17 @@ namespace Sistema.Areas.Public.Controllers
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (string.IsNullOrEmpty(userId))
                     {
-                        TempData["Error"] = "User not found.";
+                        TempData["Error"] = "Usuário não encontrado.";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    // Buscar o cliente vinculado ao usuário
+                    var customer = await _context.Customers
+                        .FirstOrDefaultAsync(c => c.UserId == userId);
+                    
+                    if (customer == null)
+                    {
+                        TempData["Error"] = "Cliente não encontrado.";
                         return RedirectToAction(nameof(Index));
                     }
 
@@ -170,7 +186,7 @@ namespace Sistema.Areas.Public.Controllers
                     
                     var appointment = new Appointment
                     {
-                        CustomerId = int.Parse(userId),
+                        CustomerId = customer.CustomerId,
                         ServiceId = model.ServiceId,
                         ProfessionalId = model.ProfessionalId,
                         StartTime = startTime,
@@ -244,13 +260,23 @@ namespace Sistema.Areas.Public.Controllers
                 return RedirectToAction("Login", "Account", new { area = "" });
             }
 
+            // Buscar o cliente vinculado ao usuário
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            
+            if (customer == null)
+            {
+                TempData["Error"] = "Cliente não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var appointments = await _context.Appointments
                 .Include(a => a.Service)
                     .ThenInclude(s => s.Category)
+                .Include(a => a.Professional)
                 .Include(a => a.Customer)
-                .Where(a => a.CustomerId == int.Parse(userId))
-                .OrderByDescending(a => a.Date)
-                .ThenByDescending(a => a.Time)
+                .Where(a => a.CustomerId == customer.CustomerId)
+                .OrderByDescending(a => a.StartTime)
                 .ToListAsync();
 
             return View(appointments);
@@ -265,9 +291,20 @@ namespace Sistema.Areas.Public.Controllers
                 return RedirectToAction("Login", "Account", new { area = "" });
             }
 
+            // Buscar o cliente vinculado ao usuário
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            
+            if (customer == null)
+            {
+                TempData["Error"] = "Cliente não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var appointment = await _context.Appointments
                 .Include(a => a.Service)
-                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == int.Parse(userId));
+                .Include(a => a.Professional)
+                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == customer.CustomerId);
 
             if (appointment == null)
             {
@@ -288,8 +325,18 @@ namespace Sistema.Areas.Public.Controllers
                 return RedirectToAction("Login", "Account", new { area = "" });
             }
 
+            // Buscar o cliente vinculado ao usuário
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            
+            if (customer == null)
+            {
+                TempData["Error"] = "Cliente não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var appointment = await _context.Appointments
-                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == int.Parse(userId));
+                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == customer.CustomerId);
 
             if (appointment != null)
             {
@@ -354,9 +401,19 @@ namespace Sistema.Areas.Public.Controllers
                 return RedirectToAction("Login", "Account", new { area = "" });
             }
 
+            // Buscar o cliente vinculado ao usuário
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            
+            if (customer == null)
+            {
+                TempData["Error"] = "Cliente não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var appointment = await _context.Appointments
                 .Include(a => a.Service)
-                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == int.Parse(userId));
+                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.CustomerId == customer.CustomerId);
 
             if (appointment != null)
             {

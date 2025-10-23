@@ -305,6 +305,16 @@ namespace Sistema.Data
                 .HasForeignKey(cm => cm.CashRegisterId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // 🔧 CONFIGURAÇÕES DE PRECISÃO DECIMAL PARA EVITAR WARNINGS
+            builder.Entity<PriceTable>()
+                .Property(p => p.Price)
+                .HasPrecision(10, 2);
+
+            builder.Entity<Service>()
+                .Property(s => s.Commission)
+                .HasPrecision(10, 2);
+
+
         }
     }
 }

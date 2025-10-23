@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using Sistema.Models.Emails;
 
 namespace Sistema.Services
 {
@@ -45,7 +46,7 @@ namespace Sistema.Services
             {
                 From = new MailAddress(_fromEmail, _fromName),
                 Subject = "Ativação da sua conta - Ewellin Jordão",
-                Body = CreateActivationEmailBody(firstName, activationLink),
+                Body = await RenderEmailTemplateAsync(firstName, activationLink),
                 IsBodyHtml = true
             };
 
@@ -73,6 +74,13 @@ namespace Sistema.Services
             mailMessage.To.Add(email);
 
             await smtpClient.SendMailAsync(mailMessage);
+        }
+
+        private async Task<string> RenderEmailTemplateAsync(string firstName, string activationLink)
+        {
+            // Por enquanto, usar o método de fallback
+            // TODO: Implementar renderização de template quando necessário
+            return CreateActivationEmailBody(firstName, activationLink);
         }
 
         private string CreateActivationEmailBody(string firstName, string activationLink)

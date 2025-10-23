@@ -5,24 +5,144 @@ using Sistema.Models.Account;
 using Sistema.Services;
 using Microsoft.Extensions.Logging;
 using Sistema.Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Sistema.Areas.Public.Controllers
 {
     [Area("Public")]
+    [AllowAnonymous]
     public class PublicAccountController : Controller
     {
         private readonly IUserHelper _userHelper;
         private readonly IEmailService _emailService;
         private readonly ILogger<PublicAccountController> _logger;
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
 
         public PublicAccountController(
             IUserHelper userHelper, 
             IEmailService emailService,
-            ILogger<PublicAccountController> logger)
+            ILogger<PublicAccountController> logger,
+            SignInManager<User> signInManager,
+            UserManager<User> userManager)
         {
             _userHelper = userHelper;
             _emailService = emailService;
             _logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
+        }
+
+        // =======================
+        // LOGIN DE CLIENTE
+        // =======================
+        [HttpGet]
+        public async Task<IActionResult> Login(string? returnUrl = null)
+        {
+            // 🔒 VERIFICAÇÃO SEGURA: Se já estiver autenticado E com role Customer
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                // Verificar se tem a role Customer antes de redirecionar
+                if (User.IsInRole("Customer"))
+                {
+                    _logger.LogInformation("Usuário já autenticado com role Customer, redirecionando para painel");
+                    return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+                }
+                else
+                {
+                    // Se autenticado mas sem role Customer, fazer logout e permitir novo login
+                    _logger.LogWarning("Usuário autenticado mas sem role Customer, fazendo logout");
+                    await _signInManager.SignOutAsync();
+                }
+            }
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        {
+            // 🔒 VALIDAÇÃO DE SEGURANÇA
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Tentativa de login com ModelState inválido");
+                return View(model);
+            }
+
+            try
+            {
+                // 🔍 BUSCA SEGURA DO USUÁRIO
+                var user = await _userHelper.GetUserByEmailAsync(model.Username) 
+                          ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("Tentativa de login com usuário inexistente: {Username}", model.Username);
+                    ModelState.AddModelError("", "E-mail ou senha incorretos.");
+                    return View(model);
+                }
+
+                // 🔒 VERIFICAÇÃO DE CONTA ATIVA
+                if (!user.EmailConfirmed)
+                {
+                    _logger.LogWarning("Tentativa de login com conta não confirmada: {Email}", user.Email);
+                    TempData["InfoMessage"] = "Ative sua conta pelo e-mail antes de entrar.";
+                    return RedirectToAction("ActivationPending");
+                }
+
+                // 🔐 AUTENTICAÇÃO SEGURA COM LOCKOUT
+                var result = await _signInManager.PasswordSignInAsync(
+                    user.UserName, 
+                    model.Password, 
+                    model.RememberMe, 
+                    lockoutOnFailure: true); // 🔒 Ativa lockout em caso de falha
+
+                if (!result.Succeeded)
+                {
+                    if (result.IsLockedOut)
+                    {
+                        _logger.LogWarning("Conta bloqueada por tentativas excessivas: {Email}", user.Email);
+                        ModelState.AddModelError("", "Sua conta foi temporariamente bloqueada. Tente novamente mais tarde.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Falha na autenticação para {Email}: {Result}", user.Email, result);
+                        ModelState.AddModelError("", "E-mail ou senha incorretos.");
+                    }
+                    return View(model);
+                }
+
+                // 🔍 VERIFICAÇÃO E ATRIBUIÇÃO DE ROLE
+                var roles = await _userHelper.GetUserRolesAsync(user);
+                if (!roles.Contains("Customer"))
+                {
+                    _logger.LogInformation("Adicionando role Customer para usuário {Email}", user.Email);
+                    await _userHelper.AddUserToRoleAsync(user, "Customer");
+                }
+
+                // 🔄 ATUALIZAÇÃO SEGURA DO COOKIE DE AUTENTICAÇÃO
+                await _signInManager.SignInAsync(user, model.RememberMe);
+
+                _logger.LogInformation("Login bem-sucedido para {Email} com roles: {Roles}", 
+                    user.Email, string.Join(", ", roles));
+
+                // 🎯 REDIRECIONAMENTO SEGURO
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro durante processo de login para {Username}", model.Username);
+                ModelState.AddModelError("", "Ocorreu um erro interno. Tente novamente.");
+                return View(model);
+            }
         }
 
         // =======================
@@ -153,6 +273,13 @@ namespace Sistema.Areas.Public.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Conta ativada com sucesso: {user.Email}");
+                    
+                    // Fazer login automático após ativação
+                    await _signInManager.SignInAsync(user, false);
+                    
+                    // Armazenar dados do usuário para exibir na tela de sucesso
+                    TempData["UserFirstName"] = user.FirstName;
+                    
                     return RedirectToAction("ActivateSuccess");
                 }
                 else
@@ -174,6 +301,73 @@ namespace Sistema.Areas.Public.Controllers
         public IActionResult ActivateSuccess()
         {
             return View();
+        }
+
+        // =======================
+        // LOGIN SOCIAL (GOOGLE / FACEBOOK)
+        // =======================
+        [HttpGet]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+            // 'provider' deve ser "Google" ou "Facebook"
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "PublicAccount", new { area = "Public", ReturnUrl = returnUrl });
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, provider);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+        {
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Erro do provedor externo: {remoteError}");
+                return Redirect("/Public/PublicAccount/Login");
+            }
+
+            // Pega as informações do login externo
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return Redirect("/Public/PublicAccount/Login");
+            }
+
+            // Tenta autenticar com login externo
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            if (result.Succeeded)
+            {
+                // Login externo OK. Redireciona para área pública.
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
+            else
+            {
+                // Se o utilizador ainda não existir, pode criar nova conta ou associar ao login externo
+                var email = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+                if (email != null)
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        // Cria novo utilizador se não existir
+                        user = new User
+                        {
+                            UserName = email,
+                            Email = email,
+                            EmailConfirmed = true // Confirma automaticamente emails sociais
+                        };
+                        await _userManager.CreateAsync(user);
+                        await _userHelper.AddUserToRoleAsync(user, "Customer");
+                    }
+                    // Associa login externo ao utilizador criado
+                    await _userManager.AddLoginAsync(user, info);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+                }
+
+                // Não conseguiu autenticar
+                ModelState.AddModelError(string.Empty, "Não foi possível autenticar com Google ou Facebook");
+                return Redirect("/Public/PublicAccount/Login");
+            }
         }
     }
 }

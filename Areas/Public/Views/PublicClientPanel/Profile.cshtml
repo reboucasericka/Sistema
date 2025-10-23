@@ -1,0 +1,424 @@
+@{
+    ViewData["Title"] = "Meu Perfil - Painel do Cliente";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-user-circle"></i>
+                                Meu Perfil
+                            </h2>
+                            <p class="mb-0 opacity-75">Gerencie suas informações pessoais e preferências</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left"></i> Voltar ao Painel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações Pessoais -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user"></i> Informações Pessoais
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">Nome *</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Apelido *</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Telemóvel</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="birthDate" class="form-label">Data de Nascimento</label>
+                                <input type="date" class="form-control" id="birthDate" name="birthDate">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Género</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">Selecionar...</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                    <option value="O">Outro</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Endereço</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" placeholder="Rua, número, código postal, cidade"></textarea>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                                <i class="fas fa-save"></i> Guardar Alterações
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="cancelProfileBtn">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preferências -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog"></i> Preferências de Agendamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="preferencesForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="preferredTime" class="form-label">Horário Preferido</label>
+                                <select class="form-select" id="preferredTime" name="preferredTime">
+                                    <option value="">Selecionar...</option>
+                                    <option value="manhã">Manhã (09:00 - 12:00)</option>
+                                    <option value="tarde">Tarde (12:00 - 18:00)</option>
+                                    <option value="noite">Noite (18:00 - 21:00)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="preferredDay" class="form-label">Dia da Semana Preferido</label>
+                                <select class="form-select" id="preferredDay" name="preferredDay">
+                                    <option value="">Selecionar...</option>
+                                    <option value="segunda">Segunda-feira</option>
+                                    <option value="terça">Terça-feira</option>
+                                    <option value="quarta">Quarta-feira</option>
+                                    <option value="quinta">Quinta-feira</option>
+                                    <option value="sexta">Sexta-feira</option>
+                                    <option value="sábado">Sábado</option>
+                                    <option value="domingo">Domingo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success" id="savePreferencesBtn">
+                                <i class="fas fa-save"></i> Guardar Preferências
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações Adicionais -->
+        <div class="col-lg-4">
+            <!-- Foto do Perfil -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-camera"></i> Foto do Perfil
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="profile-photo-container mb-3">
+                        <img id="profilePhoto" src="/images/noimage.png" alt="Foto do Perfil" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="changePhotoBtn">
+                            <i class="fas fa-camera"></i> Alterar Foto
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="removePhotoBtn" style="display: none;">
+                            <i class="fas fa-trash"></i> Remover Foto
+                        </button>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Informações da Conta -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Informações da Conta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Data de Registo:</label>
+                        <p class="mb-0" id="registrationDate">-</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status da Conta:</label>
+                        <p class="mb-0">
+                            <span class="badge bg-success" id="accountStatus">Ativa</span>
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Total de Agendamentos:</label>
+                        <p class="mb-0" id="totalAppointments">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Histórico de Alergias -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Histórico de Alergias
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="allergyHistory" class="form-label">Alergias Conhecidas</label>
+                        <textarea class="form-control" id="allergyHistory" name="allergyHistory" rows="4" placeholder="Descreva qualquer alergia conhecida..."></textarea>
+                        <div class="form-text">Esta informação é importante para a sua segurança durante os tratamentos.</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-danger btn-sm" id="saveAllergiesBtn">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Alteração</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza que deseja fazer esta alteração?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Carregar dados do perfil
+            loadProfileData();
+            loadProfileStats();
+            
+            // Event listeners
+            $('#profileForm').on('submit', handleProfileSubmit);
+            $('#preferencesForm').on('submit', handlePreferencesSubmit);
+            $('#changePhotoBtn').on('click', () => $('#photoInput').click());
+            $('#photoInput').on('change', handlePhotoChange);
+            $('#removePhotoBtn').on('click', handlePhotoRemove);
+            $('#saveAllergiesBtn').on('click', handleAllergiesSave);
+            $('#cancelProfileBtn').on('click', loadProfileData);
+        });
+
+        function loadProfileData() {
+            $.ajax({
+                url: '@Url.Action("GetProfileData", "PublicClientPanel")',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const profile = response.profile;
+                        $('#firstName').val(profile.firstName);
+                        $('#lastName').val(profile.lastName);
+                        $('#email').val(profile.email);
+                        $('#phone').val(profile.phone);
+                        $('#birthDate').val(profile.birthDate);
+                        $('#gender').val(profile.gender);
+                        $('#address').val(profile.address);
+                        
+                        // Carregar foto se existir
+                        if (profile.photoPath && profile.photoPath !== '/images/noimage.png') {
+                            $('#profilePhoto').attr('src', profile.photoPath);
+                            $('#removePhotoBtn').show();
+                        }
+                    }
+                },
+                error: function() {
+                    showAlert('Erro ao carregar dados do perfil', 'danger');
+                }
+            });
+        }
+
+        function handleProfileSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData($('#profileForm')[0]);
+            
+            $.ajax({
+                url: '@Url.Action("UpdateProfile", "PublicClientPanel")',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Erro ao atualizar perfil', 'danger');
+                }
+            });
+        }
+
+        function handlePreferencesSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData($('#preferencesForm')[0]);
+            
+            $.ajax({
+                url: '@Url.Action("UpdatePreferences", "PublicClientPanel")',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Erro ao atualizar preferências', 'danger');
+                }
+            });
+        }
+
+        function handlePhotoChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#profilePhoto').attr('src', e.target.result);
+                    $('#removePhotoBtn').show();
+                };
+                reader.readAsDataURL(file);
+                
+                // TODO: Implementar upload da foto
+                showAlert('Funcionalidade de upload de foto será implementada em breve', 'info');
+            }
+        }
+
+        function handlePhotoRemove() {
+            $('#profilePhoto').attr('src', '/images/noimage.png');
+            $('#removePhotoBtn').hide();
+            $('#photoInput').val('');
+            
+            // TODO: Implementar remoção da foto
+            showAlert('Funcionalidade de remoção de foto será implementada em breve', 'info');
+        }
+
+        function handleAllergiesSave() {
+            const allergyHistory = $('#allergyHistory').val();
+            
+            $.ajax({
+                url: '@Url.Action("UpdateAllergies", "PublicClientPanel")',
+                method: 'POST',
+                data: { allergyHistory: allergyHistory },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Erro ao atualizar histórico de alergias', 'danger');
+                }
+            });
+        }
+
+        function loadProfileStats() {
+            $.ajax({
+                url: '@Url.Action("GetProfileStats", "PublicClientPanel")',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const stats = response.stats;
+                        $('#registrationDate').text(stats.registrationDate);
+                        $('#accountStatus').text(stats.accountStatus);
+                        $('#totalAppointments').text(stats.totalAppointments);
+                        $('#allergyHistory').val(stats.allergyHistory);
+                    }
+                },
+                error: function() {
+                    console.log('Erro ao carregar estatísticas do perfil');
+                }
+            });
+        }
+
+        function showAlert(message, type) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('.container-fluid').prepend(alertHtml);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+}
+
+<!-- Token para CSRF -->
+@Html.AntiForgeryToken()

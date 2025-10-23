@@ -1,124 +1,267 @@
 @{
-    ViewData["Title"] = "O Meu Desempenho na Ewellin Jordão";
+    ViewData["Title"] = "Estatísticas e Perfil";
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
-<!-- Título da Página -->
-<div class="page-header mb-4">
-    <h1 class="page-title">
-        <i class="bi bi-bar-chart me-3"></i>
-        O Meu Desempenho na Ewellin Jordão
-    </h1>
-    <p class="page-subtitle">Acompanhe suas estatísticas e evolução</p>
-</div>
+<div class="container-fluid">
+    <!-- Header Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-chart-line"></i>
+                                Estatísticas e Perfil
+                            </h2>
+                            <p class="mb-0 opacity-75">Bem-vindo, @ViewBag.CustomerName!</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-light btn-sm">
+                                <i class="fas fa-home"></i> Painel Principal
+                            </a>
+                            <button class="btn btn-outline-light btn-sm" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i> Exportar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- Cards de Estatísticas -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-icon">
-                <i class="bi bi-calendar-check"></i>
-            </div>
-            <div class="stats-content">
-                <h3 id="totalAppointments">-</h3>
-                <p>Total de Agendamentos</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-icon">
-                <i class="bi bi-currency-euro"></i>
-            </div>
-            <div class="stats-content">
-                <h3 id="totalSpent">-</h3>
-                <p>Total Gasto</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-icon">
-                <i class="bi bi-clock"></i>
-            </div>
-            <div class="stats-content">
-                <h3 id="averageFrequency">-</h3>
-                <p>Média de Frequência (dias)</p>
+    <div class="row">
+        <!-- Sidebar com Navegação -->
+        <div class="col-md-3 col-lg-2">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-user-cog"></i> Menu
+                    </h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#stats-section" class="list-group-item list-group-item-action active" onclick="showSection('stats')">
+                        <i class="fas fa-chart-bar"></i> Estatísticas
+                    </a>
+                    <a href="#profile-section" class="list-group-item list-group-item-action" onclick="showSection('profile')">
+                        <i class="fas fa-user-edit"></i> Editar Perfil
+                    </a>
+                    <a href="#preferences-section" class="list-group-item list-group-item-action" onclick="showSection('preferences')">
+                        <i class="fas fa-cog"></i> Preferências
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-icon">
-                <i class="bi bi-star"></i>
-            </div>
-            <div class="stats-content">
-                <h3 id="averageRating">-</h3>
-                <p>Avaliação Média</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Gráficos -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h5>
-                    <i class="bi bi-pie-chart me-2"></i>
-                    Serviços Mais Utilizados
-                </h5>
-            </div>
-            <div class="chart-body">
-                <canvas id="servicesChart" width="400" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 mb-4">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h5>
-                    <i class="bi bi-bar-chart me-2"></i>
-                    Profissionais Mais Escolhidos
-                </h5>
-            </div>
-            <div class="chart-body">
-                <canvas id="professionalsChart" width="400" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
+        <!-- Área Principal -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Seção de Estatísticas -->
+            <div id="stats-section" class="content-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4 class="mb-3">
+                            <i class="fas fa-chart-line text-primary"></i>
+                            Suas Estatísticas
+                        </h4>
+                    </div>
+                </div>
 
-<!-- Resumo Adicional -->
-<div class="row">
-    <div class="col-12">
-        <div class="summary-card">
-            <div class="summary-header">
-                <h5>
-                    <i class="bi bi-info-circle me-2"></i>
-                    Resumo Detalhado
-                </h5>
-            </div>
-            <div class="summary-body">
+                <!-- Cards de Estatísticas -->
+                <div class="row mb-4" id="stats-cards">
+                    <div class="col-12 text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Carregando estatísticas...</p>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
                 <div class="row">
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <span class="summary-label">Agendamentos Concluídos:</span>
-                            <span class="summary-value" id="completedAppointments">-</span>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-calendar-alt"></i> Serviços Mais Utilizados
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="top-services-chart" style="height: 300px;">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <span class="summary-label">Taxa de Conclusão:</span>
-                            <span class="summary-value" id="completionRate">-</span>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-user-md"></i> Profissionais Favoritos
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="top-professionals-chart" style="height: 300px;">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <span class="summary-label">Última Visita:</span>
-                            <span class="summary-value" id="lastVisit">-</span>
-                        </div>
+                </div>
+            </div>
+
+            <!-- Seção de Edição de Perfil -->
+            <div id="profile-section" class="content-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4 class="mb-3">
+                            <i class="fas fa-user-edit text-primary"></i>
+                            Editar Perfil
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form id="profile-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Sobrenome</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">E-mail</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Telefone</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="birthDate" class="form-label">Data de Nascimento</label>
+                                    <input type="date" class="form-control" id="birthDate" name="birthDate">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Gênero</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Selecione...</option>
+                                        <option value="M">Masculino</option>
+                                        <option value="F">Feminino</option>
+                                        <option value="O">Outro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Endereço</label>
+                                <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="cancelProfileEdit()">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Salvar Alterações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Preferências -->
+            <div id="preferences-section" class="content-section" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4 class="mb-3">
+                            <i class="fas fa-cog text-primary"></i>
+                            Preferências
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form id="preferences-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Notificações por E-mail</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailAppointments" name="emailAppointments" checked>
+                                        <label class="form-check-label" for="emailAppointments">
+                                            Lembretes de agendamentos
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailPromotions" name="emailPromotions" checked>
+                                        <label class="form-check-label" for="emailPromotions">
+                                            Promoções e ofertas
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailNewsletter" name="emailNewsletter">
+                                        <label class="form-check-label" for="emailNewsletter">
+                                            Newsletter
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Preferências de Agendamento</label>
+                                    <div class="mb-2">
+                                        <label for="preferredTime" class="form-label">Horário Preferido</label>
+                                        <select class="form-select" id="preferredTime" name="preferredTime">
+                                            <option value="">Sem preferência</option>
+                                            <option value="morning">Manhã (9h-12h)</option>
+                                            <option value="afternoon">Tarde (12h-17h)</option>
+                                            <option value="evening">Noite (17h-20h)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="preferredDay" class="form-label">Dia da Semana Preferido</label>
+                                        <select class="form-select" id="preferredDay" name="preferredDay">
+                                            <option value="">Sem preferência</option>
+                                            <option value="monday">Segunda-feira</option>
+                                            <option value="tuesday">Terça-feira</option>
+                                            <option value="wednesday">Quarta-feira</option>
+                                            <option value="thursday">Quinta-feira</option>
+                                            <option value="friday">Sexta-feira</option>
+                                            <option value="saturday">Sábado</option>
+                                            <option value="sunday">Domingo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="cancelPreferencesEdit()">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Salvar Preferências
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -129,66 +272,130 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let statsData = null;
+        let topServicesChart = null;
+        let topProfessionalsChart = null;
+
         document.addEventListener('DOMContentLoaded', function() {
             loadStatsData();
+            loadProfileData();
+            setupEventListeners();
         });
 
-        async function loadStatsData() {
-            try {
-                const response = await fetch('/Public/PublicClientPanel/GetStatsData');
-                const data = await response.json();
+        function showSection(sectionName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
 
-                if (data.error) {
-                    console.error('Erro ao carregar dados:', data.error);
-                    return;
-                }
+            // Remover classe active de todos os links
+            document.querySelectorAll('.list-group-item').forEach(link => {
+                link.classList.remove('active');
+            });
 
-                // Atualizar cards de estatísticas
-                document.getElementById('totalAppointments').textContent = data.totalAppointments;
-                document.getElementById('totalSpent').textContent = new Intl.NumberFormat('pt-PT', {
-                    style: 'currency',
-                    currency: 'EUR'
-                }).format(data.totalSpent);
-                document.getElementById('averageFrequency').textContent = data.averageFrequency;
-                document.getElementById('averageRating').textContent = data.averageRating > 0 ? data.averageRating.toFixed(1) + ' ⭐' : 'N/A';
+            // Mostrar seção selecionada
+            document.getElementById(sectionName + '-section').style.display = 'block';
 
-                // Calcular taxa de conclusão
-                const completionRate = data.totalAppointments > 0 ? 
-                    ((data.completedAppointments / data.totalAppointments) * 100).toFixed(1) + '%' : '0%';
-                document.getElementById('completedAppointments').textContent = data.completedAppointments;
-                document.getElementById('completionRate').textContent = completionRate;
+            // Adicionar classe active ao link
+            event.target.classList.add('active');
 
-                // Criar gráfico de serviços
-                createServicesChart(data.topServices);
-                
-                // Criar gráfico de profissionais
-                createProfessionalsChart(data.topProfessionals);
-
-            } catch (error) {
-                console.error('Erro ao carregar estatísticas:', error);
+            // Carregar dados específicos se necessário
+            if (sectionName === 'profile') {
+                loadProfileData();
             }
         }
 
-        function createServicesChart(servicesData) {
-            const ctx = document.getElementById('servicesChart').getContext('2d');
-            
-            const colors = [
-                'rgba(201, 125, 93, 0.8)',   // --accent-terracotta
-                'rgba(217, 167, 145, 0.8)',  // --accent-peach
-                'rgba(138, 145, 109, 0.8)',  // --secondary-olive
-                'rgba(230, 198, 182, 0.8)',  // --primary-beige
-                'rgba(42, 49, 14, 0.8)'      // --neutral-dark
-            ];
+        function loadStatsData() {
+            fetch('/Public/PublicClientPanel/GetStatsData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Erro ao carregar estatísticas:', data.error);
+                        showError('Erro ao carregar estatísticas');
+                        return;
+                    }
 
-            new Chart(ctx, {
+                    statsData = data;
+                    displayStatsCards(data);
+                    createCharts(data);
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar estatísticas:', error);
+                    showError('Erro ao carregar estatísticas');
+                });
+        }
+
+        function displayStatsCards(data) {
+            const container = document.getElementById('stats-cards');
+            
+            container.innerHTML = `
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                            <h3 class="mb-1">${data.totalAppointments}</h3>
+                            <p class="mb-0">Total de Agendamentos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <h3 class="mb-1">${data.completedAppointments}</h3>
+                            <p class="mb-0">Concluídos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-euro-sign fa-2x mb-2"></i>
+                            <h3 class="mb-1">€${parseFloat(data.totalSpent).toFixed(2)}</h3>
+                            <p class="mb-0">Total Gasto</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-star fa-2x mb-2"></i>
+                            <h3 class="mb-1">${data.averageRating.toFixed(1)}</h3>
+                            <p class="mb-0">Avaliação Média</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCharts(data) {
+            createTopServicesChart(data.topServices);
+            createTopProfessionalsChart(data.topProfessionals);
+        }
+
+        function createTopServicesChart(services) {
+            const ctx = document.getElementById('top-services-chart').getContext('2d');
+            
+            if (topServicesChart) {
+                topServicesChart.destroy();
+            }
+
+            const labels = services.map(s => s.name);
+            const data_values = services.map(s => s.count);
+
+            topServicesChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: servicesData.map(item => item.name),
+                    labels: labels,
                     datasets: [{
-                        data: servicesData.map(item => item.count),
-                        backgroundColor: colors.slice(0, servicesData.length),
-                        borderColor: colors.slice(0, servicesData.length).map(color => color.replace('0.8', '1')),
-                        borderWidth: 2
+                        data: data_values,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF'
+                        ]
                     }]
                 },
                 options: {
@@ -196,39 +403,31 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
+                            position: 'bottom'
                         }
                     }
                 }
             });
         }
 
-        function createProfessionalsChart(professionalsData) {
-            const ctx = document.getElementById('professionalsChart').getContext('2d');
+        function createTopProfessionalsChart(professionals) {
+            const ctx = document.getElementById('top-professionals-chart').getContext('2d');
             
-            const colors = [
-                'rgba(201, 125, 93, 0.8)',   // --accent-terracotta
-                'rgba(217, 167, 145, 0.8)',  // --accent-peach
-                'rgba(138, 145, 109, 0.8)',  // --secondary-olive
-                'rgba(230, 198, 182, 0.8)',  // --primary-beige
-                'rgba(42, 49, 14, 0.8)'      // --neutral-dark
-            ];
+            if (topProfessionalsChart) {
+                topProfessionalsChart.destroy();
+            }
 
-            new Chart(ctx, {
+            const labels = professionals.map(p => p.name);
+            const data_values = professionals.map(p => p.count);
+
+            topProfessionalsChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: professionalsData.map(item => item.name),
+                    labels: labels,
                     datasets: [{
                         label: 'Agendamentos',
-                        data: professionalsData.map(item => item.count),
-                        backgroundColor: colors.slice(0, professionalsData.length),
-                        borderColor: colors.slice(0, professionalsData.length).map(color => color.replace('0.8', '1')),
-                        borderWidth: 2,
-                        borderRadius: 4
+                        data: data_values,
+                        backgroundColor: '#28a745'
                     }]
                 },
                 options: {
@@ -241,14 +440,110 @@
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+                            beginAtZero: true
                         }
                     }
                 }
             });
+        }
+
+        function loadProfileData() {
+            // Carregar dados do perfil do usuário
+            fetch('/Public/PublicClientPanel/GetProfileData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('firstName').value = data.profile.firstName || '';
+                        document.getElementById('lastName').value = data.profile.lastName || '';
+                        document.getElementById('email').value = data.profile.email || '';
+                        document.getElementById('phone').value = data.profile.phone || '';
+                        document.getElementById('birthDate').value = data.profile.birthDate || '';
+                        document.getElementById('gender').value = data.profile.gender || '';
+                        document.getElementById('address').value = data.profile.address || '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar dados do perfil:', error);
+                });
+        }
+
+        function setupEventListeners() {
+            // Formulário de perfil
+            document.getElementById('profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveProfile();
+            });
+
+            // Formulário de preferências
+            document.getElementById('preferences-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePreferences();
+            });
+        }
+
+        function saveProfile() {
+            const formData = new FormData(document.getElementById('profile-form'));
+            
+            fetch('/Public/PublicClientPanel/UpdateProfile', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Perfil atualizado com sucesso!');
+                } else {
+                    showError('Erro ao atualizar perfil: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar perfil:', error);
+                showError('Erro ao salvar perfil');
+            });
+        }
+
+        function savePreferences() {
+            const formData = new FormData(document.getElementById('preferences-form'));
+            
+            fetch('/Public/PublicClientPanel/UpdatePreferences', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Preferências atualizadas com sucesso!');
+                } else {
+                    showError('Erro ao atualizar preferências: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar preferências:', error);
+                showError('Erro ao salvar preferências');
+            });
+        }
+
+        function cancelProfileEdit() {
+            loadProfileData();
+        }
+
+        function cancelPreferencesEdit() {
+            // Recarregar preferências
+            loadPreferencesData();
+        }
+
+        function exportToPDF() {
+            window.open('/Public/PublicClientPanel/ExportHistoryPdf', '_blank');
+        }
+
+        function showSuccess(message) {
+            // Implementar notificação de sucesso
+            alert(message);
+        }
+
+        function showError(message) {
+            // Implementar notificação de erro
+            alert(message);
         }
     </script>
 }

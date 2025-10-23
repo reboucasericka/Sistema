@@ -44,13 +44,34 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 // =====================================================================
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Account/Login";
+    options.LoginPath = "/Account/Login";  // admin (padrão)
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ReturnUrlParameter = "ReturnUrl";
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.Name = "EwellinBeauty.Auth";
+    options.Cookie.IsEssential = true;
+    
+    // Configuração para redirecionamento inteligente baseado na área
+    options.Events.OnRedirectToLogin = context =>
+    {
+        var path = context.Request.Path.Value?.ToLower();
+        
+        // Se está tentando acessar área Public, redireciona para login público
+        if (path != null && path.StartsWith("/public"))
+        {
+            context.Response.Redirect("/Public/PublicAccount/Login");
+        }
+        else
+        {
+            // Para todas as outras áreas (Admin, etc.), usa o login padrão
+            context.Response.Redirect("/Account/Login");
+        }
+        
+        return Task.CompletedTask;
+    };
 });
 
 // =====================================================================
@@ -158,6 +179,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Middleware de debug para rotas (ANTES da autenticação)
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"➡️ Rota chamada: {context.Request.Path}");
+    Console.WriteLine($"🔐 User Authenticated: {context.User.Identity?.IsAuthenticated}");
+    Console.WriteLine($"🔐 User Roles: {string.Join(", ", context.User.Claims.Where(c => c.Type.Contains("role")).Select(c => c.Value))}");
+    await next();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -176,66 +206,42 @@ app.Use(async (context, next) =>
     await next();
 });
 
+
 app.UseRequestLocalization();
 
 
 
 
 // =====================================================================
-// 7️⃣ ROTAS MVC + AREAS + SIGNALR
+// 7️⃣ ROTAS MVC + ÁREAS (CORRIGIDAS E NORMALIZADAS)
 // =====================================================================
-//nao mudar aqui a ordem das rotas
-// Rota para áreas (Admin, Public)
 
-
-// 1) Áreas primeiro (mantém default controller=Admin para convenção)
+// 1️⃣ ÁREAS — sempre primeiro
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Rota adicional para área Public
-app.MapControllerRoute(
-    name: "public_area",
-    pattern: "Public/{controller=PublicHome}/{action=Index}/{id?}",
-    defaults: new { area = "Public" });
-
-
-// 2) Default depois
+// 2️⃣ ROTA PADRÃO (Admin e pública) — por último
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-// 3) Rotas personalizadas da área Public (mantém como já estão)
-app.MapControllerRoute(
-    name: "PublicAppointment",
-    pattern: "Public/PublicAppointment/{action=Index}/{id?}",
-    defaults: new { area = "Public", controller = "PublicAppointment" });
-
-app.MapControllerRoute(
-    name: "PublicServices",
-    pattern: "Public/PublicServices/{action=Index}/{id?}",
-    defaults: new { area = "Public", controller = "PublicServices" });
-
-app.MapControllerRoute(
-    name: "PublicProducts",
-    pattern: "Public/PublicProducts/{action=Index}/{id?}",
-    defaults: new { area = "Public", controller = "PublicProducts" });
-
-app.MapControllerRoute(
-    name: "PublicRecrutamento",
-    pattern: "Public/PublicRecrutamento/{action=Index}/{id?}",
-    defaults: new { area = "Public", controller = "PublicRecrutamento" });
-
-// Rota personalizada para o Painel do Cliente
-app.MapControllerRoute(
-    name: "clientpanel",
-    pattern: "{area=Public}/minhaarea/{action=Index}/{id?}",
-    defaults: new { area = "Public", controller = "PublicClientPanel" });
 
 
 app.MapHub<Sistema.Services.NotificationHub>("/notificationHub");
 
 // =====================================================================
-// 8️⃣ SEED AUTOMÁTICO (modo produção avançado)
+// 8️⃣ LOGS DE ENDPOINTS (DEBUG)
+// =====================================================================
+var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
+Console.WriteLine("🛠️ ===== ROTAS REGISTRADAS =====");
+foreach (var endpoint in endpointDataSource.Endpoints)
+{
+    Console.WriteLine($"🛠️ Rota registrada: {endpoint.DisplayName}");
+}
+Console.WriteLine("🛠️ ================================");
+
+// =====================================================================
+// 9️⃣ SEED AUTOMÁTICO (modo produção avançado)
 // =====================================================================
 try
 {
@@ -262,12 +268,16 @@ try
         Console.ResetColor();
 
         await seeder.SeedAsync();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("✅ SeedDb executado com sucesso");
+        Console.ResetColor();
     }
 }
 catch (Exception ex)
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine($" SEED ERROR: {ex.Message}");
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"⚠️ SeedDb falhou: {ex.Message}");
+    Console.WriteLine("⚠️ Sistema continuará sem dados iniciais. Configure manualmente se necessário.");
     Console.ResetColor();
 }
 

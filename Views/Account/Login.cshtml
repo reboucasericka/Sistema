@@ -1,154 +1,66 @@
 ﻿@model Sistema.Models.Account.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
-    Layout = "_AuthLayout";
+    ViewData["Title"] = "Login Administrativo";
+    Layout = "~/Views/Shared/_Login.cshtml";
 }
-<!--Views/Account/Login.cshtml------->
-<div class="container-fluid">
-    <div class="row">
-        <!-- Imagem esquerda -->
-        <div class="col-md-6 auth-image d-none d-md-flex">
-            <div class="auth-image-content">
-                <h3>Bem-vinda de volta!</h3>
-                <p>Entre na sua conta e continue sua jornada de beleza conosco.</p>
-                <div class="mt-4">
-                    <i class="fas fa-spa fa-3x mb-3" style="opacity: 0.8;"></i>
-                </div>
+
+<!-- ====================================== -->
+<!-- LOGIN ADMINISTRATIVO SIMPLES E CENTRAL -->
+<!-- ====================================== -->
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="card shadow-sm border-0 p-4" style="width: 100%; max-width: 340px; border-radius: 10px;">       
+        <form asp-controller="Account" asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label small fw-semibold">Usuário</label>
+                <input asp-for="Username" class="form-control form-control-sm" placeholder="E-mail ou username" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
             </div>
-        </div>
 
-        <!-- Formulário direita -->
-        <div class="col-md-6 d-flex align-items-center justify-content-start">
-            <div class="auth-card" style="width: 100%; max-width: 400px; margin-left: 40px;">
-                <div class="auth-header">
-                    <h2><i class="fas fa-sign-in-alt me-2"></i>Entrar</h2>
-                    <p>Acesse sua conta para continuar Views/Account/Login.cshtml</p>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label small fw-semibold">Senha</label>
+                <div class="position-relative">
+                    <input asp-for="Password" type="password" class="form-control form-control-sm" placeholder="Digite sua senha" />
+                    <button type="button"
+                            class="btn position-absolute end-0 top-50 translate-middle-y pe-3"
+                            onclick="togglePassword()"
+                            style="border: none; background: none; color: #888;">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </button>
                 </div>
-
-                <div class="p-3">
-                    <form asp-controller="Account" asp-action="Login" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-
-                        <div class="mb-3">
-                            <label asp-for="Username" class="form-label">
-                                <i class="fas fa-user me-2" style="color: var(--accent-terracotta);"></i>
-                                E-mail ou Username
-                            </label>
-                            <input asp-for="Username" class="form-control" />
-                            <span asp-validation-for="Username" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">
-                                <i class="fas fa-lock me-2" style="color: var(--accent-terracotta);"></i>
-                                Senha
-                            </label>
-                            <div class="position-relative">
-                                <input asp-for="Password" type="password" class="form-control" placeholder="Digite sua senha" />
-                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3" onclick="togglePassword()" style="border: none; background: none; color: var(--accent-terracotta);">
-                                    <i class="fas fa-eye" id="toggleIcon"></i>
-                                </button>
-                            </div>
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label">Lembrar de mim</label>
-                        </div>
-
-
-                        <!-- Botões principais -->
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
-                        </div>
-
-                        <!-- Link para registro -->
-                        <div class="text-center mt-3">
-                            <p class="mb-2">Não tem uma conta?</p>
-                            <a asp-area="Public" asp-controller="PublicAccount" asp-action="Register" class="btn btn-outline-primary"><i class="fas fa-user-plus me-1"></i>Cadastre-se aqui</a>
-
-                        </div>
-
-                        <!-- Login Social -->
-                        <div class="social-login">
-                            <div>
-                                <span>ou continue com</span>
-                            </div>
-                            <a asp-action="ExternalLogin" asp-route-provider="Facebook" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-facebook social-btn">
-                                <i class="fab fa-facebook-f me-2"></i>
-                                Facebook
-                            </a>
-                            <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" class="btn btn-google social-btn">
-                                <i class="fab fa-google me-2"></i>
-                                Google
-                            </a>
-                        </div>
-                       
-
-                    </form>
-                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
-        </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label small">Lembrar de mim</label>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script>
         function togglePassword() {
             const passwordInput = document.querySelector('input[name="Password"]');
             const toggleIcon = document.getElementById('toggleIcon');
-
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
-
-        // Funções de autenticação social já implementadas via links
-
-        // Adicionar animação aos campos
-        document.querySelectorAll('.form-control').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
-    </script>
-
-    <script>
-        // Limpar cache e storage ao carregar a página
-        document.addEventListener('DOMContentLoaded', function() {
-            // Limpar storage
-            try {
-                localStorage.clear();
-                sessionStorage.clear();
-            } catch (e) {
-                // console.log('Storage clear failed:', e);
-            }
-
-            // Limpar cache se disponível
-            if ('caches' in window) {
-                caches.keys().then(function(names) {
-                    names.forEach(function(name) {
-                        caches.delete(name);
-                    });
-                }).catch(function(e) {
-                    // console.log('Cache clear failed:', e);
-                });
-            }
-        });
     </script>
 }

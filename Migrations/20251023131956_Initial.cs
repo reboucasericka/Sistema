@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Sistema.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicio : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -101,7 +101,7 @@ namespace Sistema.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -216,7 +216,7 @@ namespace Sistema.Migrations
                     Duration = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     DurationInMinutes = table.Column<int>(type: "int", nullable: false),
-                    Commission = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Commission = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     ReturnDays = table.Column<int>(type: "int", nullable: false),
                     ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false)
@@ -389,8 +389,7 @@ namespace Sistema.Migrations
                     TotalValue = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     ServicesQuantity = table.Column<int>(type: "int", nullable: false),
                     ProductsQuantity = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    UserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ExportedToExcel = table.Column<bool>(type: "bit", nullable: false),
                     ExportedToPdf = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -398,10 +397,11 @@ namespace Sistema.Migrations
                 {
                     table.PrimaryKey("PK_Billings", x => x.BillingId);
                     table.ForeignKey(
-                        name: "FK_Billings_AspNetUsers_UserId1",
-                        column: x => x.UserId1,
+                        name: "FK_Billings_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -454,6 +454,9 @@ namespace Sistema.Migrations
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AllergyHistory = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Gender = table.Column<string>(type: "nvarchar(1)", maxLength: 1, nullable: true),
+                    PreferredTime = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    PreferredDay = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
@@ -1327,9 +1330,9 @@ namespace Sistema.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Billings_UserId1",
+                name: "IX_Billings_UserId",
                 table: "Billings",
-                column: "UserId1");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CashMovements_CashRegisterId",

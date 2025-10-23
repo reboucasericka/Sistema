@@ -12,7 +12,7 @@ namespace Sistema.Data
             var optionsBuilder = new DbContextOptionsBuilder<SistemaDbContext>();
             
             // Configuração para design-time
-            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=SistemaDB;Trusted_Connection=true;MultipleActiveResultSets=true");
+            optionsBuilder.UseSqlServer("Server=REBOUCAS\\Sistema;Database=Sistema;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True");
             
             return new SistemaDbContext(optionsBuilder.Options);
         }

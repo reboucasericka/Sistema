@@ -35,6 +35,15 @@ namespace Sistema.Data.Entities
         [StringLength(255)]
         public string? AllergyHistory { get; set; } // Histórico de alergias
 
+        [StringLength(1)]
+        public string? Gender { get; set; } // Gênero do cliente (M/F/O)
+
+        [StringLength(50)]
+        public string? PreferredTime { get; set; } // Horário preferido para agendamentos
+
+        [StringLength(20)]
+        public string? PreferredDay { get; set; } // Dia da semana preferido
+
         public Guid ImageId { get; set; } // Foto do cliente (ID da imagem no blob)
 
         // 🔗 FK → User

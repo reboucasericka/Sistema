@@ -49,59 +49,52 @@ namespace Sistema.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                Console.WriteLine("❌ ModelState inválido no login Admin");
                 return View(model);
-
-            try
-            {
-                var result = await _userHelper.LoginAsync(model);
-
-                if (result.Succeeded)
-                {
-                    var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                              ?? await _userHelper.GetUserByUsernameAsync(model.Username);
-
-                    if (user == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Usuário não encontrado.");
-                        return View(model);
-                    }
-
-                    // Log do acesso
-                    await LogAccess(user, "Login");
-
-                    // Se for admin, vai para o painel administrativo
-                    if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-
-                    // Se tiver ReturnUrl válido, redireciona para lá
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                        return LocalRedirect(returnUrl);
-
-                    // Verifica se o e-mail foi confirmado
-                    if (!user.EmailConfirmed)
-                    {
-                        await _userHelper.LogoutAsync();
-                        ModelState.AddModelError(string.Empty, "Confirme seu e-mail antes de continuar.");
-                        return View(model);
-                    }
-
-                    // Se for cliente com e-mail confirmado, vai para o perfil
-                    return RedirectToAction("Index", "PublicAppointment", new { area = "Public" });
-                }
-
-                ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
-            }
-            catch (Exception ex)
-            {
-                // Log do erro (em produção, usar um logger adequado)
-                Console.WriteLine($"Erro no login: {ex.Message}");
-                ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
             }
 
-            return View(model);
+            Console.WriteLine($"🔹 Tentativa de login (Admin): {model.Username}");
+
+            var user = await _userHelper.GetUserByEmailAsync(model.Username)
+                      ?? await _userHelper.GetUserByUsernameAsync(model.Username);
+
+            if (user == null)
+            {
+                Console.WriteLine("❌ Admin não encontrado.");
+                ModelState.AddModelError("", "Conta não encontrada.");
+                return View(model);
+            }
+
+            Console.WriteLine($"✅ Usuário encontrado: {user.Email}");
+
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName, model.Password, model.RememberMe, false);
+
+            if (!result.Succeeded)
+            {
+                Console.WriteLine("❌ Credenciais inválidas.");
+                ModelState.AddModelError("", "Credenciais inválidas.");
+                return View(model);
+            }
+
+            // Verificar role
+            var roles = await _userHelper.GetUserRolesAsync(user);
+            Console.WriteLine($"🔎 Roles detectadas: {string.Join(", ", roles)}");
+
+            if (!roles.Contains("Admin"))
+            {
+                await _signInManager.SignOutAsync();
+                Console.WriteLine("🚫 Acesso negado. Usuário não é Admin.");
+                ModelState.AddModelError("", "Acesso restrito a administradores.");
+                return View(model);
+            }
+
+            Console.WriteLine("✅ Login de Admin bem-sucedido!");
+            return RedirectToAction("Index", "Admin", new { area = "Admin" });
         }
 
 
@@ -165,67 +158,6 @@ namespace Sistema.Controllers
 
        
 
-        // =======================
-        // LOGIN ADMINISTRATIVO
-        // =======================
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult AdminLogin(string? returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View("AdminLogin", new LoginViewModel());
-        
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdminLogin(LoginViewModel model, string? returnUrl = null)
-        {
-            if (!ModelState.IsValid)
-                return View("AdminLogin", model);
-
-            try
-            {
-                // Aceita email OU username
-                var user = await _userHelper.GetUserByEmailAsync(model.Username)
-                           ?? await _userHelper.GetUserByUsernameAsync(model.Username);
-
-                if (user == null)
-                {
-                    ModelState.AddModelError(string.Empty, "Usuário ou senha inválidos.");
-                    return View("AdminLogin", model);
-                }
-
-                // Precisa ser Admin
-                if (!await _userHelper.IsUserInRoleAsync(user, "Admin"))
-                {
-                    ModelState.AddModelError(string.Empty, "Este utilizador não tem acesso administrativo.");
-                    return View("AdminLogin", model);
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(
-                    user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
-
-                if (!result.Succeeded)
-                {
-                    ModelState.AddModelError(string.Empty, "Credenciais inválidas.");
-                    return View("AdminLogin", model);
-                }
-
-                // Log do acesso administrativo
-                await LogAccess(user, "AdminLogin");
-
-                // Sucesso: painel admin
-                return RedirectToAction("Index", "Admin", new { area = "Admin" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro no login administrativo: {ex.Message}");
-                ModelState.AddModelError(string.Empty, "Ocorreu um erro interno. Tente novamente.");
-                return View("AdminLogin", model);
-            }
-        }
 
         // =======================
         // LOGIN VIA FACEBOOK E GOOGLE

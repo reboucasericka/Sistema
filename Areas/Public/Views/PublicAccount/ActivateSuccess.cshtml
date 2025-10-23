@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "Conta Ativada";
-    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
@@ -16,23 +16,23 @@
                     
                     <div class="alert alert-success">
                         <i class="fas fa-star me-2"></i>
-                        <strong>Parabéns!</strong> Sua conta foi ativada com sucesso.
+                        <strong>Parabéns!</strong> Bem-vindo(a), @TempData["UserFirstName"]!
                     </div>
                     
                     <p class="lead mb-4">
-                        Agora você pode fazer login e agendar seus serviços na Ewellin Jordão.
+                        Sua conta foi ativada com sucesso. Você será redirecionado automaticamente para o painel do cliente.
                     </p>
                     
                     <div class="mt-4">
-                        <a href="/Account/Login" class="btn btn-success btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                        <a href="/Public/PublicClientPanel/Index" class="btn btn-success btn-lg" id="redirectBtn">
+                            <i class="fas fa-tachometer-alt me-2"></i>Ir para o Painel
                         </a>
                     </div>
                     
                     <div class="mt-3">
                         <small class="text-muted">
                             <i class="fas fa-info-circle me-1"></i>
-                            Use seu e-mail e senha para fazer login
+                            Redirecionamento automático em <span id="countdown">5</span> segundos...
                         </small>
                     </div>
                 </div>
@@ -40,3 +40,25 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Redirecionamento automático após 5 segundos
+    let countdown = 5;
+    const countdownElement = document.getElementById('countdown');
+    const redirectBtn = document.getElementById('redirectBtn');
+    
+    const timer = setInterval(function() {
+        countdown--;
+        countdownElement.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(timer);
+            window.location.href = '/Public/PublicClientPanel/Index';
+        }
+    }, 1000);
+    
+    // Permitir redirecionamento manual
+    redirectBtn.addEventListener('click', function() {
+        clearInterval(timer);
+    });
+</script>
