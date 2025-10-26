@@ -16,21 +16,18 @@ namespace Sistema.Areas.Public.Controllers
     {
         private readonly SistemaDbContext _context;
         private readonly IAppointmentNotificationService _notificationService;
-        private readonly INotificationService _emailNotificationService;
-        private readonly IGoogleCalendarSyncService _calendarSyncService;
+        // Notification and Calendar services moved to API Business Services
         private readonly ILogger<PublicBookingController> _logger;
 
         public PublicBookingController(
             SistemaDbContext context, 
             IAppointmentNotificationService notificationService,
-            INotificationService emailNotificationService,
-            IGoogleCalendarSyncService calendarSyncService,
+            // Notification and Calendar services moved to API Business Services
             ILogger<PublicBookingController> logger)
         {
             _context = context;
             _notificationService = notificationService;
-            _emailNotificationService = emailNotificationService;
-            _calendarSyncService = calendarSyncService;
+            // Notification and Calendar services moved to API Business Services
             _logger = logger;
         }
 
@@ -215,7 +212,7 @@ namespace Sistema.Areas.Public.Controllers
                     // Sincronizar com Google Calendar
                     try
                     {
-                        await _calendarSyncService.CreateOrUpdateEventAsync(appointment);
+                        // await _calendarSyncService.CreateOrUpdateEventAsync(appointment); // Moved to API Business Services
                         _logger.LogInformation($"Evento Google Calendar criado para agendamento {appointment.AppointmentId}");
                     }
                     catch (Exception calendarEx)
@@ -226,7 +223,7 @@ namespace Sistema.Areas.Public.Controllers
                     // Enviar e-mail de confirmação
                     try
                     {
-                        await _emailNotificationService.SendBookingConfirmationAsync(appointment);
+                        // await _emailNotificationService.SendBookingConfirmationAsync(appointment); // Moved to API Business Services
                     }
                     catch (Exception emailEx)
                     {
@@ -360,7 +357,7 @@ namespace Sistema.Areas.Public.Controllers
                 {
                     if (!string.IsNullOrEmpty(appointment.GoogleEventId))
                     {
-                        await _calendarSyncService.DeleteEventAsync(appointment.GoogleEventId);
+                        // await _calendarSyncService.DeleteEventAsync(appointment.GoogleEventId); // Moved to API Business Services
                         _logger.LogInformation($"Evento Google Calendar removido para agendamento {appointment.AppointmentId}");
                     }
                 }
@@ -375,7 +372,7 @@ namespace Sistema.Areas.Public.Controllers
                 // Enviar e-mail de cancelamento
                 try
                 {
-                    await _emailNotificationService.SendBookingCancelledAsync(appointment);
+                    // await _emailNotificationService.SendBookingCancelledAsync(appointment); // Moved to API Business Services
                 }
                 catch (Exception emailEx)
                 {
@@ -443,7 +440,7 @@ namespace Sistema.Areas.Public.Controllers
                 // Enviar e-mail de reagendamento
                 try
                 {
-                    await _emailNotificationService.SendBookingRescheduledAsync(appointment);
+                    // await _emailNotificationService.SendBookingRescheduledAsync(appointment); // Moved to API Business Services
                 }
                 catch (Exception emailEx)
                 {

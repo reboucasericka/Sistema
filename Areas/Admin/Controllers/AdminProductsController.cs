@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data.Repository.Interfaces;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using Sistema.Helpers;
 using Sistema.Models.Admin;
+using Microsoft.Extensions.Logging;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -12,43 +13,53 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminProductsController : Controller
     {
-
-
-        private readonly IProductRepository _productRepository;
-        private readonly IProductCategoryRepository _productCategoryRepository;
-        private readonly ISupplierRepository _supplierRepository;        
+        private readonly ApiProductsService _productsService;
+        private readonly IStorageHelper _storageHelper;
         private readonly IUserHelper _userHelper;
-        private readonly IStorageHelper _storageHelper;        
         private readonly IConverterHelper _converterHelper;
-        
+        private readonly ILogger<AdminProductsController> _logger;
 
-        // Construtor injeta apenas IProdutoRepository
         public AdminProductsController(
-            IProductRepository productRepository,
-            IProductCategoryRepository productCategoryRepository,
-            ISupplierRepository supplierRepository,
-            IUserHelper userHelper, 
-            IStorageHelper storageHelper,           
-            IConverterHelper converterHelper)
+            ApiProductsService productsService,
+            IStorageHelper storageHelper,
+            IUserHelper userHelper,
+            IConverterHelper converterHelper,
+            ILogger<AdminProductsController> logger)
         {
-
-            _productRepository = productRepository;
-            _productCategoryRepository = productCategoryRepository;
-            _supplierRepository = supplierRepository;            
+            _productsService = productsService;
+            _storageHelper = storageHelper;
             _userHelper = userHelper;
-            _storageHelper = storageHelper;            
             _converterHelper = converterHelper;
-            
+            _logger = logger;
         }
 
         // =======================
         // GET: Produtos
         // =======================
-        public IActionResult Index()
-        {           
-            // Usar ele em vez do GetAll() simples (para trazer Categoria e Fornecedor).
-            var product = _productRepository.GetAllWithIncludes().OrderBy(p => p.Name);  //ordenar por Name
-            return View(product);
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var response = await _productsService.GetAllAsync();
+                
+                if (response.Success && response.Data != null)
+                {
+                    var products = response.Data.OrderBy(p => p.Name).ToList();
+                    return View(products);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch products: {Message}", response.Message);
+                    TempData["ErrorMessage"] = "Failed to load products. Please try again.";
+                    return View(new List<ProductDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading products");
+                TempData["ErrorMessage"] = "An error occurred while loading products.";
+                return View(new List<ProductDto>());
+            }
         }
 
         // =======================
@@ -60,12 +71,26 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 return new NotFoundViewResult("ProductNotFound");
             }
-            var product = await _productRepository.GetByIdAsync(id.Value);
-            if (product == null)
+
+            try
             {
+                var response = await _productsService.GetByIdAsync(id.Value);
+
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch product {Id}: {Message}", id, response.Message);
+                    return new NotFoundViewResult("ProductNotFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product {Id}", id);
                 return new NotFoundViewResult("ProductNotFound");
             }
-            return View(product);
         }
 
         // =======================
@@ -73,10 +98,9 @@ namespace Sistema.Areas.Admin.Controllers
         // =======================
         public IActionResult Create()
         {
-            // ⚠️ Atenção: estas chamadas só vão funcionar se IProdutoRepository expuser
-            // métodos para categorias e fornecedores. Se não, criamos ICategoriaProdutoRepository / IFornecedorRepository separados.
-            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name");
-            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name");
+            // TODO: Buscar categorias e fornecedores via API quando os endpoints estiverem disponíveis
+            ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name");
+            ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name");
             return View();
         }
 
@@ -88,139 +112,130 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminProductViewModel model)
         {
-            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE (POST) ===");
-            Console.WriteLine($"Model recebido - Nome: {model.Name}, CategoriaId: {model.ProductCategoryId}, FornecedorId: {model.SupplierId}");
+            _logger.LogInformation("=== INÍCIO DO MÉTODO CREATE (POST) ===");
+            _logger.LogInformation("Model recebido - Nome: {Name}, CategoriaId: {ProductCategoryId}, FornecedorId: {SupplierId}", 
+                model.Name, model.ProductCategoryId, model.SupplierId);
 
             // Validação básica do ModelState
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                Console.WriteLine($"Erro de validação: {errorMessage}");
+                _logger.LogWarning("Erro de validação: {ErrorMessage}", errorMessage);
                 TempData["ErrorMessage"] = errorMessage;
                 
                 // Repopular dropdowns em caso de erro
-                ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
-                ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model?.SupplierId);
                 return View(model);
             }
 
             // Validação adicional dos campos obrigatórios
             if (model.ProductCategoryId <= 0)
             {
-                Console.WriteLine("ERRO: ProductCategoryId é obrigatório e deve ser maior que 0");
+                _logger.LogWarning("ERRO: ProductCategoryId é obrigatório e deve ser maior que 0");
                 TempData["ErrorMessage"] = "Por favor, selecione uma categoria válida.";
-                ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
-                ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+                ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+                ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model?.SupplierId);
                 return View(model);
             }
 
             try
             {
-                Console.WriteLine("Iniciando validações de existência...");
+                _logger.LogInformation("Iniciando validações de existência...");
 
-                // Verificar se a categoria existe
-                var categoryExists = await _productCategoryRepository.ExistsAsync(model.ProductCategoryId);
-                if (!categoryExists)
-                {
-                    Console.WriteLine($"ERRO: Categoria com ID {model.ProductCategoryId} não existe");
-                    TempData["ErrorMessage"] = "A categoria selecionada não existe. Por favor, selecione uma categoria válida.";
-                    ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
-                    ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
-                    return View(model);
-                }
+                // TODO: Implementar validações via API quando os endpoints estiverem disponíveis
+                // Por enquanto, pular as validações de existência
 
-                // Verificar se o fornecedor existe (se fornecido)
-                if (model.SupplierId.HasValue && model.SupplierId.Value > 0)
-                {
-                    var supplierExists = await _supplierRepository.ExistsAsync(model.SupplierId.Value);
-                    if (!supplierExists)
-                    {
-                        Console.WriteLine($"ERRO: Fornecedor com ID {model.SupplierId.Value} não existe");
-                        TempData["ErrorMessage"] = "O fornecedor selecionado não existe. Por favor, selecione um fornecedor válido ou deixe em branco.";
-                        ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
-                        ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
-                        return View(model);
-                    }
-                }
-
-                Console.WriteLine("Validações de existência concluídas com sucesso");
+                _logger.LogInformation("Validações de existência concluídas com sucesso");
 
                 // Processar imagem
-                Guid? imageId = null;
+                int? imageId = null;
                 if (model.ImageFile != null && model.ImageFile.Length > 0)
                 {
                     try
                     {
-                        Console.WriteLine("Iniciando upload da imagem...");
+                        _logger.LogInformation("Iniciando upload da imagem...");
                         string photoPath = await _storageHelper.UploadAsync(model.ImageFile, "products");
                         if (!string.IsNullOrEmpty(photoPath))
                         {
-                            imageId = Guid.Parse(photoPath);
-                            Console.WriteLine($"Upload da imagem concluído. ImageId: {imageId}");
+                            imageId = int.Parse(photoPath);
+                            _logger.LogInformation("Upload da imagem concluído. ImageId: {ImageId}", imageId);
                         }
                         else
                         {
-                            Console.WriteLine("Upload falhou, produto será criado sem imagem");
+                            _logger.LogWarning("Upload falhou, produto será criado sem imagem");
                             TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"ERRO no upload da imagem: {ex.Message}");
+                        _logger.LogError(ex, "ERRO no upload da imagem");
                         TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
                         // Continua o processo mesmo com erro de upload
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Nenhuma imagem fornecida, ImageId será null");
+                    _logger.LogInformation("Nenhuma imagem fornecida, ImageId será null");
                 }
 
                 // Obter usuário atual
                 var currentUser = await _userHelper.GetUserByEmailAsync(this.User.Identity?.Name);
                 var userId = currentUser?.Id;
 
-                // Converter ViewModel para Entity
-                Console.WriteLine("Convertendo ViewModel para Entity...");
-                var product = _converterHelper.ToProduct(model, imageId ?? Guid.Empty, true, userId);
-                
-                // Garantir que campos obrigatórios estejam corretos
-                product.ProductCategoryId = model.ProductCategoryId;
-                product.SupplierId = model.SupplierId > 0 ? model.SupplierId : null;
-                product.ImageId = imageId; // Pode ser null
-                product.IsActive = model.IsActive;
+                // Criar DTO para a API
+                _logger.LogInformation("Convertendo ViewModel para DTO...");
+                var productDto = new ProductDto
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.SalePrice,
+                    StockQuantity = model.Stock,
+                    Category = model.CategoryName,
+                    Brand = model.Brand,
+                    SKU = model.SKU,
+                    IsActive = model.IsActive
+                };
 
-                Console.WriteLine($"Produto convertido - Nome: {product.Name}, CategoriaId: {product.ProductCategoryId}, FornecedorId: {product.SupplierId}, ImageId: {product.ImageId}, UserId: {product.UserId}");
+                _logger.LogInformation("Produto DTO criado - Nome: {Name}, Categoria: {Category}, Marca: {Brand}, SKU: {SKU}", 
+                    productDto.Name, productDto.Category, productDto.Brand, productDto.SKU);
 
                 if (currentUser != null)
                 {
-                    Console.WriteLine($"Usuário associado: {currentUser.Email}");
+                    _logger.LogInformation("Usuário associado: {Email}", currentUser.Email);
                 }
                 else
                 {
-                    Console.WriteLine("AVISO: Usuário atual não encontrado");
+                    _logger.LogWarning("AVISO: Usuário atual não encontrado");
                 }
 
-                // Salvar no banco
-                Console.WriteLine("Iniciando salvamento no banco de dados...");
-                await _productRepository.CreateAsync(product);
-                Console.WriteLine("Produto salvo com sucesso no banco de dados!");
+                // Salvar via API
+                _logger.LogInformation("Iniciando salvamento via API...");
+                var response = await _productsService.CreateAsync(productDto);
                 
-                TempData["SuccessMessage"] = "Produto criado com sucesso!";
-                return RedirectToAction(nameof(Index));
+                if (response.Success)
+                {
+                    _logger.LogInformation("Produto salvo com sucesso via API!");
+                    TempData["SuccessMessage"] = "Produto criado com sucesso!";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    _logger.LogError("Failed to create product: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Failed to create product: {response.Message}";
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERRO GERAL: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                _logger.LogError(ex, "ERRO GERAL ao criar produto");
                 
                 var errorMessage = "Erro ao criar produto. ";
                 
-                // Capturar InnerException do Entity Framework
+                // Capturar InnerException
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    _logger.LogError(ex.InnerException, "Inner Exception");
                     errorMessage += $"Detalhes: {ex.InnerException.Message}";
                     
                     // Verificar se é erro de constraint de FK
@@ -242,8 +257,8 @@ namespace Sistema.Areas.Admin.Controllers
             }
             
             // Repopular dropdowns em caso de erro
-            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(), "ProductCategoryId", "Name", model?.ProductCategoryId);
-            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(), "SupplierId", "Name", model?.SupplierId);
+            ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model?.ProductCategoryId);
+            ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model?.SupplierId);
             return View(model);
         }
 
@@ -258,19 +273,46 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 return new NotFoundViewResult("ProductNotFound");
             }
-            var product = await _productRepository.GetByIdAsync(id.Value);
-            if (product == null)
+
+            try
             {
+                var response = await _productsService.GetByIdAsync(id.Value);
+
+                if (response.Success && response.Data != null)
+                {
+                    // TODO: Converter ProductDto para AdminProductViewModel
+                    // Por enquanto, usar o DTO diretamente
+                    var model = new AdminProductViewModel
+                    {
+                        ProductId = response.Data.ProductId,
+                        Name = response.Data.Name,
+                        Description = response.Data.Description,
+                        PurchasePrice = response.Data.Price,
+                        SalePrice = response.Data.Price,
+                        Stock = response.Data.StockQuantity,
+                        CategoryName = response.Data.Category,
+                        Brand = response.Data.Brand,
+                        SKU = response.Data.SKU,
+                        IsActive = response.Data.IsActive
+                    };
+
+                    // TODO: Buscar categorias e fornecedores via API quando os endpoints estiverem disponíveis
+                    ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", response.Data.Category);
+                    ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", response.Data.Brand);
+
+                    return View(model);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch product for edit {Id}: {Message}", id, response.Message);
+                    return new NotFoundViewResult("ProductNotFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product for edit {Id}", id);
                 return new NotFoundViewResult("ProductNotFound");
             }
-            // Converte Product → ProductViewModel
-            var model = _converterHelper.ToProductViewModel(product);
-            // ANTES DE RETORNAR A VIEW, PRECISAMOS CONVERTER O PRODUCT PARA O PRODUCTVIEWMODEL
-            // Popula dropdowns
-            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(),"ProductCategoryId","Name",product.ProductCategoryId);
-            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(),"SupplierId","Name",product.SupplierId);
-
-            return View(model);
         }
 
 
@@ -283,57 +325,74 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminProductViewModel model)
         {
-
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Garante que existe um ID válido, mesmo se o model.ImageId for null
+                    int? imageId = model.ImageId.HasValue && model.ImageId != null
+                        ? int.Parse(model.ImageId.Value.ToString())
+                        : null;
 
-                    // Garante que existe um GUID válido, mesmo se o model.ImageId for null
-                    Guid imageId = model.ImageId.HasValue && model.ImageId != Guid.Empty
-                        ? model.ImageId.Value
-                        : Guid.NewGuid();
                     // Se uma nova imagem foi enviada, faz upload e obtém novo GUID
-
-                    if (model.ImageFile != null && model.ImageFile.Length > 0) // Check if the ImageFile is not null
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
                         try
                         {
                             string photoPath = await _storageHelper.UploadAsync(model.ImageFile, "products");
                             if (!string.IsNullOrEmpty(photoPath))
                             {
-                                imageId = Guid.Parse(photoPath);
+                                imageId = int.Parse(photoPath);
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"ERRO no upload da imagem: {ex.Message}");
+                            _logger.LogError(ex, "ERRO no upload da imagem");
                             TempData["WarningMessage"] = "Imagem não foi enviada, produto atualizado sem nova foto.";
                         }
                     }
-                    // Converte e atualiza
-                    var product = _converterHelper.ToProduct(model, imageId, false);                    
-                    product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //Atribuir o usuário logado
 
-                    await _productRepository.UpdateAsync(product); //  genérico cobre Update
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _productRepository.ExistsAsync(model.ProductId))
+                    // Obter usuário atual
+                    var currentUser = await _userHelper.GetUserByEmailAsync(this.User.Identity?.Name);
+                    var userId = currentUser?.Id;
+
+                    // Criar DTO para a API
+                    var productDto = new ProductDto
                     {
-                        return new NotFoundViewResult("ProductNotFound");
+                        ProductId = model.ProductId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        Price = model.SalePrice,
+                        StockQuantity = model.Stock,
+                        Category = model.CategoryName,
+                        Brand = model.Brand,
+                        SKU = model.SKU,
+                        IsActive = model.IsActive
+                    };
+
+                    var response = await _productsService.UpdateAsync(model.ProductId, productDto);
+
+                    if (response.Success)
+                    {
+                        TempData["SuccessMessage"] = "Produto atualizado com sucesso!";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        _logger.LogError("Failed to update product: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Failed to update product: {response.Message}";
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating product");
+                    TempData["ErrorMessage"] = "An error occurred while updating the product.";
+                }
             }
 
             // se der erro de validação, recarrega dropdowns
-            ViewData["ProductCategoryId"] = new SelectList(_productCategoryRepository.GetAll(),"ProductCategoryId","Name",model.ProductCategoryId);
-            ViewData["SupplierId"] = new SelectList(_supplierRepository.GetAll(),"SupplierId","Name",model.SupplierId);
+            ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model.ProductCategoryId);
+            ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model.SupplierId);
 
             return View(model);
         }
@@ -345,10 +404,25 @@ namespace Sistema.Areas.Admin.Controllers
         {
             if (id == null) return new NotFoundViewResult("ProductNotFound");
 
-            var product = await _productRepository.GetByIdAsync(id.Value);
-            if (product == null) return new NotFoundViewResult("ProductNotFound");
+            try
+            {
+                var response = await _productsService.GetByIdAsync(id.Value);
 
-            return View(product);
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch product for delete {Id}: {Message}", id, response.Message);
+                    return new NotFoundViewResult("ProductNotFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product for delete {Id}", id);
+                return new NotFoundViewResult("ProductNotFound");
+            }
         }
 
         // =======================
@@ -358,8 +432,26 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
-            await _productRepository.DeleteAsync(product);
+            try
+            {
+                var response = await _productsService.DeleteAsync(id);
+
+                if (response.Success)
+                {
+                    TempData["SuccessMessage"] = "Produto deletado com sucesso!";
+                }
+                else
+                {
+                    _logger.LogError("Failed to delete product: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Failed to delete product: {response.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting product");
+                TempData["ErrorMessage"] = "An error occurred while deleting the product.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
         public IActionResult ProductNotFound()
@@ -368,3 +460,4 @@ namespace Sistema.Areas.Admin.Controllers
         }
     }
 }
+

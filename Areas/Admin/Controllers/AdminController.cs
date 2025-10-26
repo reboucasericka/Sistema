@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
 using Sistema.Data.Entities;
 using Sistema.Models.Admin;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -12,13 +13,27 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly ApiAppointmentsService _appointmentsService;
+        private readonly ApiClientsService _clientsService;
+        private readonly ApiStaffService _staffService;
+        private readonly ApiServicesService _servicesService;
         private readonly SignInManager<User> _signInManager;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(SistemaDbContext context, SignInManager<User> signInManager)
+        public AdminController(
+            ApiAppointmentsService appointmentsService,
+            ApiClientsService clientsService,
+            ApiStaffService staffService,
+            ApiServicesService servicesService,
+            SignInManager<User> signInManager,
+            ILogger<AdminController> logger)
         {
-            _context = context;
+            _appointmentsService = appointmentsService;
+            _clientsService = clientsService;
+            _staffService = staffService;
+            _servicesService = servicesService;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         // GET: Admin Dashboard
@@ -27,125 +42,143 @@ namespace Sistema.Areas.Admin.Controllers
         {
             ViewData["Title"] = "Dashboard";
 
-            // Monta o modelo tipado
-            var model = new AdminDashboardViewModel
+            try
             {
-                TotalAppointments = await _context.Appointments.CountAsync(),
-                TotalClients = await _context.Customers.CountAsync(),
-                TotalProfessionals = await _context.Professionals.CountAsync(),
-                TotalServices = await _context.Services.CountAsync(),
-                TodayAppointments = await _context.Appointments
-                    .Where(a => a.StartTime.Date == DateTime.Today)
-                    .CountAsync(),
-                PendingAppointments = await _context.Appointments
-                    .Where(a => a.StartTime >= DateTime.Today)
-                    .CountAsync(),
+                // Buscar dados via API
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var clientsResponse = await _clientsService.GetAllAsync();
+                var staffResponse = await _staffService.GetAllAsync();
+                var servicesResponse = await _servicesService.GetAllAsync();
 
-                // Agendamentos de hoje
-                TodayAppointmentsList = await _context.Appointments
-                    .AsNoTracking()
-                    .Include(a => a.Customer)
-                    .Include(a => a.Professional)
-                    .Include(a => a.Service)
-                    .Where(a => a.StartTime.Date == DateTime.Today)
-                    .OrderBy(a => a.StartTime)
-                    .ToListAsync(),
+                // Calcular estatísticas
+                var appointments = appointmentsResponse.Success ? appointmentsResponse.Data ?? new List<AppointmentDto>() : new List<AppointmentDto>();
+                var clients = clientsResponse.Success ? clientsResponse.Data ?? new List<ClientDto>() : new List<ClientDto>();
+                var staff = staffResponse.Success ? staffResponse.Data ?? new List<ProfessionalDto>() : new List<ProfessionalDto>();
+                var services = servicesResponse.Success ? servicesResponse.Data ?? new List<ServiceDto>() : new List<ServiceDto>();
 
-                // Próximos agendamentos
-                UpcomingAppointmentsList = await _context.Appointments
-                    .AsNoTracking()
-                    .Include(a => a.Customer)
-                    .Include(a => a.Professional)
-                    .Include(a => a.Service)
-                    .Where(a => a.StartTime > DateTime.Today)
-                    .OrderBy(a => a.StartTime)
-                    .Take(5)
-                    .ToListAsync()
-            };
+                // Monta o modelo tipado
+                var model = new AdminDashboardViewModel
+                {
+                    TotalAppointments = appointments.Count(),
+                    TotalClients = clients.Count(),
+                    TotalProfessionals = staff.Count(),
+                    TotalServices = services.Count(),
+                    TodayAppointments = appointments.Count(a => a.AppointmentDate.Date == DateTime.Today),
+                    PendingAppointments = appointments.Count(a => a.AppointmentDate >= DateTime.Today),
 
-            // 🔔 Preenche notificações
-            var notifications = new List<AdminNotification>();
+                    // Agendamentos de hoje
+                    TodayAppointmentsList = appointments
+                        .Where(a => a.AppointmentDate.Date == DateTime.Today)
+                        .OrderBy(a => a.AppointmentDate)
+                        .Select(a => new Appointment 
+                        { 
+                            AppointmentId = a.AppointmentId, 
+                            StartTime = a.AppointmentDate.Add(a.StartTime), 
+                            EndTime = a.AppointmentDate.Add(a.EndTime), 
+                            Notes = a.Notes, 
+                            Status = a.Status, 
+                            CustomerId = a.ClientId, 
+                            ServiceId = a.ServiceId, 
+                            ProfessionalId = a.ProfessionalId 
+                        })
+                        .ToList(),
 
-            // Exemplo: novos agendamentos
-            var upcomingCount = model.UpcomingAppointmentsList.Count;
-            if (upcomingCount > 0)
-            {
+                    // Próximos agendamentos
+                    UpcomingAppointmentsList = appointments
+                        .Where(a => a.AppointmentDate > DateTime.Today)
+                        .OrderBy(a => a.AppointmentDate)
+                        .Take(5)
+                        .Select(a => new Appointment 
+                        { 
+                            AppointmentId = a.AppointmentId, 
+                            StartTime = a.AppointmentDate.Add(a.StartTime), 
+                            EndTime = a.AppointmentDate.Add(a.EndTime), 
+                            Notes = a.Notes, 
+                            Status = a.Status, 
+                            CustomerId = a.ClientId, 
+                            ServiceId = a.ServiceId, 
+                            ProfessionalId = a.ProfessionalId 
+                        })
+                        .ToList()
+                };
+
+                // 🔔 Preenche notificações
+                var notifications = new List<AdminNotification>();
+
+                // Exemplo: novos agendamentos
+                var upcomingCount = appointments.Count(a => a.AppointmentDate > DateTime.Today);
+                if (upcomingCount > 0)
+                {
+                    notifications.Add(new AdminNotification
+                    {
+                        Message = $"{upcomingCount} novos agendamentos",
+                        Icon = "fas fa-calendar-alt",
+                        Time = "Hoje",
+                        Link = "/Appointments"
+                    });
+                }
+
+                // Exemplo: clientes cadastrados
                 notifications.Add(new AdminNotification
                 {
-                    Message = $"{upcomingCount} novos agendamentos",
-                    Icon = "fas fa-calendar-alt",
-                    Time = "Hoje",
-                    Link = "/Appointments"
+                    Message = $"{clients.Count()} clientes cadastrados",
+                    Icon = "fas fa-users",
+                    Time = DateTime.Now.ToString("HH:mm"),
+                    Link = "/Clients"
                 });
-            }
 
-            // Exemplo: clientes cadastrados
-            var clientCount = await _context.Customers.CountAsync();
-            notifications.Add(new AdminNotification
-            {
-                Message = $"{clientCount} clientes cadastrados",
-                Icon = "fas fa-users",
-                Time = DateTime.Now.ToString("HH:mm"),
-                Link = "/Clients"
-            });
-
-            // Exemplo: serviços cadastrados
-            var serviceCount = await _context.Services.CountAsync();
-            notifications.Add(new AdminNotification
-            {
-                Message = $"{serviceCount} serviços disponíveis",
-                Icon = "fas fa-concierge-bell",
-                Time = DateTime.Now.ToString("HH:mm"),
-                Link = "/Services"
-            });
-
-            // 🔹 NOVO → Agendamento daqui a 1 hora
-            var oneHourFromNow = DateTime.Now.AddHours(1);
-            var nextAppointment = await _context.Appointments
-                .AsNoTracking()
-                .Include(a => a.Customer)
-                .Include(a => a.Professional)
-                .Include(a => a.Service)
-                .Where(a => a.StartTime.Date == DateTime.Today && a.StartTime.TimeOfDay >= DateTime.Now.TimeOfDay && a.StartTime.TimeOfDay <= oneHourFromNow.TimeOfDay)
-                .OrderBy(a => a.StartTime)
-                .FirstOrDefaultAsync();
-
-            if (nextAppointment != null)
-            {
+                // Exemplo: serviços cadastrados
                 notifications.Add(new AdminNotification
                 {
-                    Message = $"Agendamento às {nextAppointment.StartTime:HH\\:mm} com {nextAppointment.Customer?.Name}",
-                    Icon = "fas fa-clock",
-                    Time = "Em 1 hora",
-                    Link = "/Appointments/Details/" + nextAppointment.AppointmentId
+                    Message = $"{services.Count()} serviços disponíveis",
+                    Icon = "fas fa-concierge-bell",
+                    Time = DateTime.Now.ToString("HH:mm"),
+                    Link = "/Services"
                 });
-            }
 
-            // 🔹 NOVO → Profissionais sem disponibilidade hoje
-            var today = DateTime.Today;
-            var todayDayOfWeek = today.DayOfWeek;
-            var busyProfessionals = await _context.Professionals
-                .Where(p => !_context.ProfessionalSchedules.Any(s => s.ProfessionalId == p.ProfessionalId && s.DayOfWeek == todayDayOfWeek))
-                .ToListAsync();
+                // 🔹 NOVO → Agendamento daqui a 1 hora
+                var oneHourFromNow = DateTime.Now.AddHours(1);
+                var nextAppointment = appointments
+                    .Where(a => a.AppointmentDate.Date == DateTime.Today && 
+                               a.AppointmentDate.TimeOfDay >= DateTime.Now.TimeOfDay && 
+                               a.AppointmentDate.TimeOfDay <= oneHourFromNow.TimeOfDay)
+                    .OrderBy(a => a.AppointmentDate)
+                    .FirstOrDefault();
 
-            if (busyProfessionals.Any())
-            {
-                var names = string.Join(", ", busyProfessionals.Select(p => p.Name));
-                notifications.Add(new AdminNotification
+                if (nextAppointment != null)
                 {
-                    Message = $"Sem disponibilidade hoje: {names}",
-                    Icon = "fas fa-user-times",
-                    Time = today.ToString("dd/MM"),
-                    Link = "/ProfessionalSchedules"
+                    notifications.Add(new AdminNotification
+                    {
+                        Message = $"Agendamento às {nextAppointment.AppointmentDate.Add(nextAppointment.StartTime):HH\\:mm}",
+                        Icon = "fas fa-clock",
+                        Time = "Em 1 hora",
+                        Link = "/Appointments/Details/" + nextAppointment.AppointmentId
+                    });
+                }
+
+                // Passa para a ViewBag
+                ViewBag.Notifications = notifications;
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading dashboard data");
+                TempData["ErrorMessage"] = "An error occurred while loading dashboard data.";
+                
+                // Retornar modelo vazio em caso de erro
+                return View(new AdminDashboardViewModel
+                {
+                    TotalAppointments = 0,
+                    TotalClients = 0,
+                    TotalProfessionals = 0,
+                    TotalServices = 0,
+                    TodayAppointments = 0,
+                    PendingAppointments = 0,
+                    TodayAppointmentsList = new List<Appointment>(),
+                    UpcomingAppointmentsList = new List<Appointment>()
                 });
             }
-
-            
-
-            // Passa para a ViewBag
-            ViewBag.Notifications = notifications;
-
-            return View(model);
         }
 
         // GET: Dados JSON para o gráfico de agendamentos
@@ -153,32 +186,39 @@ namespace Sistema.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAppointmentsChartData()
         {
-            var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+            try
+            {
+                var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
 
-            var appointments = await _context.Appointments
-                .AsNoTracking()
-                .Where(a => a.StartTime >= startOfWeek)
-                .ToListAsync();
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var appointments = appointmentsResponse.Success ? 
+                    appointmentsResponse.Data?.Where(a => a.AppointmentDate >= startOfWeek).ToList() ?? new List<AppointmentDto>() : 
+                    new List<AppointmentDto>();
 
-            var data = appointments
-                .GroupBy(a => a.StartTime.DayOfWeek)
-                .Select(g => new
-                {
-                    Day = g.Key.ToString(),
-                    Count = g.Count()
-                })
-                .ToList();
+                var data = appointments
+                    .GroupBy(a => a.AppointmentDate.DayOfWeek)
+                    .Select(g => new
+                    {
+                        Day = g.Key.ToString(),
+                        Count = g.Count()
+                    })
+                    .ToList();
 
-            return Json(data);
+                return Json(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading chart data");
+                return Json(new List<object>());
+            }
         }
        
        
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Notifications()
         {
-            var notifications = await _context.Notifications
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            // TODO: Implementar busca de notificações via API
+            var notifications = new List<object>();
 
             return View(notifications);
         }

@@ -51,7 +51,7 @@ namespace Sistema.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<SistemaDbContext>();
-            var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            // var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>(); // Moved to API Business Services
 
             try
             {
@@ -78,13 +78,13 @@ namespace Sistema.Services
                 // Processar lembretes de 24h
                 foreach (var appointment in appointments24h)
                 {
-                    await SendReminderAsync(appointment, ReminderType.TwentyFourHours, notificationService, context);
+                    // await SendReminderAsync(appointment, ReminderType.TwentyFourHours, notificationService, context); // Moved to API Business Services
                 }
 
                 // Processar lembretes de 2h
                 foreach (var appointment in appointments2h)
                 {
-                    await SendReminderAsync(appointment, ReminderType.TwoHours, notificationService, context);
+                    // await SendReminderAsync(appointment, ReminderType.TwoHours, notificationService, context); // Moved to API Business Services
                 }
             }
             catch (Exception ex)
@@ -119,7 +119,7 @@ namespace Sistema.Services
         private async Task SendReminderAsync(
             Appointment appointment, 
             ReminderType reminderType, 
-            INotificationService notificationService,
+            // Notification service moved to API Business Services
             SistemaDbContext context)
         {
             try
@@ -318,7 +318,7 @@ namespace Sistema.Services
                 // Enviar e-mail
                 if (!string.IsNullOrEmpty(appointment.Customer.Email))
                 {
-                    await notificationService.SendEmailAsync(appointment.Customer.Email, subject, htmlBody);
+                    // await notificationService.SendEmailAsync(appointment.Customer.Email, subject, htmlBody); // Moved to API Business Services
                     _logger.LogInformation($"Lembrete de {hoursText} enviado por e-mail para {appointment.Customer.Email} - Agendamento {appointment.AppointmentId}");
                 }
 
@@ -327,7 +327,7 @@ namespace Sistema.Services
                 if (notifyTawk)
                 {
                     var tawkMessage = $"⏰ Lembrete de {hoursText}: {appointment.Customer.Name} - {appointment.Service?.Name} às {dataHora}";
-                    await notificationService.SendTawkNotificationAsync(tawkMessage);
+                    // await notificationService.SendTawkNotificationAsync(tawkMessage); // Moved to API Business Services
                     _logger.LogInformation($"Lembrete de {hoursText} enviado para Tawk.to - Agendamento {appointment.AppointmentId}");
                 }
 

@@ -12,15 +12,15 @@ using Sistema.Data;
 namespace Sistema.Migrations
 {
     [DbContext(typeof(SistemaDbContext))]
-    [Migration("20251023131956_Initial")]
-    partial class Initial
+    [Migration("20251025195145_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

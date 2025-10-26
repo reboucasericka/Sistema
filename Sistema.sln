@@ -7,6 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sistema", "Sistema.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaAPI", "..\SistemaAPI\SistemaAPI.csproj", "{5DD6B6B9-BFA8-D7A8-B4F2-A5DDAF2FC05E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaAPP", "..\SistemaAPP\SistemaAPP.csproj", "{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}"
+	ProjectSection(ProjectDependencies) = postProject
+		{50640E93-D5E0-4A82-9E2D-E63E6A9F8476} = {50640E93-D5E0-4A82-9E2D-E63E6A9F8476}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +26,12 @@ Global
 		{5DD6B6B9-BFA8-D7A8-B4F2-A5DDAF2FC05E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DD6B6B9-BFA8-D7A8-B4F2-A5DDAF2FC05E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DD6B6B9-BFA8-D7A8-B4F2-A5DDAF2FC05E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E5BA217-D7DB-4B38-3F4D-18410E3B6614}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

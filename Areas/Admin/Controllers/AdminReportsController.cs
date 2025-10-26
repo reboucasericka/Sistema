@@ -208,7 +208,7 @@ namespace Sistema.Areas.Admin.Controllers
     </div>
 
     <div class='footer'>
-        <p>Relatório gerado pelo Sistema EwellinBeauty</p>
+        <p>Relatório gerado pelo Sistema</p>
     </div>
 </body>
 </html>";

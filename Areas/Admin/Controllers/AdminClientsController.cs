@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Sistema.Data;
-using Sistema.Data.Entities;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -10,21 +10,39 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminClientsController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly ApiClientsService _apiService;
+        private readonly ILogger<AdminClientsController> _logger;
 
-        public AdminClientsController(SistemaDbContext context)
+        public AdminClientsController(ApiClientsService apiService, ILogger<AdminClientsController> logger)
         {
-            _context = context;
+            _apiService = apiService;
+            _logger = logger;
         }
 
         // GET: Admin/Customers
         public async Task<IActionResult> Index()
         {
-            var clients = await _context.Customers
-                .OrderBy(c => c.Name)
-                .ToListAsync();
-            
-            return View(clients);
+            try
+            {
+                var response = await _apiService.GetAllAsync();
+                
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch clients: {Message}", response.Message);
+                    TempData["ErrorMessage"] = "Failed to load clients. Please try again.";
+                    return View(new List<ClientDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching clients");
+                TempData["ErrorMessage"] = "An error occurred while loading clients.";
+                return View(new List<ClientDto>());
+            }
         }
 
         // GET: Admin/Customers/Details/5
@@ -35,15 +53,25 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            
-            if (client == null)
+            try
             {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch client {Id}: {Message}", id, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching client {Id}", id);
                 return NotFound();
             }
-
-            return View(client);
         }
 
         // GET: Admin/Customers/Create
@@ -55,18 +83,30 @@ namespace Sistema.Areas.Admin.Controllers
         // POST: Admin/Customers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CustomerId,Name,Email,Phone,Address,BirthDate,Notes,IsActive")] Customer client)
+        public async Task<IActionResult> Create([Bind("ClientId,Name,Email,Phone,CreatedAt")] ClientDto client)
         {
             if (ModelState.IsValid)
             {
-                client.RegistrationDate = DateTime.Now;
-                client.IsActive = true;
-                
-                _context.Add(client);
-                await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Customer created successfully!";
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    var response = await _apiService.CreateAsync(client);
+                    
+                    if (response.Success)
+                    {
+                        TempData["SuccessMessage"] = "Customer created successfully!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create client: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Failed to create client: {response.Message}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating client");
+                    TempData["ErrorMessage"] = "An error occurred while creating the client.";
+                }
             }
             return View(client);
         }
@@ -79,20 +119,33 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Customers.FindAsync(id);
-            if (client == null)
+            try
             {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch client for edit {Id}: {Message}", id, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching client for edit {Id}", id);
                 return NotFound();
             }
-            return View(client);
         }
 
         // POST: Admin/Customers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CustomerId,Name,Email,Phone,Address,BirthDate,Notes,IsActive,RegistrationDate")] Customer client)
+        public async Task<IActionResult> Edit(int id, [Bind("ClientId,Name,Email,Phone,CreatedAt")] ClientDto client)
         {
-            if (id != client.CustomerId)
+            if (id != client.ClientId)
             {
                 return NotFound();
             }
@@ -101,23 +154,24 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(client);
-                    await _context.SaveChangesAsync();
+                    var response = await _apiService.UpdateAsync(id, client);
                     
-                    TempData["SuccessMessage"] = "Customer updated successfully!";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(client.CustomerId))
+                    if (response.Success)
                     {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Customer updated successfully!";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        _logger.LogError("Failed to update client: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Failed to update client: {response.Message}";
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating client");
+                    TempData["ErrorMessage"] = "An error occurred while updating the client.";
+                }
             }
             return View(client);
         }
@@ -130,14 +184,25 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (client == null)
+            try
             {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch client for delete {Id}: {Message}", id, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching client for delete {Id}", id);
                 return NotFound();
             }
-
-            return View(client);
         }
 
         // POST: Admin/Customers/Delete/5
@@ -145,21 +210,28 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = await _context.Customers.FindAsync(id);
-            if (client != null)
+            try
             {
-                _context.Customers.Remove(client);
-                await _context.SaveChangesAsync();
+                var response = await _apiService.DeleteAsync(id);
                 
-                TempData["SuccessMessage"] = "Customer deleted successfully!";
+                if (response.Success)
+                {
+                    TempData["SuccessMessage"] = "Customer deleted successfully!";
+                }
+                else
+                {
+                    _logger.LogError("Failed to delete client: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Failed to delete client: {response.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting client");
+                TempData["ErrorMessage"] = "An error occurred while deleting the client.";
             }
 
             return RedirectToAction(nameof(Index));
         }
-
-        private bool CustomerExists(int id)
-        {
-            return _context.Customers.Any(e => e.CustomerId == id);
-        }
     }
 }
+

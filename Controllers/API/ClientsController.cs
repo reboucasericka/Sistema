@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Sistema.Data;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sistema.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClientsController : Controller
+    public class ClientsController : ControllerBase
     {
         private readonly SistemaDbContext _context;
 
@@ -16,6 +17,10 @@ namespace Sistema.Controllers.API
             _context = context;
         }
 
+        /// <summary>
+        /// Get all active clients
+        /// </summary>
+        /// <returns>List of active clients</returns>
         [HttpGet]
         public async Task<IActionResult> GetClients()
         {
@@ -43,6 +48,11 @@ namespace Sistema.Controllers.API
             }
         }
 
+        /// <summary>
+        /// Get a specific client by ID
+        /// </summary>
+        /// <param name="id">Client ID</param>
+        /// <returns>Client information</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetClient(string id)
         {
@@ -75,14 +85,19 @@ namespace Sistema.Controllers.API
             }
         }
 
+        /// <summary>
+        /// Create a new client
+        /// </summary>
+        /// <param name="request">Client information</param>
+        /// <returns>Created client</returns>
         [HttpPost]
         public async Task<IActionResult> CreateClient([FromBody] CreateClientRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.FirstName))
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { message = "Email e Nome são obrigatórios" });
+                    return BadRequest(ModelState);
                 }
 
                 // Verificar se já existe um usuário com este email
@@ -195,9 +210,18 @@ namespace Sistema.Controllers.API
 
     public class CreateClientRequest
     {
+        [Required(ErrorMessage = "Nome é obrigatório")]
+        [StringLength(50, ErrorMessage = "Nome deve ter no máximo 50 caracteres")]
         public string FirstName { get; set; }
+
+        [StringLength(50, ErrorMessage = "Sobrenome deve ter no máximo 50 caracteres")]
         public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
         public string Email { get; set; }
+
+        [Phone(ErrorMessage = "Telefone inválido")]
         public string PhoneNumber { get; set; }
     }
 

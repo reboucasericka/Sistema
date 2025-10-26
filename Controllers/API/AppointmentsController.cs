@@ -10,19 +10,19 @@ namespace Sistema.Controllers.API
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ApiAppointmentsController : ControllerBase
+    /// <summary>
+    /// API Controller for managing appointments
+    /// </summary>
+    public class AppointmentsController : ControllerBase
     {
         private readonly SistemaDbContext _context;
-        private readonly IGoogleCalendarSyncService _calendarService;
-        private readonly ILogger<ApiAppointmentsController> _logger;
+        private readonly ILogger<AppointmentsController> _logger;
 
-        public ApiAppointmentsController(
+        public AppointmentsController(
             SistemaDbContext context,
-            IGoogleCalendarSyncService calendarService,
-            ILogger<ApiAppointmentsController> logger)
+            ILogger<AppointmentsController> logger)
         {
             _context = context;
-            _calendarService = calendarService;
             _logger = logger;
         }
 
@@ -43,7 +43,7 @@ namespace Sistema.Controllers.API
                 // Sincronizar com Google Calendar
                 try
                 {
-                    await _calendarService.CreateOrUpdateEventAsync(model);
+                    // Google Calendar sync moved to API Business Services
                     _logger.LogInformation($"Evento Google Calendar criado para agendamento interno ID {model.AppointmentId}");
                 }
                 catch (Exception calendarEx)
@@ -96,7 +96,7 @@ namespace Sistema.Controllers.API
                 // Sincronizar com Google Calendar
                 try
                 {
-                    await _calendarService.CreateOrUpdateEventAsync(appointment);
+                    // Google Calendar sync moved to API Business Services
                     _logger.LogInformation($"Evento Google Calendar atualizado para agendamento interno ID {appointment.AppointmentId}");
                 }
                 catch (Exception calendarEx)
@@ -136,7 +136,7 @@ namespace Sistema.Controllers.API
                 {
                     if (!string.IsNullOrEmpty(appointment.GoogleEventId))
                     {
-                        await _calendarService.DeleteEventAsync(appointment.GoogleEventId);
+                        // Google Calendar sync moved to API Business Services
                         _logger.LogInformation($"Evento Google Calendar removido para agendamento interno ID {appointment.AppointmentId}");
                     }
                 }

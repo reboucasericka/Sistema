@@ -51,7 +51,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.Cookie.Name = "EwellinBeauty.Auth";
+    options.Cookie.Name = "Sistema.Auth";
     options.Cookie.IsEssential = true;
     
     // Configuração para redirecionamento inteligente baseado na área
@@ -99,6 +99,7 @@ builder.Services.AddTransient<SeedDb>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<IRoleHelper, RoleHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
 builder.Services.AddScoped<ICashRegisterHelper, CashRegisterHelper>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -125,24 +126,117 @@ builder.Services.AddScoped<IStorageHelper, StorageHelper>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-
 // Serviços de comunicação
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IAppointmentNotificationService, AppointmentNotificationService>();
 
-// Serviços Google Calendar e Lembretes
-//builder.Services.AddSingleton<IGoogleCalendarSyncService, GoogleCalendarSyncService>();
-builder.Services.AddScoped<IGoogleCalendarSyncService, GoogleCalendarSyncService>();
+// Note: GoogleCalendarSyncService, PaymentService, and NotificationService 
+// have been moved to the API as Business Services
 
 builder.Services.AddHostedService<AppointmentReminderService>();
 
 // HttpClient para serviços que fazem requisições HTTP
 builder.Services.AddHttpClient();
 
+// ===== API Integration Services =====
+builder.Services.AddHttpClient<Sistema.Services.Api.IApiClientService, Sistema.Services.Api.ApiClientService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiClientService, Sistema.Services.Api.ApiClientService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiAppointmentService, Sistema.Services.Api.ApiAppointmentService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiUserService, Sistema.Services.Api.ApiUserService>();
+
+// ===== MVC API Services (New Architecture) =====
+// Configure HttpClient for API communication with JWT Authentication
+builder.Services.AddHttpClient<Sistema.Services.Auth.ApiAuthService>();
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiClientsService>();
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiAppointmentsService>();
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiServicesService>();
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiStaffService>();
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiPaymentsService>();
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiProductsService>();
+
+// Memory Cache for API Gateway
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+
+// =====================================================================
+// 4️⃣ CONFIGURAÇÃO DO CORS PARA MAUI
+// =====================================================================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMauiApp", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// =====================================================================
+// 5️⃣ CONFIGURAÇÃO DO SWAGGER/OPENAPI
+// =====================================================================
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Beauty Salon Management API",
+        Version = "v1",
+        Description = "Complete API for beauty salon management system including appointments, clients, products, and authentication",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "System Support",
+            Email = "support@beautysalon.com"
+        },
+        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+    
+    // Filtrar apenas controladores de API (ignorar controladores MVC)
+    c.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        // Incluir apenas controladores que estão na pasta API
+        return apiDesc.RelativePath?.StartsWith("api/") == true;
+    });
+    
+    // Configuração de segurança JWT (se necessário)
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+    
+    // Incluir comentários XML se existirem
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+});
 
 // Cultura padrão pt-PT
 builder.Services.Configure<RequestLocalizationOptions>(options =>
@@ -166,6 +260,23 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    
+    // =====================================================================
+    // SWAGGER UI - APENAS EM DESENVOLVIMENTO
+    // =====================================================================
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Beauty Salon API v1");
+        c.RoutePrefix = "swagger"; // Define a rota como /swagger
+        c.DocumentTitle = "Beauty Salon Management API Documentation";
+        c.DefaultModelsExpandDepth(-1); // Oculta os modelos por padrão
+        c.DisplayRequestDuration();
+        c.EnableDeepLinking();
+        c.EnableFilter();
+        c.ShowExtensions();
+        c.EnableValidator();
+    });
 }
 else
 {
@@ -178,6 +289,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// =====================================================================
+// CORS MIDDLEWARE - ANTES DA AUTENTICAÇÃO
+// =====================================================================
+app.UseCors("AllowMauiApp");
 
 // Middleware de debug para rotas (ANTES da autenticação)
 app.Use(async (context, next) =>
@@ -227,7 +343,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-app.MapHub<Sistema.Services.NotificationHub>("/notificationHub");
+// app.MapHub<Sistema.Services.NotificationHub>("/notificationHub"); // Moved to API Business Services
 
 // =====================================================================
 // 8️⃣ LOGS DE ENDPOINTS (DEBUG)

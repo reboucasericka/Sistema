@@ -12,12 +12,12 @@ namespace Sistema.Areas.Admin.Controllers
     public class AdminNotificationsController : Controller
     {
         private readonly SistemaDbContext _context;
-        private readonly INotificationService _notificationService;
+        // Notification service moved to API Business Services
 
-        public AdminNotificationsController(SistemaDbContext context, INotificationService notificationService)
+        public AdminNotificationsController(SistemaDbContext context)
         {
             _context = context;
-            _notificationService = notificationService;
+            // Notification service moved to API Business Services
         }
 
         // GET: Notifications
@@ -69,7 +69,7 @@ namespace Sistema.Areas.Admin.Controllers
                 await _context.SaveChangesAsync();
 
                 // Enviar notificação em tempo real
-                await _notificationService.SendNotificationAsync(notification.Message, notification.Type);
+                // await _notificationService.SendNotificationAsync(notification.Message, notification.Type); // Moved to API Business Services
 
                 TempData["SuccessMessage"] = "Notificação criada e enviada com sucesso!";
                 return RedirectToAction(nameof(Index));

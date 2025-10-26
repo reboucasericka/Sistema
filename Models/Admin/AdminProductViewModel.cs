@@ -41,6 +41,17 @@ namespace Sistema.Models.Admin
         [Display(Name = "Ativo")]
         public bool IsActive { get; set; }
 
+        [MaxLength(50)]
+        [Display(Name = "Marca")]
+        public string? Brand { get; set; }
+
+        [MaxLength(20)]
+        [Display(Name = "SKU")]
+        public string? SKU { get; set; }
+
+        [Display(Name = "Nome da Categoria")]
+        public string? CategoryName { get; set; }
+
         // GUID da imagem
         public Guid? ImageId { get; set; }
 

@@ -46,14 +46,16 @@ namespace Sistema.Data
         {
             _logger.LogInformation("🌱 Starting SeedDb initialization...");
 
-            // Use migrations
+            // Create database if it doesn't exist (API-first approach)
             try
             {
-                await _context.Database.MigrateAsync();
+                await _context.Database.EnsureCreatedAsync();
+                _logger.LogInformation("✅ Database ensured created successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("⚠️ Migration warning (continuing): {Message}", ex.Message);
+                _logger.LogError("❌ Failed to ensure database creation: {Message}", ex.Message);
+                throw;
             }
 
             // Garante as roles básicas
@@ -64,18 +66,17 @@ namespace Sistema.Data
 
             var adminEmail = _configuration["AdminUser:Email"];
             var adminPassword = _configuration["AdminUser:Password"];
+            var adminUserName = _configuration["AdminUser:UserName"];
             var adminFirstName = _configuration["AdminUser:FirstName"] ?? "Administrator";
             var adminLastName  = _configuration["AdminUser:LastName"] ?? "System";
 
-            // Se não estiver configurado, usa valores padrão
-            if (string.IsNullOrWhiteSpace(adminEmail))
+            // 🚫 Remove o fallback. Usa sempre o que está nos User Secrets.
+            if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword) || string.IsNullOrWhiteSpace(adminUserName))
             {
-                adminEmail = "admin@admin.com";
-                adminPassword = "admin";
-                adminFirstName = "Admin";
-                adminLastName = "System";
-                _logger.LogInformation("ℹ️ Using default admin credentials: admin@admin.com");
+                throw new InvalidOperationException("❌ Admin credentials not found in User Secrets.");
             }
+
+            _logger.LogInformation($"✅ Using admin credentials from User Secrets: {adminEmail}");
 
             var adminUser = await _userHelper.GetUserByEmailAsync(adminEmail);
             if (adminUser == null)
@@ -85,7 +86,7 @@ namespace Sistema.Data
                     FirstName = adminFirstName,
                     LastName = adminLastName,
                     Email = adminEmail,
-                    UserName = adminEmail,
+                    UserName = adminUserName,
                     PhoneNumber = "000000000",
                     Active = true,
                     EmailConfirmed = true,

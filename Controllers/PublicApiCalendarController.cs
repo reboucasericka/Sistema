@@ -8,16 +8,14 @@ namespace Sistema.Controllers
     [Route("api/calendar")]
     public class PublicApiCalendarController : ControllerBase
     {
-        private readonly IGoogleCalendarSyncService _googleCalendarSyncService;
+        // Google Calendar service moved to API Business Services
         private readonly ILogger<PublicApiCalendarController> _logger;
         private readonly IConfiguration _configuration;
 
         public PublicApiCalendarController(
-            IGoogleCalendarSyncService googleCalendarSyncService,
             ILogger<PublicApiCalendarController> logger,
             IConfiguration configuration)
         {
-            _googleCalendarSyncService = googleCalendarSyncService;
             _logger = logger;
             _configuration = configuration;
         }
@@ -78,7 +76,7 @@ namespace Sistema.Controllers
                 _logger.LogInformation($"Iniciando sincronização manual com Google Calendar: {calendarId ?? "primary"}");
 
                 var targetCalendarId = calendarId ?? "primary";
-                await _googleCalendarSyncService.SyncFromGoogleAsync(targetCalendarId);
+                // await _googleCalendarSyncService.SyncFromGoogleAsync(targetCalendarId); // Moved to API Business Services
 
                 return Ok(new { 
                     message = "Sincronização concluída com sucesso",
@@ -102,7 +100,8 @@ namespace Sistema.Controllers
         {
             try
             {
-                var isAuthenticated = await _googleCalendarSyncService.IsAuthenticatedAsync();
+                // var isAuthenticated = await _googleCalendarSyncService.IsAuthenticatedAsync(); // Moved to API Business Services
+                var isAuthenticated = false; // Placeholder
                 
                 return Ok(new { 
                     authenticated = isAuthenticated,

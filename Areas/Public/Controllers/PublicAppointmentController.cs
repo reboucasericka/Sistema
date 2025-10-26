@@ -16,20 +16,20 @@ namespace Sistema.Areas.Public.Controllers
         private readonly SistemaDbContext _context;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ICustomerRepository _customerRepository;
-        private readonly IGoogleCalendarSyncService _calendarSyncService;
+        // Google Calendar service moved to API Business Services
         private readonly ILogger<PublicAppointmentController> _logger;
 
         public PublicAppointmentController(
             SistemaDbContext context, 
             IAppointmentRepository appointmentRepository, 
             ICustomerRepository customerRepository,
-            IGoogleCalendarSyncService calendarSyncService,
+            // Google Calendar service moved to API Business Services
             ILogger<PublicAppointmentController> logger)
         {
             _context = context;
             _appointmentRepository = appointmentRepository;
             _customerRepository = customerRepository;
-            _calendarSyncService = calendarSyncService;
+            // Google Calendar service moved to API Business Services
             _logger = logger;
         }
 

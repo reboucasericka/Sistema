@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
-using Sistema.Data.Entities;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using Sistema.Helpers;
 using Sistema.Models.Admin;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace Sistema.Areas.Admin.Controllers
@@ -14,23 +14,42 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminServicesController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly ApiServicesService _servicesService;
         private readonly IStorageHelper _storageHelper;
+        private readonly ILogger<AdminServicesController> _logger;
 
-        public AdminServicesController(SistemaDbContext context, IStorageHelper storageHelper)
+        public AdminServicesController(ApiServicesService servicesService, IStorageHelper storageHelper, ILogger<AdminServicesController> logger)
         {
-            _context = context;
+            _servicesService = servicesService;
             _storageHelper = storageHelper;
+            _logger = logger;
         }
 
         // GET: Admin/Services
         public async Task<IActionResult> Index()
         {
-            var services = await _context.Services
-                .Include(s => s.Category)
-                .OrderBy(s => s.Name)
-                .ToListAsync();
-            return View(services);
+            try
+            {
+                var response = await _servicesService.GetAllAsync();
+                
+                if (response.Success && response.Data != null)
+                {
+                    var services = response.Data.OrderBy(s => s.Name).ToList();
+                    return View(services);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch services: {Message}", response.Message);
+                    TempData["ErrorMessage"] = "Failed to load services. Please try again.";
+                    return View(new List<ServiceDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading services");
+                TempData["ErrorMessage"] = "An error occurred while loading services.";
+                return View(new List<ServiceDto>());
+            }
         }
 
         // GET: Admin/Services/Details/5
@@ -41,25 +60,33 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Services
-                .Include(s => s.Category)
-                .Include(s => s.ProfessionalServices)
-                    .ThenInclude(ps => ps.Professional)
-                .FirstOrDefaultAsync(m => m.ServiceId == id);
-
-            if (service == null)
+            try
             {
+                var response = await _servicesService.GetByIdAsync(id.Value);
+
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch service {Id}: {Message}", id, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching service {Id}", id);
                 return NotFound();
             }
-
-            return View(service);
         }
 
         // GET: Admin/Services/Create
         [HttpGet]
         public IActionResult Create()
         {
-            ViewData["ServiceCategories"] = new SelectList(_context.Categories, "CategoryId", "Name");
+            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name");
             return View();
         }
 
@@ -70,34 +97,49 @@ namespace Sistema.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                string photoPath = string.Empty;
-                if (model.file != null)
+                try
                 {
-                    photoPath = await _storageHelper.UploadAsync(model.file, "services");
+                    string photoPath = string.Empty;
+                    if (model.file != null)
+                    {
+                        photoPath = await _storageHelper.UploadAsync(model.file, "services");
+                    }
+
+                    var serviceDto = new ServiceDto
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        Price = model.Price,
+                        DurationMinutes = int.TryParse(model.Duration, out int duration) ? duration : 0,
+                        Category = model.ServiceCategoryId.ToString(),
+                        IsActive = model.IsActive
+                    };
+
+                    var response = await _servicesService.CreateAsync(serviceDto);
+
+                    if (response.Success)
+                    {
+                        // Log access
+                        await LogAccess("CREATE", $"Service created: {model.Name}");
+
+                        TempData["SuccessMessage"] = "Service created successfully!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create service: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Failed to create service: {response.Message}";
+                    }
                 }
-
-                var service = new Service
+                catch (Exception ex)
                 {
-                    Name = model.Name,
-                    Description = model.Description,
-                    Price = model.Price,
-                    Duration = model.Duration,
-                    CategoryId = model.ServiceCategoryId,
-                    IsActive = model.IsActive,
-                    ImageId = string.IsNullOrEmpty(photoPath) ? Guid.Empty : Guid.Parse(photoPath)
-                };
-
-                _context.Add(service);
-                await _context.SaveChangesAsync();
-
-                // Log access
-                await LogAccess("CREATE", $"Service created: {service.Name}");
-
-                TempData["Message"] = "Service created successfully!";
-                return RedirectToAction(nameof(Index));
+                    _logger.LogError(ex, "Error creating service");
+                    TempData["ErrorMessage"] = "An error occurred while creating the service.";
+                }
             }
 
-            ViewData["ServiceCategories"] = new SelectList(_context.Categories, "CategoryId", "Name", model.ServiceCategoryId);
+            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
             return View(model);
         }
 
@@ -109,26 +151,38 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Services.FindAsync(serviceId);
-            if (service == null)
+            try
             {
+                var response = await _servicesService.GetByIdAsync(serviceId.Value);
+
+                if (response.Success && response.Data != null)
+                {
+                    var model = new AdminServiceEditViewModel
+                    {
+                        ServiceId = response.Data.ServiceId,
+                        Name = response.Data.Name,
+                        Description = response.Data.Description,
+                        Price = response.Data.Price,
+                        Duration = response.Data.DurationMinutes.ToString(),
+                        ServiceCategoryId = int.TryParse(response.Data.Category, out int catId) ? catId : 0,
+                        IsActive = response.Data.IsActive
+                    };
+
+                    // TODO: Buscar categorias via API quando o endpoint estiver disponível
+                    ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
+                    return View(model);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch service for edit {Id}: {Message}", serviceId, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching service for edit {Id}", serviceId);
                 return NotFound();
             }
-
-            var model = new AdminServiceEditViewModel
-            {
-                ServiceId = service.ServiceId,
-                Name = service.Name,
-                Description = service.Description,
-                Price = service.Price,
-                Duration = service.Duration,
-                ServiceCategoryId = service.CategoryId,
-                IsActive = service.IsActive,
-                ImageId = service.ImageId.ToString()
-            };
-
-            ViewData["ServiceCategories"] = new SelectList(_context.Categories, "CategoryId", "Name", model.ServiceCategoryId);
-            return View(model);
         }
 
         // POST: Admin/Services/Edit/5
@@ -145,53 +199,54 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    var service = await _context.Services.FindAsync(serviceId);
-                    if (service == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Se uma nova foto foi enviada, deletar a antiga e fazer upload da nova
+                    // Se uma nova foto foi enviada, fazer upload
+                    int? imageId = model.ImageId != null ? int.Parse(model.ImageId) : null;
                     if (model.file != null)
                     {
-                        if (service.ImageId != Guid.Empty)
+                        if (imageId != null)
                         {
-                            await _storageHelper.DeleteAsync(service.ImageId.ToString(), "services");
+                            await _storageHelper.DeleteAsync(imageId.ToString(), "services");
                         }
                         string photoPath = await _storageHelper.UploadAsync(model.file, "services");
-                        service.ImageId = string.IsNullOrEmpty(photoPath) ? Guid.Empty : Guid.Parse(photoPath);
+                        imageId = string.IsNullOrEmpty(photoPath) ? null : int.Parse(photoPath);
                     }
 
-                    service.Name = model.Name;
-                    service.Description = model.Description;
-                    service.Price = model.Price;
-                    service.Duration = model.Duration;
-                    service.CategoryId = model.ServiceCategoryId;
-                    service.IsActive = model.IsActive;
-
-                    _context.Update(service);
-                    await _context.SaveChangesAsync();
-
-                    // Log access
-                    await LogAccess("UPDATE", $"Service updated: {service.Name}");
-
-                    TempData["Message"] = "Service updated successfully!";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ServiceExists(model.ServiceId))
+                    var serviceDto = new ServiceDto
                     {
-                        return NotFound();
+                        ServiceId = model.ServiceId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        Price = model.Price,
+                        DurationMinutes = int.TryParse(model.Duration, out int duration) ? duration : 0,
+                        Category = model.ServiceCategoryId.ToString(),
+                        IsActive = model.IsActive
+                    };
+
+                    var response = await _servicesService.UpdateAsync(serviceId, serviceDto);
+
+                    if (response.Success)
+                    {
+                        // Log access
+                        await LogAccess("UPDATE", $"Service updated: {model.Name}");
+
+                        TempData["SuccessMessage"] = "Service updated successfully!";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        _logger.LogError("Failed to update service: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Failed to update service: {response.Message}";
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating service");
+                    TempData["ErrorMessage"] = "An error occurred while updating the service.";
+                }
             }
 
-            ViewData["ServiceCategories"] = new SelectList(_context.Categories, "CategoryId", "Name", model.ServiceCategoryId);
+            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
             return View(model);
         }
 
@@ -203,16 +258,25 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var service = await _context.Services
-                .Include(s => s.Category)
-                .FirstOrDefaultAsync(m => m.ServiceId == serviceId);
-
-            if (service == null)
+            try
             {
+                var response = await _servicesService.GetByIdAsync(serviceId.Value);
+
+                if (response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch service for delete {Id}: {Message}", serviceId, response.Message);
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching service for delete {Id}", serviceId);
                 return NotFound();
             }
-
-            return View(service);
         }
 
         // POST: Admin/Services/Delete/5
@@ -220,48 +284,53 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int serviceId)
         {
-            var service = await _context.Services.FindAsync(serviceId);
-            if (service != null)
+            try
             {
-                // Deletar a foto se existir
-                if (service.ImageId != Guid.Empty)
+                // TODO: Buscar o serviço primeiro para deletar a imagem
+                // var service = await _servicesService.GetByIdAsync(serviceId);
+                // if (service.Success && service.Data?.ImageId != Guid.Empty)
+                // {
+                //     await _storageHelper.DeleteAsync(service.Data.ImageId.ToString(), "services");
+                // }
+
+                var response = await _servicesService.DeleteAsync(serviceId);
+
+                if (response.Success)
                 {
-                    await _storageHelper.DeleteAsync(service.ImageId.ToString(), "services");
+                    // Log access
+                    await LogAccess("DELETE", $"Service deleted: {serviceId}");
+
+                    TempData["SuccessMessage"] = "Service deleted successfully!";
                 }
-
-                _context.Services.Remove(service);
-                await _context.SaveChangesAsync();
-
-                // Log access
-                await LogAccess("DELETE", $"Service deleted: {service.Name}");
-
-                TempData["Message"] = "Service deleted successfully!";
+                else
+                {
+                    _logger.LogError("Failed to delete service: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Failed to delete service: {response.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting service");
+                TempData["ErrorMessage"] = "An error occurred while deleting the service.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ServiceExists(int serviceId)
-        {
-            return _context.Services.Any(e => e.ServiceId == serviceId);
-        }
-
         private async Task LogAccess(string action, string details)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(userId))
+            try
             {
-                var accessLog = new AccessLog
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    UserId = userId,
-                    Action = action,
-                    Details = details,
-                    Timestamp = DateTime.Now,
-                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
-                };
-
-                _context.AccessLogs.Add(accessLog);
-                await _context.SaveChangesAsync();
+                    // TODO: Implementar log via API quando o endpoint estiver disponível
+                    _logger.LogInformation("Access Log: {Action} - {Details} by User {UserId}", action, details, userId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error logging access");
             }
         }
     }
