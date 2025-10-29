@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
-using Sistema.Data.Entities;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -10,11 +9,13 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminSettingsController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly IApiSettingsService _settingsService;
+        private readonly ILogger<AdminSettingsController> _logger;
 
-        public AdminSettingsController(SistemaDbContext context)
+        public AdminSettingsController(IApiSettingsService settingsService, ILogger<AdminSettingsController> logger)
         {
-            _context = context;
+            _settingsService = settingsService;
+            _logger = logger;
         }
 
         // GET: Settings
@@ -22,8 +23,26 @@ namespace Sistema.Areas.Admin.Controllers
         {
             ViewData["Title"] = "Configurações";
             
-            var settings = await _context.Settings.ToListAsync();
-            return View(settings);
+            try
+            {
+                var response = await _settingsService.GetAllAsync();
+                if (response.IsSuccess)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    _logger.LogError("Erro ao buscar configurações: {Error}", response.Message);
+                    TempData["Error"] = "Erro ao carregar configurações.";
+                    return View(new List<SettingDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao carregar configurações");
+                TempData["Error"] = "Erro interno do servidor.";
+                return View(new List<SettingDto>());
+            }
         }
 
         // GET: Settings/Details/5
@@ -34,14 +53,23 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var setting = await _context.Settings
-                .FirstOrDefaultAsync(m => m.SettingId == id);
-            if (setting == null)
+            try
             {
+                var response = await _settingsService.GetByIdAsync(id.Value);
+                if (response.IsSuccess && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar configuração {Id}", id);
                 return NotFound();
             }
-
-            return View(setting);
         }
 
         // GET: Settings/Create
@@ -53,14 +81,28 @@ namespace Sistema.Areas.Admin.Controllers
         // POST: Settings/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] Setting setting)
+        public async Task<IActionResult> Create([Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] SettingDto setting)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(setting);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Configuração criada com sucesso!";
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    var response = await _settingsService.CreateAsync(setting);
+                    if (response.IsSuccess)
+                    {
+                        TempData["SuccessMessage"] = "Configuração criada com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Erro ao criar configuração.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao criar configuração");
+                    TempData["ErrorMessage"] = "Erro interno do servidor.";
+                }
             }
             return View(setting);
         }
@@ -73,18 +115,29 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var setting = await _context.Settings.FindAsync(id);
-            if (setting == null)
+            try
             {
+                var response = await _settingsService.GetByIdAsync(id.Value);
+                if (response.IsSuccess && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar configuração para edição {Id}", id);
                 return NotFound();
             }
-            return View(setting);
         }
 
         // POST: Settings/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] Setting setting)
+        public async Task<IActionResult> Edit(int id, [Bind("SettingId,ClinicName,Email,LandlinePhone,WhatsAppPhone,Address,Logo,Icon,ReportLogo,ReportType,Instagram,CommissionType,DefaultExtensionCommission,DefaultDesignCommission,ImagesFolder,BusinessHours,DefaultServiceDuration")] SettingDto setting)
         {
             if (id != setting.SettingId)
             {
@@ -95,22 +148,22 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(setting);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Configuração atualizada com sucesso!";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SettingExists(setting.SettingId))
+                    var response = await _settingsService.UpdateAsync(id, setting);
+                    if (response.IsSuccess)
                     {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Configuração atualizada com sucesso!";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        TempData["ErrorMessage"] = "Erro ao atualizar configuração.";
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao atualizar configuração {Id}", id);
+                    TempData["ErrorMessage"] = "Erro interno do servidor.";
+                }
             }
             return View(setting);
         }
@@ -123,14 +176,23 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var setting = await _context.Settings
-                .FirstOrDefaultAsync(m => m.SettingId == id);
-            if (setting == null)
+            try
             {
+                var response = await _settingsService.GetByIdAsync(id.Value);
+                if (response.IsSuccess && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar configuração para exclusão {Id}", id);
                 return NotFound();
             }
-
-            return View(setting);
         }
 
         // POST: Settings/Delete/5
@@ -138,24 +200,26 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var setting = await _context.Settings.FindAsync(id);
-            if (setting != null)
+            try
             {
-                _context.Settings.Remove(setting);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Configuração excluída com sucesso!";
+                var response = await _settingsService.DeleteAsync(id);
+                if (response.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = "Configuração excluída com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Erro ao excluir configuração.";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Configuração não encontrada.";
+                _logger.LogError(ex, "Erro ao excluir configuração {Id}", id);
+                TempData["ErrorMessage"] = "Erro interno do servidor.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool SettingExists(int id)
-        {
-            return _context.Settings.Any(e => e.SettingId == id);
-        }
     }
 }

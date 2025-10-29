@@ -26,6 +26,9 @@ namespace Sistema.Data.Entities
         [MaxLength(200)]
         public string? Address { get; set; }
 
+        [MaxLength(100)]
+        public string? Contact { get; set; }
+
         public int? DeliveryTime { get; set; } // in days
 
         public string? Notes { get; set; }

@@ -36,8 +36,20 @@ namespace Sistema.Services.Api
                 }
                 else
                 {
-                    _logger.LogError($"API request failed: {response.StatusCode}");
-                    return ApiResponse<T>.Fail($"API request failed: {response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"API request failed: {response.StatusCode} - {errorContent}");
+                    
+                    var errorMessage = response.StatusCode switch
+                    {
+                        System.Net.HttpStatusCode.NotFound => "Recurso não encontrado. Verifique se os dados estão corretos.",
+                        System.Net.HttpStatusCode.Unauthorized => "Acesso negado. Faça login novamente.",
+                        System.Net.HttpStatusCode.Forbidden => "Você não tem permissão para realizar esta ação.",
+                        System.Net.HttpStatusCode.BadRequest => "Dados inválidos. Verifique as informações enviadas.",
+                        System.Net.HttpStatusCode.InternalServerError => "Erro interno do servidor. Tente novamente mais tarde.",
+                        _ => $"Erro na comunicação com a API: {response.StatusCode}"
+                    };
+                    
+                    return ApiResponse<T>.Fail(errorMessage);
                 }
             }
             catch (Exception ex)
@@ -62,8 +74,20 @@ namespace Sistema.Services.Api
                 }
                 else
                 {
-                    _logger.LogError($"API request failed: {response.StatusCode}");
-                    return ApiResponse<T>.Fail($"API request failed: {response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"API request failed: {response.StatusCode} - {errorContent}");
+                    
+                    var errorMessage = response.StatusCode switch
+                    {
+                        System.Net.HttpStatusCode.NotFound => "Recurso não encontrado. Verifique se os dados estão corretos.",
+                        System.Net.HttpStatusCode.Unauthorized => "Acesso negado. Faça login novamente.",
+                        System.Net.HttpStatusCode.Forbidden => "Você não tem permissão para realizar esta ação.",
+                        System.Net.HttpStatusCode.BadRequest => "Dados inválidos. Verifique as informações enviadas.",
+                        System.Net.HttpStatusCode.InternalServerError => "Erro interno do servidor. Tente novamente mais tarde.",
+                        _ => $"Erro na comunicação com a API: {response.StatusCode}"
+                    };
+                    
+                    return ApiResponse<T>.Fail(errorMessage);
                 }
             }
             catch (Exception ex)
@@ -88,8 +112,20 @@ namespace Sistema.Services.Api
                 }
                 else
                 {
-                    _logger.LogError($"API request failed: {response.StatusCode}");
-                    return ApiResponse<T>.Fail($"API request failed: {response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"API request failed: {response.StatusCode} - {errorContent}");
+                    
+                    var errorMessage = response.StatusCode switch
+                    {
+                        System.Net.HttpStatusCode.NotFound => "Recurso não encontrado. Verifique se os dados estão corretos.",
+                        System.Net.HttpStatusCode.Unauthorized => "Acesso negado. Faça login novamente.",
+                        System.Net.HttpStatusCode.Forbidden => "Você não tem permissão para realizar esta ação.",
+                        System.Net.HttpStatusCode.BadRequest => "Dados inválidos. Verifique as informações enviadas.",
+                        System.Net.HttpStatusCode.InternalServerError => "Erro interno do servidor. Tente novamente mais tarde.",
+                        _ => $"Erro na comunicação com a API: {response.StatusCode}"
+                    };
+                    
+                    return ApiResponse<T>.Fail(errorMessage);
                 }
             }
             catch (Exception ex)

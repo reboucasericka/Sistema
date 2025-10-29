@@ -1,29 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
-using Sistema.Data.Repository.Interfaces;
+using Sistema.Data.Entities;
 
 namespace Sistema.Areas.Public.Controllers
 {
     [Area("Public")]
     public class PublicPriceController : Controller
     {
-        private readonly IPriceTableRepository _priceTableRepository;
+        private readonly SistemaDbContext _context;
 
-        public PublicPriceController(IPriceTableRepository priceTableRepository)
+        public PublicPriceController(SistemaDbContext context)
         {
-            _priceTableRepository = priceTableRepository;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var prices = _priceTableRepository.GetAllOrdered().ToList();
+            // Limpar o ChangeTracker para forçar atualização
+            _context.ChangeTracker.Clear();
+
+            var prices = await _context.PriceTables
+                .AsNoTracking()
+                .OrderBy(p => p.ServiceName)
+                .ToListAsync();
+
             return View(prices);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var price = await _priceTableRepository.GetByIdAsync(id);
+            // Limpar o ChangeTracker para forçar atualização
+            _context.ChangeTracker.Clear();
+
+            var price = await _context.PriceTables
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.PriceId == id);
+            
             if (price == null) return NotFound();
 
             return View(price);

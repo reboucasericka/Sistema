@@ -1,4 +1,4 @@
-@model IEnumerable<Sistema.Data.Entities.Customer>
+@model IEnumerable<SistemaAPI.DTOs.ClientDto>
 
 @{
     ViewData["Title"] = "Gestão de Clientes";
@@ -172,15 +172,15 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1 justify-content-center">
-                                            <a asp-action="Details" asp-route-id="@item.CustomerId" 
+                                            <a asp-action="Details" asp-route-id="@item.ClientId" 
                                                class="btn btn-info btn-sm" title="Visualizar">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a asp-action="Edit" asp-route-id="@item.CustomerId" 
+                                            <a asp-action="Edit" asp-route-id="@item.ClientId" 
                                                class="btn btn-warning btn-sm" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a asp-action="Delete" asp-route-id="@item.CustomerId" 
+                                            <a asp-action="Delete" asp-route-id="@item.ClientId" 
                                                class="btn btn-danger btn-sm" title="Excluir">
                                                 <i class="fas fa-trash"></i>
                                             </a>

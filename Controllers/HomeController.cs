@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
 using Sistema.Models.Account;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using System.Diagnostics;
 
 namespace Sistema.Controllers
@@ -10,12 +10,17 @@ namespace Sistema.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly SistemaDbContext _context;
+        private readonly ApiServicesService _servicesService;
+        private readonly ApiProductsService _productsService;
 
-        public HomeController(ILogger<HomeController> logger, SistemaDbContext context)
+        public HomeController(
+            ILogger<HomeController> logger, 
+            ApiServicesService servicesService,
+            ApiProductsService productsService)
         {
             _logger = logger;
-            _context = context;
+            _servicesService = servicesService;
+            _productsService = productsService;
         }
 
         public async Task<IActionResult> Index()
@@ -23,45 +28,86 @@ namespace Sistema.Controllers
             // Busca serviços em destaque (apenas se autenticado)
             if (User.Identity.IsAuthenticated)
             {
-                var featuredServices = await _context.Services
-                    .Include(s => s.Category)
-                    .Take(6)
-                    .ToListAsync();
+                try
+                {
+                    var servicesResponse = await _servicesService.GetAllAsync();
+                    var productsResponse = await _productsService.GetAllAsync();
 
-                var featuredProducts = await _context.Products
-                    .Include(p => p.ProductCategory)
-                    .Where(p => p.IsActive)
-                    .Take(6)
-                    .ToListAsync();
+                    var featuredServices = servicesResponse.Success ? 
+                        servicesResponse.Data?.Take(6).ToList() ?? new List<ServiceDto>() : 
+                        new List<ServiceDto>();
 
-                ViewBag.FeaturedServices = featuredServices;
-                ViewBag.FeaturedProducts = featuredProducts;
+                    var featuredProducts = productsResponse.Success ? 
+                        productsResponse.Data?.Where(p => p.IsActive).Take(6).ToList() ?? new List<ProductDto>() : 
+                        new List<ProductDto>();
+
+                    ViewBag.FeaturedServices = featuredServices;
+                    ViewBag.FeaturedProducts = featuredProducts;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao carregar dados da API");
+                    ViewBag.FeaturedServices = new List<ServiceDto>();
+                    ViewBag.FeaturedProducts = new List<ProductDto>();
+                }
             }
 
             return View();
         }
-        //  Nova p�gina Store (vitrine de produtos)
+
+        //  Nova página Store (vitrine de produtos)
         [Authorize]
         public async Task<IActionResult> Store()
         {
-                var products = await _context.Products
-                .Include(p => p.ProductCategory)
-                .Include(p => p.Supplier)
-                .Where(p => p.IsActive)
-                .ToListAsync();
+            try
+            {
+                var productsResponse = await _productsService.GetAllAsync();
+                var products = productsResponse.Success ? 
+                    productsResponse.Data?.Where(p => p.IsActive).ToList() ?? new List<ProductDto>() : 
+                    new List<ProductDto>();
 
-            return View(products); // procura Views/Home/S
+                return View(products); // procura Views/Home/Store
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao carregar produtos da API");
+                return View(new List<ProductDto>());
+            }
         }
 
         [Authorize]
-        public ActionResult Price()
+        public async Task<IActionResult> Price()
         {
-            var precos = _context.PriceTables.ToList();
-            return View(precos);
+            try
+            {
+                // Implementar serviço de API para PriceTables
+                // Buscar serviços via API para criar tabela de preços
+                var servicesResponse = await _servicesService.GetAllAsync();
+                var precos = new List<object>();
+                
+                if (servicesResponse.IsSuccess && servicesResponse.Data != null)
+                {
+                    precos = servicesResponse.Data
+                        .Where(s => s.IsActive)
+                        .Select(s => new
+                        {
+                            ServiceName = s.Name,
+                            Price = s.Price,
+                            Description = s.Description,
+                            Duration = s.Duration
+                        })
+                        .Cast<object>()
+                        .ToList();
+                }
+                
+                return View(precos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao carregar preços da API");
+                return View(new List<object>());
+            }
         }
-
-
-      
 
         [Authorize]
         public IActionResult Admin()

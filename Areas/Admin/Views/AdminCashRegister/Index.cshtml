@@ -279,8 +279,8 @@
                                 <option value="">Selecione um produto</option>
                                 @foreach (var product in Model.Products)
                                 {
-                                    <option value="@product.ProductId" data-price="@product.SalePrice" data-stock="@product.Stock">
-                                        @product.Name - €@product.SalePrice.ToString("N2") (Estoque: @product.Stock)
+                                    <option value="@product.ProductId" data-price="@product.Price" data-stock="@product.Stock">
+                                        @product.Name - €@product.Price.ToString("N2") (Estoque: @product.Stock)
                                     </option>
                                 }
                             </select>

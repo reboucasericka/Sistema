@@ -1,4 +1,4 @@
-@model IEnumerable<Sistema.Data.Entities.Service>
+@model IEnumerable<SistemaAPI.DTOs.ServiceDto>
 
 @{
     ViewData["Title"] = "Gestão de Serviços";
@@ -81,7 +81,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>@Model.Count(s => s.Category != null)</h3>
+                    <h3>@Model.Count(s => !string.IsNullOrEmpty(s.CategoryName))</h3>
                     <p>Com Categoria</p>
                 </div>
                 <div class="icon">
@@ -153,10 +153,10 @@
                                         <span class="text-primary fw-bold">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", item.Price)</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">@item.Duration min</span>
+                                        <span class="badge bg-info">@item.DurationInMinutes min</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">@item.Category?.Name</span>
+                                        <span class="badge bg-secondary">@item.CategoryName</span>
                                     </td>
                                     <td>
                                         @if (item.IsActive)

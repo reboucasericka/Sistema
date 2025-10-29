@@ -987,58 +987,457 @@ header .logo img {
 }
 
 /* =========================================================
-   🔐 AUTHENTICATION PAGES
+   🔐 AUTHENTICATION PAGES - LOGIN MODERNO
 ========================================================= */
 
-/* Centraliza o login como uma tela */
-.login-wrapper {
+/* Container principal do login */
+.login-container {
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
-    background: linear-gradient(135deg, #f9f6f4, #ffffff);
-    background-size: cover;
+    justify-content: center;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
 }
 
-/* Cartão de autenticação */
-.auth-card {
+/* Fundo com formas flutuantes */
+.login-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 80px;
+    height: 80px;
     background: #fff;
-    width: 400px;
-    padding: 35px 30px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 120px;
+    height: 120px;
+    background: #fff;
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+.shape-3 {
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+/* Cartão de login moderno */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.6s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.8s ease-out;
 }
 
-/* Cabeçalho do formulário */
-.auth-header {
+/* Cabeçalho do login */
+.login-header {
     text-align: center;
-    background: var(--accent-terracotta, #c08668);
+    margin-bottom: 30px;
+}
+
+.login-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-terracotta) 0%, var(--accent-peach) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(201, 125, 93, 0.3);
+}
+
+.login-icon i {
+    font-size: 32px;
     color: white;
-    border-radius: 15px 15px 0 0;
-    padding: 20px 10px;
-    margin: -35px -30px 25px -30px;
 }
 
-.auth-header h2 {
-    margin: 0;
+.login-title {
+    font-size: 28px;
     font-weight: 700;
+    color: var(--neutral-dark);
+    margin-bottom: 8px;
+    font-family: 'Playfair Display', serif;
 }
 
-/* Formulário */
+.login-subtitle {
+    color: var(--neutral-gray);
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Formulário de login */
+.login-form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
 .form-label {
+    display: flex;
+    align-items: center;
     font-weight: 600;
-    color: #555;
+    color: var(--neutral-gray);
+    margin-bottom: 8px;
+    font-size: 14px;
 }
 
-.btn-primary {
-    background-color: var(--accent-terracotta, #c08668);
+.form-label i {
+    margin-right: 8px;
+    color: var(--accent-terracotta);
+    width: 16px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.form-control:focus {
+    border-color: var(--accent-terracotta);
+    box-shadow: 0 0 0 3px rgba(201, 125, 93, 0.1);
+    background: white;
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: #adb5bd;
+    font-size: 14px;
+}
+
+/* Campo de senha com toggle */
+.password-input {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    transition: background 0.3s ease;
+    color: var(--neutral-gray);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-    background-color: #a66950;
+.password-toggle:hover {
+    color: var(--accent-terracotta);
+    background: rgba(201, 125, 93, 0.1);
+}
+
+/* Grupo do checkbox */
+.remember-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-terracotta);
+    border-color: var(--accent-terracotta);
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: var(--neutral-gray);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Botão de login */
+.btn-login {
+    width: 100%;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, var(--accent-terracotta) 0%, var(--accent-peach) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 25px rgba(201, 125, 93, 0.3);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(201, 125, 93, 0.4);
+    background: linear-gradient(135deg, var(--accent-peach) 0%, var(--accent-terracotta) 100%);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login i {
+    font-size: 18px;
+}
+
+/* Footer do login */
+.login-footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Animações */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* =========================================================
+   👥 LOGIN CLIENTE - ESTILOS ESPECÍFICOS
+========================================================= */
+
+/* Container do cliente com gradiente diferente */
+.client-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.client-login .login-background {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Cartão do cliente */
+.client-card {
+    max-width: 480px;
+    padding: 40px;
+}
+
+/* Ícone do cliente */
+.client-icon {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+}
+
+.client-icon i {
+    font-size: 32px;
+    color: white;
+}
+
+/* Botão do cliente */
+.client-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+}
+
+.client-btn:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+}
+
+/* Ações do cliente */
+.client-actions {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.register-section {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.register-text {
+    color: var(--neutral-gray);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.btn-register {
+    background: transparent;
+    color: var(--accent-terracotta);
+    border: 2px solid var(--accent-terracotta);
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-register:hover {
+    background: var(--accent-terracotta);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(201, 125, 93, 0.3);
+}
+
+/* Seção de login social */
+.social-login-section {
+    text-align: center;
+}
+
+.divider {
+    position: relative;
+    margin: 20px 0;
+    color: var(--neutral-gray);
+    font-size: 14px;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.divider span {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-social {
+    flex: 1;
+    max-width: 140px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px solid transparent;
+}
+
+.btn-facebook {
+    background: #1877f2;
+    color: white;
+    border-color: #1877f2;
+}
+
+.btn-facebook:hover {
+    background: #166fe5;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 119, 242, 0.3);
+}
+
+.btn-google {
+    background: white;
+    color: #333;
+    border-color: #ddd;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.btn-social i {
+    font-size: 16px;
+}
+
+.btn-social span {
+    font-size: 14px;
 }
 
 /* Botões sociais */
@@ -1531,25 +1930,58 @@ footer .social a {
         display: none;
     }
 
-    /* Login centralizado responsivo */
-    .login-wrapper {
+    /* Login responsivo para mobile */
+    .login-container {
         padding: 20px;
-        height: 100vh;
     }
 
-    .auth-card {
-        width: 100%;
-        max-width: 350px;
-        padding: 25px 20px;
+    .login-card {
+        padding: 30px 25px;
+        max-width: 100%;
+        margin: 0 10px;
     }
 
-    .auth-header {
-        padding: 15px 10px;
-        margin: -25px -20px 20px -20px;
+    .login-title {
+        font-size: 24px;
     }
 
-    .auth-header h2 {
-        font-size: 1.4rem;
+    .login-subtitle {
+        font-size: 14px;
+    }
+
+    .login-icon {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 15px;
+    }
+
+    .login-icon i {
+        font-size: 28px;
+    }
+
+    .form-control {
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+
+    .btn-login {
+        padding: 12px 16px;
+        font-size: 15px;
+    }
+
+    /* Login cliente responsivo */
+    .client-card {
+        padding: 30px 25px;
+        max-width: 100%;
+    }
+
+    .social-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-social {
+        max-width: 100%;
     }
 }
 
@@ -1595,23 +2027,57 @@ footer .social a {
         font-size: 0.9rem;
     }
 
-    /* Login centralizado para telas muito pequenas */
-    .login-wrapper {
+    /* Login para telas muito pequenas */
+    .login-container {
         padding: 15px;
     }
 
-    .auth-card {
-        max-width: 320px;
-        padding: 20px 15px;
+    .login-card {
+        padding: 25px 20px;
+        margin: 0 5px;
     }
 
-    .auth-header {
-        padding: 12px 8px;
-        margin: -20px -15px 15px -15px;
+    .login-title {
+        font-size: 22px;
     }
 
-    .auth-header h2 {
-        font-size: 1.2rem;
+    .login-subtitle {
+        font-size: 13px;
+    }
+
+    .login-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 12px;
+    }
+
+    .login-icon i {
+        font-size: 24px;
+    }
+
+    .form-control {
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+
+    .btn-login {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    /* Login cliente para telas muito pequenas */
+    .client-card {
+        padding: 25px 20px;
+    }
+
+    .btn-register {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .btn-social {
+        padding: 10px 14px;
+        font-size: 13px;
     }
 }
 
@@ -2536,4 +3002,59 @@ body, .container-fluid {
 .container-fluid {
     margin-left: 250px;
 }
+/*_LOGIN.CSHTML*/
+.login-body {
+    font-family: 'Inter', sans-serif;
+}
 
+.login-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.floating-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.shape-1 {
+    width: 100px;
+    height: 100px;
+    background: #fff;
+    top: 10%;
+    left: 5%;
+}
+
+.shape-2 {
+    width: 150px;
+    height: 150px;
+    background: #fff;
+    bottom: 15%;
+    right: 10%;
+}
+
+.shape-3 {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

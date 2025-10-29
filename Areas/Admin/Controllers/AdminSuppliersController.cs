@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Sistema.Data;
-using Sistema.Data.Entities;
-using Sistema.Data.Repository.Interfaces;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -10,30 +9,66 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminSuppliersController : Controller
     {
-       
-        private readonly ISupplierRepository _supplierRepository;
+        private readonly IApiSuppliersService _apiService;
+        private readonly ILogger<AdminSuppliersController> _logger;
 
-        public AdminSuppliersController(ISupplierRepository supplierRepository)
+        public AdminSuppliersController(IApiSuppliersService apiService, ILogger<AdminSuppliersController> logger)
         {
-            _supplierRepository = supplierRepository;
+            _apiService = apiService;
+            _logger = logger;
         }
+
         //INDEX
         // GET: Fornecedores
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var suppliers = _supplierRepository.GetAll();
-            return View(suppliers);
+            try
+            {
+                var response = await _apiService.GetAllAsync();
+                
+                if (response.IsSuccess && response.Data != null)
+                {
+                    var suppliers = response.Data.OrderBy(s => s.Name).ToList();
+                    return View(suppliers);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch suppliers: {Message}", response.Message);
+                    TempData["ErrorMessage"] = "Failed to load suppliers. Please try again.";
+                    return View(new List<SupplierDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching suppliers");
+                TempData["ErrorMessage"] = "An error occurred while loading suppliers.";
+                return View(new List<SupplierDto>());
+            }
         }
+
         // Details
         // GET: Fornecedores/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
-            var supplier = await _supplierRepository.GetByIdWithProductsAsync(id.Value);
-            if (supplier == null) return NotFound();
+            try
+            {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
 
-            return View(supplier);
+                return View(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching supplier details for ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading supplier details.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Fornecedores/Create
@@ -43,39 +78,37 @@ namespace Sistema.Areas.Admin.Controllers
         }
 
         // POST: Fornecedores/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Supplier supplier)
+        public async Task<IActionResult> Create(SupplierDto supplier)
         {
-            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE SUPPLIER (POST) ===");
-            Console.WriteLine($"Supplier recebido - Nome: {supplier.Name}, Telefone: {supplier.Phone}");
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _supplierRepository.CreateAsync(supplier);
-                    Console.WriteLine("Fornecedor salvo com sucesso no banco de dados!");
-                    TempData["SuccessMessage"] = "Fornecedor criado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var response = await _apiService.CreateAsync(supplier);
+                    
+                    if (response.IsSuccess)
+                    {
+                        TempData["SuccessMessage"] = "Fornecedor criado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create supplier: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Erro ao criar fornecedor: {response.Message}";
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERRO ao criar fornecedor: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
-                    TempData["ErrorMessage"] = $"Erro ao criar fornecedor: {ex.Message}";
+                    _logger.LogError(ex, "Error creating supplier");
+                    TempData["ErrorMessage"] = "Erro ao criar fornecedor. Tente novamente.";
                 }
             }
             else
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                Console.WriteLine($"Erro de validação: {errorMessage}");
                 TempData["ErrorMessage"] = errorMessage;
             }
             
@@ -87,44 +120,62 @@ namespace Sistema.Areas.Admin.Controllers
         {
             if (id == null) return NotFound();
 
-            var supplier = await _supplierRepository.GetByIdAsync(id.Value);
-            if (supplier == null) return NotFound();
+            try
+            {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
 
-            return View(supplier);
+                return View(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching supplier for edit with ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading supplier for edit.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Fornecedores/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Supplier supplier)
+        public async Task<IActionResult> Edit(int id, SupplierDto supplier)
         {
-            if (id != supplier.SupplierId) return NotFound();
+            if (id != supplier.SupplierId)
+            {
+                return NotFound();
+            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _supplierRepository.UpdateAsync(supplier);
-                    TempData["SuccessMessage"] = "Fornecedor atualizado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var response = await _apiService.UpdateAsync(id, supplier);
+                    
+                    if (response.IsSuccess)
+                    {
+                        TempData["SuccessMessage"] = "Fornecedor atualizado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to update supplier: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Erro ao atualizar fornecedor: {response.Message}";
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERRO ao atualizar fornecedor: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
-                    TempData["ErrorMessage"] = $"Erro ao atualizar fornecedor: {ex.Message}";
+                    _logger.LogError(ex, "Error updating supplier with ID {Id}", id);
+                    TempData["ErrorMessage"] = "Erro ao atualizar fornecedor. Tente novamente.";
                 }
             }
             else
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                Console.WriteLine($"Erro de validação: {errorMessage}");
                 TempData["ErrorMessage"] = errorMessage;
             }
             
@@ -136,10 +187,23 @@ namespace Sistema.Areas.Admin.Controllers
         {
             if (id == null) return NotFound();
 
-            var supplier = await _supplierRepository.GetByIdAsync(id.Value);
-            if (supplier == null) return NotFound();
+            try
+            {
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
 
-            return View(supplier);
+                return View(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching supplier for delete with ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading supplier for delete.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Fornecedores/Delete/5
@@ -149,29 +213,25 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                var supplier = await _supplierRepository.GetByIdAsync(id);
-                if (supplier != null)
+                var response = await _apiService.DeleteAsync(id);
+                
+                if (response.IsSuccess)
                 {
-                    await _supplierRepository.DeleteAsync(supplier);
                     TempData["SuccessMessage"] = "Fornecedor excluído com sucesso!";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Fornecedor não encontrado.";
+                    _logger.LogError("Failed to delete supplier: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Erro ao excluir fornecedor: {response.Message}";
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERRO ao excluir fornecedor: {ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                }
-                TempData["ErrorMessage"] = $"Erro ao excluir fornecedor: {ex.Message}";
+                _logger.LogError(ex, "Error deleting supplier with ID {Id}", id);
+                TempData["ErrorMessage"] = "Erro ao excluir fornecedor. Tente novamente.";
             }
             
             return RedirectToAction(nameof(Index));
         }
-        
     }
 }

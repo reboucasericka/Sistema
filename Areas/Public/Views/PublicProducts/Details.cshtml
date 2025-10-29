@@ -1,0 +1,969 @@
+@model Sistema.Data.Entities.Product
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section py-3 bg-light">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a asp-area="Public" asp-controller="PublicProducts" asp-action="Index">Produtos</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a asp-area="Public" asp-controller="PublicProducts" asp-action="Index">@Model.ProductCategory.Name</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Product Details -->
+<section class="product-details py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-lg-6 mb-4">
+                <div class="product-gallery">
+                    <div class="main-image">
+                        <img src="@Model.ImageFullPath" alt="@Model.Name" class="img-fluid" id="mainImage">
+                        <div class="image-overlay">
+                            <button class="btn btn-light btn-sm" onclick="openImageModal()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Thumbnail Navigation -->
+                    <div class="thumbnail-nav mt-3">
+                        <div class="thumbnail-item active" onclick="changeMainImage('@Model.ImageFullPath')">
+                            <img src="@Model.ImageFullPath" alt="@Model.Name" class="img-fluid">
+                        </div>
+                        <!-- Adicionar mais thumbnails se necessário -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <div class="product-category">@Model.ProductCategory.Name</div>
+                    <h1 class="product-title">@Model.Name</h1>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="product-description">
+                            <h4>Descrição</h4>
+                            <p>@Model.Description</p>
+                        </div>
+                    }
+
+                    <div class="product-price-section">
+                        <div class="price-display">
+                            <span class="current-price">€@Model.SalePrice.ToString("N2")</span>
+                        </div>
+                        
+                        <div class="stock-info">
+                            @if (Model.Stock > 0)
+                            {
+                                <span class="stock-badge in-stock">
+                                    <i class="fas fa-check-circle"></i>
+                                    Em Stock (@Model.Stock unidades)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="stock-badge out-of-stock">
+                                    <i class="fas fa-times-circle"></i>
+                                    Sem Stock
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Product Actions -->
+                    <div class="product-actions mt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary btn-lg w-100" @(Model.Stock <= 0 ? "disabled" : "")>
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Adicionar ao Carrinho
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-heart"></i>
+                                    Favoritar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Features -->
+                    <div class="product-features mt-5">
+                        <h4>Características</h4>
+                        <div class="features-grid">
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Produto Original</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-truck"></i>
+                                <span>Entrega Rápida</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-undo"></i>
+                                <span>Devolução Fácil</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-headset"></i>
+                                <span>Suporte 24/7</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Details Tabs -->
+<section class="product-tabs py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                            <i class="fas fa-info-circle"></i>
+                            Descrição Detalhada
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab">
+                            <i class="fas fa-flask"></i>
+                            Ingredientes
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="application-tab" data-bs-toggle="tab" data-bs-target="#application" type="button" role="tab">
+                            <i class="fas fa-paint-brush"></i>
+                            Modo de Aplicação
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                            <i class="fas fa-star"></i>
+                            Avaliações
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="productTabsContent">
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <div class="tab-content-body">
+                            <h4>Descrição Completa</h4>
+                            <p>@(string.IsNullOrEmpty(Model.Description) ? "Descrição detalhada do produto será adicionada em breve." : Model.Description)</p>
+                            
+                            <div class="description-features">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Benefícios:</h5>
+                                        <ul>
+                                            <li>Alta qualidade e durabilidade</li>
+                                            <li>Fácil aplicação</li>
+                                            <li>Resultado natural</li>
+                                            <li>Resistente à água</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Especificações:</h5>
+                                        <ul>
+                                            <li>Categoria: @Model.ProductCategory.Name</li>
+                                            <li>Preço: €@Model.SalePrice.ToString("N2")</li>
+                                            <li>Stock disponível: @Model.Stock unidades</li>
+                                            <li>Status: @(Model.IsActive ? "Ativo" : "Inativo")</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="ingredients" role="tabpanel">
+                        <div class="tab-content-body">
+                            <h4>Ingredientes</h4>
+                            <div class="ingredients-list">
+                                <div class="ingredient-category">
+                                    <h5>Ingredientes Principais:</h5>
+                                    <ul>
+                                        <li>Água</li>
+                                        <li>Glicerina</li>
+                                        <li>Pigmentos naturais</li>
+                                        <li>Conservantes seguros</li>
+                                    </ul>
+                                </div>
+                                <div class="ingredient-category">
+                                    <h5>Ingredientes Secundários:</h5>
+                                    <ul>
+                                        <li>Vitamina E</li>
+                                        <li>Extratos vegetais</li>
+                                        <li>Óleos essenciais</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="ingredient-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Este produto pode conter ingredientes que causam alergias. Consulte sempre a lista completa de ingredientes.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="application" role="tabpanel">
+                        <div class="tab-content-body">
+                            <h4>Modo de Aplicação</h4>
+                            <div class="application-steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h5>Preparação</h5>
+                                        <p>Limpe e seque a área onde será aplicado o produto.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h5>Aplicação</h5>
+                                        <p>Aplique o produto de forma suave e uniforme.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h5>Finalização</h5>
+                                        <p>Deixe secar completamente antes de aplicar outros produtos.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="application-tips">
+                                <h5>Dicas Importantes:</h5>
+                                <ul>
+                                    <li>Teste sempre em uma pequena área antes do uso completo</li>
+                                    <li>Evite contato com os olhos</li>
+                                    <li>Mantenha fora do alcance de crianças</li>
+                                    <li>Armazene em local fresco e seco</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="reviews" role="tabpanel">
+                        <div class="tab-content-body">
+                            <h4>Avaliações dos Clientes</h4>
+                            <div class="reviews-summary">
+                                <div class="rating-overview">
+                                    <div class="rating-score">4.5</div>
+                                    <div class="rating-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <div class="rating-count">Baseado em 24 avaliações</div>
+                                </div>
+                            </div>
+                            
+                            <div class="reviews-list">
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <strong>Maria Silva</strong>
+                                            <div class="review-rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <div class="review-date">Há 2 dias</div>
+                                    </div>
+                                    <div class="review-content">
+                                        <p>Produto excelente! Qualidade superior e resultado natural. Recomendo!</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <strong>Ana Costa</strong>
+                                            <div class="review-rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <div class="review-date">Há 1 semana</div>
+                                    </div>
+                                    <div class="review-content">
+                                        <p>Muito bom, mas poderia ter mais opções de cores.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="review-form">
+                                <h5>Deixe sua avaliação</h5>
+                                <form>
+                                    <div class="mb-3">
+                                        <label class="form-label">Sua avaliação</label>
+                                        <div class="rating-input">
+                                            <i class="far fa-star" data-rating="1"></i>
+                                            <i class="far fa-star" data-rating="2"></i>
+                                            <i class="far fa-star" data-rating="3"></i>
+                                            <i class="far fa-star" data-rating="4"></i>
+                                            <i class="far fa-star" data-rating="5"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea class="form-control" rows="3" placeholder="Compartilhe sua experiência com este produto..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Enviar Avaliação</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Products -->
+<section class="related-products py-5">
+    <div class="container">
+        <h3 class="section-title text-center mb-5">Produtos Relacionados</h3>
+        <div class="row">
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="related-product-item">
+                    <div class="product-image">
+                        <img src="/images/noimage.png" alt="Produto Relacionado" class="img-fluid">
+                    </div>
+                    <div class="product-info">
+                        <h5>Produto Relacionado 1</h5>
+                        <p class="price">€25.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="related-product-item">
+                    <div class="product-image">
+                        <img src="/images/noimage.png" alt="Produto Relacionado" class="img-fluid">
+                    </div>
+                    <div class="product-info">
+                        <h5>Produto Relacionado 2</h5>
+                        <p class="price">€30.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="related-product-item">
+                    <div class="product-image">
+                        <img src="/images/noimage.png" alt="Produto Relacionado" class="img-fluid">
+                    </div>
+                    <div class="product-info">
+                        <h5>Produto Relacionado 3</h5>
+                        <p class="price">€35.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="related-product-item">
+                    <div class="product-image">
+                        <img src="/images/noimage.png" alt="Produto Relacionado" class="img-fluid">
+                    </div>
+                    <div class="product-info">
+                        <h5>Produto Relacionado 4</h5>
+                        <p class="price">€40.00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Model.Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="@Model.ImageFullPath" alt="@Model.Name" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Breadcrumb */
+    .breadcrumb-section {
+        background: #f8f9fa;
+    }
+
+    .breadcrumb-item a {
+        color: #c48ba4;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #a06b8a;
+    }
+
+    /* Product Gallery */
+    .product-gallery {
+        position: sticky;
+        top: 20px;
+    }
+
+    .main-image {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .main-image img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .main-image:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .thumbnail-nav {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .thumbnail-item {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .thumbnail-item.active,
+    .thumbnail-item:hover {
+        border-color: #c48ba4;
+    }
+
+    .thumbnail-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Product Info */
+    .product-info {
+        padding-left: 30px;
+    }
+
+    .product-category {
+        font-size: 0.9rem;
+        color: #c48ba4;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+
+    .product-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+
+    .product-description {
+        margin-bottom: 30px;
+    }
+
+    .product-description h4 {
+        color: #333;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .product-description p {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .product-price-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .current-price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #c48ba4;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .stock-badge.in-stock {
+        color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+    }
+
+    .stock-badge.out-of-stock {
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .product-actions .btn {
+        margin-bottom: 10px;
+    }
+
+    .product-features {
+        border-top: 1px solid #eee;
+        padding-top: 30px;
+    }
+
+    .product-features h4 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .feature-item i {
+        color: #c48ba4;
+        font-size: 1.2rem;
+    }
+
+    /* Product Tabs */
+    .product-tabs {
+        background: #f8f9fa;
+    }
+
+    .nav-tabs {
+        border-bottom: 2px solid #c48ba4;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: #666;
+        font-weight: 500;
+        padding: 15px 25px;
+        border-radius: 0;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: #c48ba4;
+        color: white;
+        border-color: #c48ba4;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: #c48ba4;
+    }
+
+    .tab-content-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .tab-content-body h4 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .description-features h5 {
+        color: #c48ba4;
+        margin-bottom: 15px;
+    }
+
+    .description-features ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .description-features li {
+        padding: 5px 0;
+        position: relative;
+        padding-left: 20px;
+    }
+
+    .description-features li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #c48ba4;
+        font-weight: bold;
+    }
+
+    /* Ingredients */
+    .ingredients-list {
+        margin-bottom: 20px;
+    }
+
+    .ingredient-category {
+        margin-bottom: 20px;
+    }
+
+    .ingredient-category h5 {
+        color: #c48ba4;
+        margin-bottom: 10px;
+    }
+
+    .ingredient-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ingredient-warning i {
+        color: #856404;
+    }
+
+    /* Application Steps */
+    .application-steps {
+        margin-bottom: 30px;
+    }
+
+    .step {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: #c48ba4;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .step-content h5 {
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .step-content p {
+        color: #666;
+        margin: 0;
+    }
+
+    .application-tips h5 {
+        color: #c48ba4;
+        margin-bottom: 15px;
+    }
+
+    /* Reviews */
+    .reviews-summary {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .rating-overview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .rating-score {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #c48ba4;
+    }
+
+    .rating-stars {
+        color: #ffc107;
+        font-size: 1.5rem;
+    }
+
+    .rating-count {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .reviews-list {
+        margin-bottom: 30px;
+    }
+
+    .review-item {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .reviewer-info strong {
+        color: #333;
+    }
+
+    .review-rating {
+        color: #ffc107;
+        margin-top: 5px;
+    }
+
+    .review-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .review-content p {
+        color: #666;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .review-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .rating-input {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+
+    .rating-input i {
+        font-size: 1.5rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .rating-input i:hover,
+    .rating-input i.active {
+        color: #ffc107;
+    }
+
+    /* Related Products */
+    .related-products {
+        background: white;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 2rem;
+    }
+
+    .related-product-item {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .related-product-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .related-product-item .product-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .related-product-item .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .related-product-item .product-info {
+        padding: 15px;
+    }
+
+    .related-product-item .product-info h5 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    .related-product-item .product-info .price {
+        color: #c48ba4;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    /* Responsividade */
+    @@media (max-width: 768px) {
+        .product-info {
+            padding-left: 0;
+            margin-top: 30px;
+        }
+
+        .product-title {
+            font-size: 2rem;
+        }
+
+        .current-price {
+            font-size: 2rem;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .step {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .step-number {
+            align-self: center;
+        }
+
+        .review-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+</style>
+
+<script>
+    function changeMainImage(imageSrc) {
+        document.getElementById('mainImage').src = imageSrc;
+        
+        // Atualizar thumbnails ativos
+        document.querySelectorAll('.thumbnail-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.target.closest('.thumbnail-item').classList.add('active');
+    }
+
+    function openImageModal() {
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        modal.show();
+    }
+
+    // Sistema de avaliação
+    document.addEventListener('DOMContentLoaded', function() {
+        const ratingStars = document.querySelectorAll('.rating-input i');
+        
+        ratingStars.forEach((star, index) => {
+            star.addEventListener('click', function() {
+                const rating = index + 1;
+                
+                ratingStars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.classList.remove('far');
+                        s.classList.add('fas', 'active');
+                    } else {
+                        s.classList.remove('fas', 'active');
+                        s.classList.add('far');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = index + 1;
+                
+                ratingStars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                    } else {
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                    }
+                });
+            });
+        });
+
+        // Reset stars on mouse leave
+        document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+            ratingStars.forEach(star => {
+                star.classList.remove('fas', 'active');
+                star.classList.add('far');
+            });
+        });
+    });
+</script>

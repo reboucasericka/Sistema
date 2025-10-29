@@ -13,6 +13,9 @@ namespace Sistema.Data.Entities
         [Required, StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
+        [StringLength(500)]
+        public string? Description { get; set; }
+
         // 🔗 1:N relationship (one category can have multiple products)
         public ICollection<Product> Products { get; set; } = new List<Product>();
 

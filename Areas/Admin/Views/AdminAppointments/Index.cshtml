@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Sistema.Data.Entities.Appointment>
+﻿@model IEnumerable<SistemaAPI.DTOs.AppointmentDto>
 
 @{
     ViewData["Title"] = "Gestão de Agendamentos";
@@ -150,22 +150,22 @@
                                                 <i class="fas fa-user text-white"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold">@appointment.Customer.User.FirstName @appointment.Customer.User.LastName</div>
-                                                <small class="text-muted">@appointment.Customer.User.Email</small>
+                                                <div class="fw-bold">@appointment.ClientName</div>
+                                                <small class="text-muted">@appointment.ClientEmail</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="fw-bold">@appointment.Service.Name</div>
-                                        <span class="badge bg-info">@appointment.Service.Category?.Name</span>
+                                        <div class="fw-bold">@appointment.ServiceName</div>
+                                        <span class="badge bg-info">@appointment.ServiceCategory</span>
                                     </td>
                                     <td>
-                                        <div class="fw-bold">@appointment.Professional.Name</div>
-                                        <small class="text-muted">@appointment.Professional.Specialty</small>
+                                        <div class="fw-bold">@appointment.ProfessionalName</div>
+                                        <small class="text-muted">@appointment.ProfessionalSpecialty</small>
                                     </td>
                                     <td>
-                                        <div class="fw-bold">@appointment.StartTime.ToString("dd/MM/yyyy")</div>
-                                        <small class="text-muted">@appointment.StartTime.ToString("HH:mm") - @appointment.EndTime.ToString("HH:mm")</small>
+                                        <div class="fw-bold">@appointment.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">@appointment.StartTime.ToString(@"hh\:mm") - @appointment.EndTime.ToString(@"hh\:mm")</small>
                                         <div class="badge bg-info mt-1">
                                             @((appointment.EndTime - appointment.StartTime).TotalMinutes) min
                                         </div>

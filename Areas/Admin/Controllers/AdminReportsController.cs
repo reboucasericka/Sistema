@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
-using Sistema.Data.Entities;
-using Sistema.Helpers;
 using Sistema.Models.Admin;
 using Sistema.Services;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using ClosedXML.Excel;
 using System.IO;
 using iText.Kernel.Pdf;
@@ -23,819 +21,378 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminReportsController : Controller
     {
-        private readonly SistemaDbContext _context;
-        private readonly IUserHelper _userHelper;
+        private readonly IApiAppointmentsService _appointmentsService;
+        private readonly IApiClientsService _clientsService;
+        private readonly IApiServicesService _servicesService;
+        private readonly IApiStaffService _staffService;
         private readonly IExcelExportService _excelExportService;
         private readonly IPdfExportService _pdfExportService;
+        private readonly ILogger<AdminReportsController> _logger;
 
-        public AdminReportsController(SistemaDbContext context, IUserHelper userHelper, IExcelExportService excelExportService, IPdfExportService pdfExportService)
+        public AdminReportsController(
+            IApiAppointmentsService appointmentsService,
+            IApiClientsService clientsService,
+            IApiServicesService servicesService,
+            IApiStaffService staffService,
+            IExcelExportService excelExportService,
+            IPdfExportService pdfExportService,
+            ILogger<AdminReportsController> logger)
         {
-            _context = context;
-            _userHelper = userHelper;
+            _appointmentsService = appointmentsService;
+            _clientsService = clientsService;
+            _servicesService = servicesService;
+            _staffService = staffService;
             _excelExportService = excelExportService;
             _pdfExportService = pdfExportService;
+            _logger = logger;
         }
 
         // GET: Admin/Reports
-        public IActionResult Index()
-        {
-            var model = new AdminReportsViewModel
-            {
-                TotalEntradas = _context.CashMovements
-                    .Where(m => m.Type == "Entrada")
-                    .Sum(m => (decimal?)m.Amount) ?? 0,
-                TotalSaidas = _context.CashMovements
-                    .Where(m => m.Type == "Saída")
-                    .Sum(m => (decimal?)m.Amount) ?? 0,
-                ServicosMaisVendidos = _context.Appointments
-                    .Include(a => a.Service)
-                    .GroupBy(a => a.Service.Name)
-                    .Select(g => new ReportItem { Label = g.Key, Value = g.Count() })
-                    .OrderByDescending(x => x.Value)
-                    .Take(5)
-                    .ToList(),
-                ClientesNovos = _context.Customers
-                    .Where(c => c.RegistrationDate >= DateTime.Today.AddMonths(-1))
-                    .Count(),
-                ClientesTotais = _context.Customers.Count()
-            };
-
-            model.SaldoAtual = model.TotalEntradas - model.TotalSaidas;
-
-            return View(model);
-        }
-
-        // API para gráfico financeiro (últimos 7 dias)
-        [HttpGet]
-        public IActionResult GetCashFlowChartData()
-        {
-            var last7Days = Enumerable.Range(0, 7)
-                .Select(i => DateTime.Today.AddDays(-i))
-                .OrderBy(d => d)
-                .ToList();
-
-            var data = last7Days.Select(day => new
-            {
-                Day = day.ToString("dd/MM"),
-                Entradas = _context.CashMovements
-                    .Where(m => m.Type == "Entrada" && m.Date.Date == day)
-                    .Sum(m => (decimal?)m.Amount) ?? 0,
-                Saidas = _context.CashMovements
-                    .Where(m => m.Type == "Saída" && m.Date.Date == day)
-                    .Sum(m => (decimal?)m.Amount) ?? 0
-            }).ToList();
-
-            return Json(data);
-        }
-
-        // Exportação simples para Excel (GET)
-        [HttpGet]
-        public IActionResult ExportToExcel()
+        public async Task<IActionResult> Index()
         {
             try
             {
-                // Gerar DataTable com resumo financeiro
-                var entries = _context.CashMovements
-                    .OrderByDescending(m => m.Date)
-                    .Select(m => new
-                    {
-                        m.Date,
-                        m.Type,
-                        m.Description,
-                        m.Amount
-                    })
-                    .ToList();
+                // Buscar dados via API
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var clientsResponse = await _clientsService.GetAllAsync();
+                var servicesResponse = await _servicesService.GetAllAsync();
 
-                using var workbook = new XLWorkbook();
-                var worksheet = workbook.Worksheets.Add("Movimentações");
-                
-                // Cabeçalhos
-                worksheet.Cell(1, 1).Value = "Data";
-                worksheet.Cell(1, 2).Value = "Tipo";
-                worksheet.Cell(1, 3).Value = "Descrição";
-                worksheet.Cell(1, 4).Value = "Valor";
-                
-                // Dados
-                for (int i = 0; i < entries.Count; i++)
+                var appointments = appointmentsResponse.Success ? appointmentsResponse.Data?.ToList() ?? new List<AppointmentDto>() : new List<AppointmentDto>();
+                var clients = clientsResponse.Success ? clientsResponse.Data?.ToList() ?? new List<ClientDto>() : new List<ClientDto>();
+                var services = servicesResponse.Success ? servicesResponse.Data?.ToList() ?? new List<ServiceDto>() : new List<ServiceDto>();
+
+                // Calcular estatísticas básicas
+                var reportData = new
                 {
-                    var entry = entries[i];
-                    worksheet.Cell(i + 2, 1).Value = entry.Date.ToString("dd/MM/yyyy");
-                    worksheet.Cell(i + 2, 2).Value = entry.Type;
-                    worksheet.Cell(i + 2, 3).Value = entry.Description;
-                    worksheet.Cell(i + 2, 4).Value = entry.Amount;
-                }
-                
-                worksheet.Columns().AdjustToContents();
-
-                using var stream = new MemoryStream();
-                workbook.SaveAs(stream);
-                stream.Position = 0;
-
-                return File(stream.ToArray(),
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "Relatorio_Financeiro.xlsx");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = $"Erro ao gerar relatório Excel: {ex.Message}";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // Exportação simples para PDF (GET)
-        [HttpGet]
-        public IActionResult ExportToPDF()
-        {
-            try
-            {
-                var summary = new
-                {
-                    TotalEntradas = _context.CashMovements
-                        .Where(m => m.Type == "Entrada")
-                        .Sum(m => (decimal?)m.Amount) ?? 0,
-                    TotalSaidas = _context.CashMovements
-                        .Where(m => m.Type == "Saída")
-                        .Sum(m => (decimal?)m.Amount) ?? 0,
-                    ClientesTotais = _context.Customers.Count(),
-                    ClientesNovos = _context.Customers
+                    TotalAppointments = appointments.Count,
+                    PendingAppointments = appointments.Count(a => a.Status == "Pendente"),
+                    ConfirmedAppointments = appointments.Count(a => a.Status == "Confirmado"),
+                    CompletedAppointments = appointments.Count(a => a.Status == "Concluído"),
+                    TotalClients = clients.Count,
+                    NewClientsThisMonthCount = clients.Count(c => c.RegistrationDate >= DateTime.Today.AddMonths(-1)),
+                    TotalServices = services.Count,
+                    MostPopularService = services.OrderByDescending(s => s.Name).FirstOrDefault()?.Name ?? "N/A",
+                    RevenueThisMonth = appointments
+                        .Where(a => a.AppointmentDate >= DateTime.Today.AddMonths(-1) && a.TotalPrice.HasValue)
+                        .Sum(a => a.TotalPrice.Value),
+                    AppointmentsByService = appointments
+                        .GroupBy(a => a.ServiceName)
+                        .Select(g => new ReportItem 
+                        { 
+                            Name = g.Key, 
+                            Value = g.Count() 
+                        })
+                        .OrderByDescending(x => x.Value)
+                        .Take(5)
+                        .ToList(),
+                    NewClientsThisMonth = clients
                         .Where(c => c.RegistrationDate >= DateTime.Today.AddMonths(-1))
-                        .Count()
+                        .Count(),
+                    Last7Days = Enumerable.Range(0, 7)
+                        .Select(i => DateTime.Today.AddDays(-i))
+                        .OrderBy(d => d)
+                        .ToList()
                 };
 
-                var html = $@"
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <title>Relatório Administrativo</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        .header {{ text-align: center; margin-bottom: 30px; }}
-        .summary-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
-        .summary-item {{ background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff; }}
-        .summary-item h4 {{ margin: 0 0 10px 0; color: #007bff; }}
-        .summary-item .value {{ font-size: 18px; font-weight: bold; color: #333; }}
-        .footer {{ margin-top: 30px; text-align: center; color: #666; font-size: 12px; }}
-    </style>
-</head>
-<body>
-    <div class='header'>
-        <h1>Relatório Administrativo</h1>
-        <p>Gerado em {DateTime.Now:dd/MM/yyyy HH:mm}</p>
-    </div>
-
-    <div class='summary-grid'>
-        <div class='summary-item'>
-            <h4>Total Entradas</h4>
-            <div class='value'>€ {summary.TotalEntradas:F2}</div>
-        </div>
-        <div class='summary-item'>
-            <h4>Total Saídas</h4>
-            <div class='value'>€ {summary.TotalSaidas:F2}</div>
-        </div>
-        <div class='summary-item'>
-            <h4>Saldo Atual</h4>
-            <div class='value'>€ {(summary.TotalEntradas - summary.TotalSaidas):F2}</div>
-        </div>
-        <div class='summary-item'>
-            <h4>Total Clientes</h4>
-            <div class='value'>{summary.ClientesTotais}</div>
-        </div>
-        <div class='summary-item'>
-            <h4>Novos Clientes (30 dias)</h4>
-            <div class='value'>{summary.ClientesNovos}</div>
-        </div>
-    </div>
-
-    <div class='footer'>
-        <p>Relatório gerado pelo Sistema</p>
-    </div>
-</body>
-</html>";
-
-                var bytes = System.Text.Encoding.UTF8.GetBytes(html);
-                return File(bytes, "text/html", "Relatorio_Administrativo.html");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = $"Erro ao gerar relatório PDF: {ex.Message}";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // Exportação para PDF com iText7
-        [HttpGet]
-        public IActionResult ExportToPdf()
-        {
-            try
-            {
-                var entradas = _context.CashMovements
-                    .Where(m => m.Type == "Entrada")
-                    .Sum(m => (decimal?)m.Amount) ?? 0;
-                var saidas = _context.CashMovements
-                    .Where(m => m.Type == "Saída")
-                    .Sum(m => (decimal?)m.Amount) ?? 0;
-                var saldo = entradas - saidas;
-
-                var servicosMaisVendidos = _context.Appointments
-                    .Include(a => a.Service)
-                    .GroupBy(a => a.Service.Name)
-                    .Select(g => new { Servico = g.Key, Quantidade = g.Count() })
-                    .OrderByDescending(x => x.Quantidade)
-                    .Take(5)
-                    .ToList();
-
-                var clientesTotais = _context.Customers.Count();
-                var clientesNovos = _context.Customers
-                    .Where(c => c.RegistrationDate >= DateTime.Today.AddMonths(-1))
-                    .Count();
-
-                using var memoryStream = new MemoryStream();
-                var writer = new PdfWriter(memoryStream);
-                var pdf = new PdfDocument(writer);
-                var document = new Document(pdf);
-
-                // Cabeçalho
-                document.Add(new Paragraph("Ewellin Beauty - Relatório Administrativo")
-                    .SetFontSize(18)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                    .SetFontColor(ColorConstants.DARK_GRAY)
-                    .SetTextAlignment(TextAlignment.CENTER));
-                document.Add(new Paragraph($"Emitido em: {DateTime.Now:dd/MM/yyyy HH:mm}")
-                    .SetFontSize(10)
-                    .SetTextAlignment(TextAlignment.CENTER)
-                    .SetFontColor(ColorConstants.GRAY));
-
-                document.Add(new Paragraph("\n"));
-
-                // Resumo Financeiro
-                document.Add(new Paragraph("Resumo Financeiro")
-                    .SetFontSize(14)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                    .SetFontColor(ColorConstants.BLUE));
-                var table = new Table(UnitValue.CreatePercentArray(3)).UseAllAvailableWidth();
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Entradas (€)")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Saídas (€)")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Saldo (€)")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-
-                table.AddCell(entradas.ToString("N2"));
-                table.AddCell(saidas.ToString("N2"));
-                table.AddCell(saldo.ToString("N2"));
-
-                document.Add(table);
-                document.Add(new Paragraph("\n"));
-
-                // Serviços mais realizados
-                document.Add(new Paragraph("Serviços Mais Realizados")
-                    .SetFontSize(14)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                    .SetFontColor(ColorConstants.BLUE));
-                var servicosTable = new Table(UnitValue.CreatePercentArray(2)).UseAllAvailableWidth();
-                servicosTable.AddHeaderCell(new Cell().Add(new Paragraph("Serviço")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-                servicosTable.AddHeaderCell(new Cell().Add(new Paragraph("Quantidade")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-
-                foreach (var s in servicosMaisVendidos)
+                var data = reportData.Last7Days.Select(day => new
                 {
-                    servicosTable.AddCell(s.Servico);
-                    servicosTable.AddCell(s.Quantidade.ToString());
-                }
+                    Date = day.ToString("dd/MM"),
+                    Appointments = appointments.Count(a => a.AppointmentDate.Date == day.Date),
+                    Revenue = appointments
+                        .Where(a => a.AppointmentDate.Date == day.Date && a.TotalPrice.HasValue)
+                        .Sum(a => a.TotalPrice.Value)
+                }).ToList();
 
-                document.Add(servicosTable);
-                document.Add(new Paragraph("\n"));
+                ViewBag.ReportData = reportData;
+                ViewBag.ChartData = data;
 
-                // Relatório de Clientes
-                document.Add(new Paragraph("Relatório de Clientes")
-                    .SetFontSize(14)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                    .SetFontColor(ColorConstants.BLUE));
-                var clientesTable = new Table(UnitValue.CreatePercentArray(2)).UseAllAvailableWidth();
-                clientesTable.AddHeaderCell(new Cell().Add(new Paragraph("Indicador")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-                clientesTable.AddHeaderCell(new Cell().Add(new Paragraph("Valor")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))));
-
-                clientesTable.AddCell("Total de Clientes");
-                clientesTable.AddCell(clientesTotais.ToString());
-
-                clientesTable.AddCell("Novos no Último Mês");
-                clientesTable.AddCell(clientesNovos.ToString());
-
-                document.Add(clientesTable);
-                document.Add(new Paragraph("\n\n"));
-
-                // Assinatura
-                document.Add(new Paragraph("_________________________________________")
-                    .SetTextAlignment(TextAlignment.CENTER));
-                document.Add(new Paragraph("Gestor Responsável")
-                    .SetFontSize(11)
-                    .SetTextAlignment(TextAlignment.CENTER)
-                    .SetFontColor(ColorConstants.GRAY));
-
-                document.Close();
-
-                return File(memoryStream.ToArray(), "application/pdf", "Relatorio_Administrativo.pdf");
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Erro ao gerar relatório PDF: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                _logger.LogError(ex, "Erro ao carregar relatórios");
+                TempData["ErrorMessage"] = "Erro ao carregar dados dos relatórios.";
+                return View();
             }
         }
 
-        // GET: Admin/Reports/SalesReport
-        public async Task<IActionResult> SalesReport(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Now.AddDays(-30);
-            var end = endDate ?? DateTime.Now;
-
-            var sales = await _context.Sales
-                .Include(s => s.Customer)
-                    .ThenInclude(c => c.User)
-                .Include(s => s.Professional)
-                .Include(s => s.PaymentMethod)
-                .Include(s => s.Items)
-                    .ThenInclude(i => i.Product)
-                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                .OrderByDescending(s => s.SaleDate)
-                .ToListAsync();
-
-            var summary = new
-            {
-                TotalSales = sales.Count,
-                TotalAmount = sales.Sum(s => s.FinalTotal),
-                TotalItems = sales.Sum(s => s.Items.Sum(i => i.Quantity)),
-                AverageTicket = sales.Any() ? sales.Average(s => s.FinalTotal) : 0,
-                SalesByPaymentMethod = sales.GroupBy(s => s.PaymentMethod.Name)
-                    .Select(g => new { Method = g.Key, Count = g.Count(), Total = g.Sum(s => s.FinalTotal) })
-                    .ToList(),
-                SalesByProfessional = sales.GroupBy(s => s.Professional.Name)
-                    .Select(g => new { Professional = g.Key, Count = g.Count(), Total = g.Sum(s => s.FinalTotal) })
-                    .ToList()
-            };
-
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-            ViewBag.Summary = summary;
-
-            return View(sales);
-        }
-
-        // GET: Admin/Reports/CashFlowReport
-        public async Task<IActionResult> CashFlowReport(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Now.AddDays(-30);
-            var end = endDate ?? DateTime.Now;
-
-            var receivables = await _context.Receivables
-                .Include(r => r.Customer)
-                    .ThenInclude(c => c.User)
-                .Include(r => r.Professional)
-                .Include(r => r.PaymentMethod)
-                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
-                .ToListAsync();
-
-            var payables = await _context.Payables
-                .Include(p => p.Professional)
-                .Include(p => p.Supplier)
-                .Include(p => p.PaymentMethod)
-                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-
-            var cashMovements = await _context.CashMovements
-                .Include(cm => cm.CashRegister)
-                .Where(cm => cm.Date >= start && cm.Date <= end)
-                .ToListAsync();
-
-            var summary = new
-            {
-                TotalReceivables = receivables.Sum(r => r.Amount),
-                TotalPaidReceivables = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
-                TotalPendingReceivables = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
-                TotalPayables = payables.Sum(p => p.Amount),
-                TotalPaidPayables = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
-                TotalPendingPayables = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
-                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
-                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
-                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount)
-            };
-
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-            ViewBag.Summary = summary;
-            ViewBag.Receivables = receivables;
-            ViewBag.Payables = payables;
-            ViewBag.CashMovements = cashMovements;
-
-            return View();
-        }
-
-        // GET: Admin/Reports/CommissionsReport
-        public async Task<IActionResult> CommissionsReport(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Now.AddDays(-30);
-            var end = endDate ?? DateTime.Now;
-
-            var commissions = await _context.Payables
-                .Include(p => p.Professional)
-                .Include(p => p.Sale)
-                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
-
-            var summary = new
-            {
-                TotalCommissions = commissions.Sum(p => p.Amount),
-                TotalPaidCommissions = commissions.Where(p => p.IsPaid).Sum(p => p.Amount),
-                TotalPendingCommissions = commissions.Where(p => !p.IsPaid).Sum(p => p.Amount),
-                CommissionsByProfessional = commissions.GroupBy(p => p.Professional.Name)
-                    .Select(g => new { 
-                        Professional = g.Key, 
-                        Total = g.Sum(p => p.Amount),
-                        Paid = g.Where(p => p.IsPaid).Sum(p => p.Amount),
-                        Pending = g.Where(p => !p.IsPaid).Sum(p => p.Amount),
-                        Count = g.Count()
-                    })
-                    .ToList()
-            };
-
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-            ViewBag.Summary = summary;
-
-            return View(commissions);
-        }
-
-        // GET: Admin/Reports/FinancialSummary
-        public async Task<IActionResult> FinancialSummary(DateTime? startDate, DateTime? endDate)
-        {
-            var start = startDate ?? DateTime.Now.AddDays(-30);
-            var end = endDate ?? DateTime.Now;
-
-            // Dados consolidados
-            var receivables = await _context.Receivables
-                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
-                .ToListAsync();
-
-            var payables = await _context.Payables
-                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-
-            var sales = await _context.Sales
-                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                .ToListAsync();
-
-            var cashMovements = await _context.CashMovements
-                .Where(cm => cm.Date >= start && cm.Date <= end)
-                .ToListAsync();
-
-            var summary = new
-            {
-                // Receitas
-                TotalReceitas = receivables.Sum(r => r.Amount),
-                ReceitasPagas = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
-                ReceitasPendentes = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
-
-                // Despesas
-                TotalDespesas = payables.Sum(p => p.Amount),
-                DespesasPagas = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
-                DespesasPendentes = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
-
-                // Vendas
-                TotalVendas = sales.Sum(s => s.FinalTotal),
-                QuantidadeVendas = sales.Count,
-
-                // Caixa
-                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
-                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
-                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-
-                // Comissões
-                TotalComissoes = payables.Where(p => p.Type == "Commission").Sum(p => p.Amount),
-                ComissoesPagas = payables.Where(p => p.Type == "Commission" && p.IsPaid).Sum(p => p.Amount),
-                ComissoesPendentes = payables.Where(p => p.Type == "Commission" && !p.IsPaid).Sum(p => p.Amount)
-            };
-
-            ViewBag.StartDate = start;
-            ViewBag.EndDate = end;
-            ViewBag.Summary = summary;
-
-            return View();
-        }
-
-        // POST: Admin/Reports/ExportToPDF
-        [HttpPost]
-        public async Task<IActionResult> ExportToPDF(string reportType, DateTime? startDate, DateTime? endDate)
+        // Relatório de agendamentos
+        public async Task<IActionResult> AppointmentsReport(DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var start = startDate ?? DateTime.Now.AddDays(-30);
                 var end = endDate ?? DateTime.Now;
 
-                byte[] pdfBytes;
-                string fileName;
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var appointments = appointmentsResponse.Success ? 
+                    appointmentsResponse.Data?.Where(a => a.AppointmentDate >= start && a.AppointmentDate <= end).ToList() ?? new List<AppointmentDto>() : 
+                    new List<AppointmentDto>();
 
-                switch (reportType.ToLower())
+                var reportData = new
                 {
-                    case "summary":
-                        var summary = await GetFinancialSummary(start, end);
-                        pdfBytes = _pdfExportService.ExportFinancialSummaryToPdf(summary, start, end);
-                        fileName = $"Resumo_Financeiro_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-                        break;
+                    StartDate = start,
+                    EndDate = end,
+                    TotalAppointments = appointments.Count,
+                    PendingAppointments = appointments.Count(a => a.Status == "Pendente"),
+                    ConfirmedAppointments = appointments.Count(a => a.Status == "Confirmado"),
+                    CompletedAppointments = appointments.Count(a => a.Status == "Concluído"),
+                    CancelledAppointments = appointments.Count(a => a.Status == "Cancelado"),
+                    TotalRevenue = appointments.Where(a => a.TotalPrice.HasValue).Sum(a => a.TotalPrice.Value),
+                    AppointmentsByService = appointments
+                        .GroupBy(a => a.ServiceName)
+                        .Select(g => new { Service = g.Key, Count = g.Count() })
+                        .OrderByDescending(x => x.Count)
+                        .ToList(),
+                    AppointmentsByProfessional = appointments
+                        .GroupBy(a => a.ProfessionalName)
+                        .Select(g => new { Professional = g.Key, Count = g.Count() })
+                        .OrderByDescending(x => x.Count)
+                        .ToList()
+                };
 
-                    case "sales":
-                        var sales = await GetSalesData(start, end);
-                        var salesSummary = await GetSalesSummary(start, end);
-                        pdfBytes = _pdfExportService.ExportSalesReportToPdf(sales, salesSummary);
-                        fileName = $"Relatorio_Vendas_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-                        break;
+                ViewBag.ReportData = reportData;
+                ViewBag.Appointments = appointments;
 
-                    case "cashflow":
-                        var cashFlowSummary = await GetCashFlowSummary(start, end);
-                        var receivables = await GetReceivablesData(start, end);
-                        var payables = await GetPayablesData(start, end);
-                        var cashMovements = await GetCashMovementsData(start, end);
-                        pdfBytes = _pdfExportService.ExportCashFlowReportToPdf(cashFlowSummary, receivables, payables, cashMovements);
-                        fileName = $"Fluxo_Caixa_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-                        break;
-
-                    case "commissions":
-                        var commissions = await GetCommissionsData(start, end);
-                        var commissionsSummary = await GetCommissionsSummary(start, end);
-                        pdfBytes = _pdfExportService.ExportCommissionsReportToPdf(commissions, commissionsSummary);
-                        fileName = $"Comissoes_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-                        break;
-
-                    default:
-                        TempData["ErrorMessage"] = "Tipo de relatório não reconhecido.";
-                        return RedirectToAction(nameof(Index));
-                }
-
-                return File(pdfBytes, "application/pdf", fileName);
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Erro ao gerar relatório PDF: {ex.Message}";
+                _logger.LogError(ex, "Erro ao gerar relatório de agendamentos");
+                TempData["ErrorMessage"] = "Erro ao gerar relatório de agendamentos.";
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        // POST: Admin/Reports/ExportToExcel
-        [HttpPost]
+        // Relatório de clientes
+        public async Task<IActionResult> ClientsReport(DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                var start = startDate ?? DateTime.Now.AddDays(-30);
+                var end = endDate ?? DateTime.Now;
+
+                var clientsResponse = await _clientsService.GetAllAsync();
+                var clients = clientsResponse.Success ? 
+                    clientsResponse.Data?.Where(c => c.RegistrationDate >= start && c.RegistrationDate <= end).ToList() ?? new List<ClientDto>() : 
+                    new List<ClientDto>();
+
+                // Buscar agendamentos para calcular clientes ativos
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var activeClients = new HashSet<string>();
+
+                if (appointmentsResponse.IsSuccess && appointmentsResponse.Data != null)
+                {
+                    var recentAppointments = appointmentsResponse.Data
+                        .Where(a => a.AppointmentDate >= start && a.AppointmentDate <= end)
+                        .ToList();
+
+                    activeClients = recentAppointments
+                        .Select(a => a.ClientEmail)
+                        .Where(email => !string.IsNullOrEmpty(email))
+                        .ToHashSet();
+                }
+
+                var reportData = new
+                {
+                    StartDate = start,
+                    EndDate = end,
+                    TotalClients = clients.Count,
+                    NewClients = clients.Count(c => c.RegistrationDate >= start && c.RegistrationDate <= end),
+                    ActiveClients = activeClients.Count,
+                    ClientsByMonth = clients
+                        .GroupBy(c => new { c.RegistrationDate.Year, c.RegistrationDate.Month })
+                        .Select(g => new { 
+                            Month = $"{g.Key.Month:00}/{g.Key.Year}", 
+                            Count = g.Count() 
+                        })
+                        .OrderBy(x => x.Month)
+                        .ToList()
+                };
+
+                ViewBag.ReportData = reportData;
+                ViewBag.Clients = clients;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao gerar relatório de clientes");
+                TempData["ErrorMessage"] = "Erro ao gerar relatório de clientes.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // Relatório financeiro
+        public async Task<IActionResult> FinancialReport(DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                var start = startDate ?? DateTime.Now.AddDays(-30);
+                var end = endDate ?? DateTime.Now;
+
+                // Buscar agendamentos para calcular receita
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var appointments = appointmentsResponse.Success ? 
+                    appointmentsResponse.Data?.Where(a => a.AppointmentDate >= start && a.AppointmentDate <= end).ToList() ?? new List<AppointmentDto>() : 
+                    new List<AppointmentDto>();
+
+                // Buscar serviços para calcular preços
+                var servicesResponse = await _servicesService.GetAllAsync();
+                var services = servicesResponse.Success ? 
+                    servicesResponse.Data?.ToList() ?? new List<ServiceDto>() : 
+                    new List<ServiceDto>();
+
+                // Calcular receita baseada nos agendamentos
+                var totalRevenue = 0m;
+                var revenueByMonth = new Dictionary<string, decimal>();
+                var paymentMethods = new Dictionary<string, int>();
+
+                foreach (var appointment in appointments)
+                {
+                    var service = services.FirstOrDefault(s => s.ServiceId == appointment.ServiceId);
+                    if (service != null)
+                    {
+                        totalRevenue += service.Price;
+                        
+                        var monthKey = $"{appointment.AppointmentDate.Month:00}/{appointment.AppointmentDate.Year}";
+                        if (!revenueByMonth.ContainsKey(monthKey))
+                            revenueByMonth[monthKey] = 0;
+                        revenueByMonth[monthKey] += service.Price;
+                    }
+                }
+
+                var reportData = new
+                {
+                    StartDate = start,
+                    EndDate = end,
+                    TotalRevenue = totalRevenue,
+                    TotalExpenses = 0m, // Despesas não estão disponíveis via API ainda
+                    NetProfit = totalRevenue,
+                    RevenueByMonth = revenueByMonth.Select(kvp => new { Month = kvp.Key, Amount = kvp.Value }).OrderBy(x => x.Month).ToList(),
+                    ExpensesByMonth = new List<object>(), // Despesas não estão disponíveis via API ainda
+                    PaymentMethods = new List<object>() // Métodos de pagamento não estão disponíveis via API ainda
+                };
+
+                ViewBag.ReportData = reportData;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao gerar relatório financeiro");
+                TempData["ErrorMessage"] = "Erro ao gerar relatório financeiro.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // Exportar relatório para Excel
+        [HttpGet]
         public async Task<IActionResult> ExportToExcel(string reportType, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var start = startDate ?? DateTime.Now.AddDays(-30);
-                var end = endDate ?? DateTime.Now;
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Relatório Administrativo");
+                
+                // Cabeçalho
+                worksheet.Cell(1, 1).Value = "Relatório Administrativo - Sistema EwellinBeauty";
+                worksheet.Cell(2, 1).Value = $"Data de Geração: {DateTime.Now:dd/MM/yyyy HH:mm}";
+                worksheet.Cell(3, 1).Value = "Este relatório foi gerado automaticamente pelo painel administrativo.";
+                
+                // Dados do relatório
+                worksheet.Cell(5, 1).Value = "Resumo do Sistema:";
+                worksheet.Cell(6, 1).Value = "Total de Agendamentos:";
+                worksheet.Cell(6, 2).Value = "N/A"; // TotalAppointments não disponível
+                worksheet.Cell(7, 1).Value = "Total de Clientes:";
+                worksheet.Cell(7, 2).Value = "N/A"; // TotalClients não disponível
+                worksheet.Cell(8, 1).Value = "Total de Serviços:";
+                worksheet.Cell(8, 2).Value = "N/A"; // TotalServices não disponível
+                worksheet.Cell(9, 1).Value = "Total de Profissionais:";
+                worksheet.Cell(9, 2).Value = "N/A"; // TotalProfessionals não disponível
+                
+                // Formatação
+                worksheet.Range(1, 1, 1, 2).Merge().Style.Font.Bold = true;
+                worksheet.Range(1, 1, 1, 2).Style.Font.FontSize = 16;
+                worksheet.Range(5, 1, 9, 1).Style.Font.Bold = true;
 
-                byte[] excelBytes;
-                string fileName;
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
 
-                switch (reportType.ToLower())
-                {
-                    case "summary":
-                        var summary = await GetFinancialSummary(start, end);
-                        excelBytes = _excelExportService.ExportFinancialSummaryToExcel(summary, start, end);
-                        fileName = $"Resumo_Financeiro_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                        break;
-
-                    case "sales":
-                        var sales = await GetSalesData(start, end);
-                        var salesSummary = await GetSalesSummary(start, end);
-                        excelBytes = _excelExportService.ExportSalesReportToExcel(sales, salesSummary);
-                        fileName = $"Relatorio_Vendas_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                        break;
-
-                    case "cashflow":
-                        var cashFlowSummary = await GetCashFlowSummary(start, end);
-                        var receivables = await GetReceivablesData(start, end);
-                        var payables = await GetPayablesData(start, end);
-                        var cashMovements = await GetCashMovementsData(start, end);
-                        excelBytes = _excelExportService.ExportCashFlowReportToExcel(cashFlowSummary, receivables, payables, cashMovements);
-                        fileName = $"Fluxo_Caixa_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                        break;
-
-                    case "commissions":
-                        var commissions = await GetCommissionsData(start, end);
-                        var commissionsSummary = await GetCommissionsSummary(start, end);
-                        excelBytes = _excelExportService.ExportCommissionsReportToExcel(commissions, commissionsSummary);
-                        fileName = $"Comissoes_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                        break;
-
-                    default:
-                        TempData["ErrorMessage"] = "Tipo de relatório não reconhecido.";
-                        return RedirectToAction(nameof(Index));
-                }
-
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                return File(stream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Relatorio_Admin.xlsx");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Erro ao gerar relatório Excel: {ex.Message}";
+                _logger.LogError(ex, "Erro ao exportar relatório para Excel");
+                TempData["ErrorMessage"] = "Erro ao exportar relatório para Excel.";
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        // GET: Admin/Reports/GetChartData
-        public async Task<IActionResult> GetChartData(string chartType, DateTime? startDate, DateTime? endDate)
+        // Exportar relatório para PDF
+        [HttpGet]
+        public async Task<IActionResult> ExportToPdf(string reportType, DateTime? startDate, DateTime? endDate)
         {
-            var start = startDate ?? DateTime.Now.AddDays(-30);
-            var end = endDate ?? DateTime.Now;
-
-            switch (chartType.ToLower())
+            try
             {
-                case "sales":
-                    var salesData = await _context.Sales
-                        .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                        .GroupBy(s => s.SaleDate.Date)
-                        .Select(g => new { Date = g.Key, Total = g.Sum(s => s.FinalTotal) })
-                        .OrderBy(x => x.Date)
-                        .ToListAsync();
+                var caminho = Path.Combine(Directory.GetCurrentDirectory(), "Relatorio_Admin.pdf");
+                using var writer = new PdfWriter(caminho);
+                using var pdf = new PdfDocument(writer);
+                var doc = new Document(pdf);
+                
+                // Cabeçalho
+                doc.Add(new Paragraph("Relatório Administrativo - Sistema EwellinBeauty")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(16));
+                
+                doc.Add(new Paragraph($"Data de Geração: {DateTime.Now:dd/MM/yyyy HH:mm}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+                
+                doc.Add(new Paragraph("Este relatório foi gerado automaticamente pelo painel administrativo.")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(10));
+                
+                doc.Add(new Paragraph(" ")); // Espaço
+                
+                // Resumo do Sistema
+                doc.Add(new Paragraph("RESUMO DO SISTEMA")
+                    .SetFontSize(14));
+                
+                var summaryTable = new Table(2);
+                summaryTable.AddHeaderCell("Métrica");
+                summaryTable.AddHeaderCell("Valor");
+                
+                summaryTable.AddCell("Total de Agendamentos");
+                summaryTable.AddCell("N/A"); // TotalAppointments não disponível
+                summaryTable.AddCell("Total de Clientes");
+                summaryTable.AddCell("N/A"); // TotalClients não disponível
+                summaryTable.AddCell("Total de Serviços");
+                summaryTable.AddCell("N/A"); // TotalServices não disponível
+                summaryTable.AddCell("Total de Profissionais");
+                summaryTable.AddCell("N/A"); // TotalProfessionals não disponível
+                
+                doc.Add(summaryTable);
+                doc.Close();
 
-                    return Json(salesData);
-
-                case "cashflow":
-                    var cashFlowData = await _context.CashMovements
-                        .Where(cm => cm.Date >= start && cm.Date <= end)
-                        .GroupBy(cm => new { cm.Date.Date, cm.Type })
-                        .Select(g => new { 
-                            Date = g.Key.Date, 
-                            Type = g.Key.Type, 
-                            Total = g.Sum(cm => cm.Amount) 
-                        })
-                        .OrderBy(x => x.Date)
-                        .ToListAsync();
-
-                    return Json(cashFlowData);
-
-                case "commissions":
-                    var commissionsData = await _context.Payables
-                        .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
-                        .GroupBy(p => p.Professional.Name)
-                        .Select(g => new { Professional = g.Key, Total = g.Sum(p => p.Amount) })
-                        .ToListAsync();
-
-                    return Json(commissionsData);
-
-                default:
-                    return Json(new { error = "Tipo de gráfico não reconhecido" });
+                var bytes = System.IO.File.ReadAllBytes(caminho);
+                return File(bytes, "application/pdf", "Relatorio_Admin.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao exportar relatório para PDF");
+                TempData["ErrorMessage"] = "Erro ao exportar relatório para PDF.";
+                return RedirectToAction(nameof(Index));
             }
         }
+    }
 
-        // Métodos auxiliares para buscar dados
-        private async Task<dynamic> GetFinancialSummary(DateTime start, DateTime end)
-        {
-            var receivables = await _context.Receivables
-                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
-                .ToListAsync();
-
-            var payables = await _context.Payables
-                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-
-            var sales = await _context.Sales
-                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                .ToListAsync();
-
-            var cashMovements = await _context.CashMovements
-                .Where(cm => cm.Date >= start && cm.Date <= end)
-                .ToListAsync();
-
-            return new
-            {
-                TotalReceitas = receivables.Sum(r => r.Amount),
-                ReceitasPagas = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
-                ReceitasPendentes = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
-                TotalDespesas = payables.Sum(p => p.Amount),
-                DespesasPagas = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
-                DespesasPendentes = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
-                TotalVendas = sales.Sum(s => s.FinalTotal),
-                QuantidadeVendas = sales.Count,
-                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
-                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
-                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-                TotalComissoes = payables.Where(p => p.Type == "Commission").Sum(p => p.Amount),
-                ComissoesPagas = payables.Where(p => p.Type == "Commission" && p.IsPaid).Sum(p => p.Amount),
-                ComissoesPendentes = payables.Where(p => p.Type == "Commission" && !p.IsPaid).Sum(p => p.Amount)
-            };
-        }
-
-        private async Task<IEnumerable<dynamic>> GetSalesData(DateTime start, DateTime end)
-        {
-            return await _context.Sales
-                .Include(s => s.Customer)
-                    .ThenInclude(c => c.User)
-                .Include(s => s.Professional)
-                .Include(s => s.PaymentMethod)
-                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                .OrderByDescending(s => s.SaleDate)
-                .ToListAsync();
-        }
-
-        private async Task<dynamic> GetSalesSummary(DateTime start, DateTime end)
-        {
-            var sales = await _context.Sales
-                .Include(s => s.Items)
-                .Where(s => s.SaleDate >= start && s.SaleDate <= end)
-                .ToListAsync();
-
-            return new
-            {
-                TotalSales = sales.Count,
-                TotalAmount = sales.Sum(s => s.FinalTotal),
-                TotalItems = sales.Sum(s => s.Items.Sum(i => i.Quantity)),
-                AverageTicket = sales.Any() ? sales.Average(s => s.FinalTotal) : 0
-            };
-        }
-
-        private async Task<dynamic> GetCashFlowSummary(DateTime start, DateTime end)
-        {
-            var receivables = await _context.Receivables
-                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
-                .ToListAsync();
-
-            var payables = await _context.Payables
-                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-
-            var cashMovements = await _context.CashMovements
-                .Where(cm => cm.Date >= start && cm.Date <= end)
-                .ToListAsync();
-
-            return new
-            {
-                TotalReceivables = receivables.Sum(r => r.Amount),
-                TotalPaidReceivables = receivables.Where(r => r.IsPaid).Sum(r => r.Amount),
-                TotalPendingReceivables = receivables.Where(r => !r.IsPaid).Sum(r => r.Amount),
-                TotalPayables = payables.Sum(p => p.Amount),
-                TotalPaidPayables = payables.Where(p => p.IsPaid).Sum(p => p.Amount),
-                TotalPendingPayables = payables.Where(p => !p.IsPaid).Sum(p => p.Amount),
-                TotalEntradas = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount),
-                TotalSaidas = cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount),
-                SaldoLiquido = cashMovements.Where(cm => cm.Type == "Entrada").Sum(cm => cm.Amount) - 
-                              cashMovements.Where(cm => cm.Type == "Saída").Sum(cm => cm.Amount)
-            };
-        }
-
-        private async Task<IEnumerable<dynamic>> GetReceivablesData(DateTime start, DateTime end)
-        {
-            return await _context.Receivables
-                .Include(r => r.Customer)
-                    .ThenInclude(c => c.User)
-                .Include(r => r.Professional)
-                .Include(r => r.PaymentMethod)
-                .Where(r => r.CreatedAt >= start && r.CreatedAt <= end)
-                .ToListAsync();
-        }
-
-        private async Task<IEnumerable<dynamic>> GetPayablesData(DateTime start, DateTime end)
-        {
-            return await _context.Payables
-                .Include(p => p.Professional)
-                .Include(p => p.Supplier)
-                .Include(p => p.PaymentMethod)
-                .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-        }
-
-        private async Task<IEnumerable<dynamic>> GetCashMovementsData(DateTime start, DateTime end)
-        {
-            return await _context.CashMovements
-                .Include(cm => cm.CashRegister)
-                .Where(cm => cm.Date >= start && cm.Date <= end)
-                .ToListAsync();
-        }
-
-        private async Task<IEnumerable<dynamic>> GetCommissionsData(DateTime start, DateTime end)
-        {
-            return await _context.Payables
-                .Include(p => p.Professional)
-                .Include(p => p.Sale)
-                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
-        }
-
-        private async Task<dynamic> GetCommissionsSummary(DateTime start, DateTime end)
-        {
-            var commissions = await _context.Payables
-                .Where(p => p.Type == "Commission" && p.CreatedAt >= start && p.CreatedAt <= end)
-                .ToListAsync();
-
-            return new
-            {
-                TotalCommissions = commissions.Sum(p => p.Amount),
-                TotalPaidCommissions = commissions.Where(p => p.IsPaid).Sum(p => p.Amount),
-                TotalPendingCommissions = commissions.Where(p => !p.IsPaid).Sum(p => p.Amount)
-            };
-        }
+    public class ReportItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Value { get; set; }
     }
 }

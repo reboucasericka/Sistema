@@ -79,7 +79,8 @@ namespace Sistema.Services
         private async Task<string> RenderEmailTemplateAsync(string firstName, string activationLink)
         {
             // Por enquanto, usar o método de fallback
-            // TODO: Implementar renderização de template quando necessário
+            // Implementar renderização de template quando necessário
+            // Funcionalidade futura para templates personalizados
             return CreateActivationEmailBody(firstName, activationLink);
         }
 

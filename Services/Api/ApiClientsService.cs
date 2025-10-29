@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sistema.Services.Api
 {
-    public class ApiClientsService : ApiClient
+    public class ApiClientsService : ApiClient, IApiClientsService
     {
         public ApiClientsService(HttpClient httpClient, ILogger<ApiClientsService> logger, ApiAuthService auth) 
             : base(httpClient, logger, auth)

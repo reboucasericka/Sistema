@@ -85,6 +85,11 @@
         </h5>
     </div>
         <div class="card-body">
+            @if (ViewBag.InfoMessage != null)
+            {
+                <div class="alert alert-info">@ViewBag.InfoMessage</div>
+            }
+            
             @if (Model != null && Model.Any())
             {
                 <div class="table-responsive">

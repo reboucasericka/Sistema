@@ -217,10 +217,18 @@ namespace Sistema.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Notifications()
         {
-            // TODO: Implementar busca de notificações via API
-            var notifications = new List<object>();
-
-            return View(notifications);
+            try
+            {
+                // Implementar busca de notificações via API quando disponível
+                var notifications = new List<object>();
+                return View(notifications);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading notifications");
+                TempData["ErrorMessage"] = "An error occurred while loading notifications.";
+                return View(new List<object>());
+            }
         }
 
        

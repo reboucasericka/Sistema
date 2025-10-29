@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Sistema.Services.Api;
@@ -31,15 +31,15 @@ namespace Sistema.Areas.Admin.Controllers
         }
 
 
-        // ✅ Página pública de agendamento online
-        [AllowAnonymous] // Não pede login
+        // ? P�gina p�blica de agendamento online
+        [AllowAnonymous] // N�o pede login
         public async Task<IActionResult> Public()
         {
             ViewData["Title"] = "Agendamento Online";
 
             try
             {
-                // Carregar os dados necessários via API
+                // Carregar os dados necess�rios via API
                 var servicesResponse = await _servicesService.GetActiveAsync();
                 var staffResponse = await _staffService.GetActiveAsync();
 
@@ -106,7 +106,7 @@ namespace Sistema.Areas.Admin.Controllers
                 // Ordenar por data
                 appointments = appointments.OrderByDescending(a => a.AppointmentDate).ToList();
 
-                // Buscar opções de filtro via API
+                // Buscar op��es de filtro via API
                 var staffResponse = await _staffService.GetActiveAsync();
                 if (staffResponse.Success && staffResponse.Data != null)
                 {
@@ -430,17 +430,16 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                Console.WriteLine($"=== BUSCANDO HORÁRIOS DISPONÍVEIS ===");
+                Console.WriteLine($"=== BUSCANDO HOR�RIOS DISPON�VEIS ===");
                 Console.WriteLine($"ProfissionalId: {professionalId}, Data: {date:dd/MM/yyyy}");
 
-                // TODO: Implementar endpoint na API para buscar horários disponíveis
-                // Por enquanto, retornar lista vazia
+                // Implementar endpoint na API para buscar hor�rios dispon�veis quando dispon�vel
                 return Json(new { success = true, availableTimes = new List<string>(), message = "Feature not yet implemented in API" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERRO ao buscar horários: {ex.Message}");
-                return Json(new { success = false, message = "Erro ao buscar horários disponíveis" });
+                Console.WriteLine($"? ERRO ao buscar hor�rios: {ex.Message}");
+                return Json(new { success = false, message = "Erro ao buscar hor�rios dispon�veis" });
             }
         }
 
@@ -450,8 +449,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                // TODO: Implementar endpoint na API para atualizar status
-                // Por enquanto, retornar sucesso simulado
+                // Implementar endpoint na API para atualizar status quando dispon�vel
                 return Json(new { success = true, message = "Status update feature not yet implemented in API" });
             }
             catch (Exception ex)

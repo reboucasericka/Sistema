@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
-using Sistema.Data.Entities;
-using Sistema.Data.Repository.Interfaces;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using Sistema.Models.Public;
 using Sistema.Services;
 using Sistema.Models;
@@ -13,23 +11,20 @@ namespace Sistema.Areas.Public.Controllers
     [Area("Public")]
     public class PublicAppointmentController : Controller
     {
-        private readonly SistemaDbContext _context;
-        private readonly IAppointmentRepository _appointmentRepository;
-        private readonly ICustomerRepository _customerRepository;
-        // Google Calendar service moved to API Business Services
+        private readonly IApiServicesService _servicesService;
+        private readonly IApiStaffService _staffService;
+        private readonly IApiAppointmentsService _appointmentsService;
         private readonly ILogger<PublicAppointmentController> _logger;
 
         public PublicAppointmentController(
-            SistemaDbContext context, 
-            IAppointmentRepository appointmentRepository, 
-            ICustomerRepository customerRepository,
-            // Google Calendar service moved to API Business Services
+            IApiServicesService servicesService,
+            IApiStaffService staffService,
+            IApiAppointmentsService appointmentsService,
             ILogger<PublicAppointmentController> logger)
         {
-            _context = context;
-            _appointmentRepository = appointmentRepository;
-            _customerRepository = customerRepository;
-            // Google Calendar service moved to API Business Services
+            _servicesService = servicesService;
+            _staffService = staffService;
+            _appointmentsService = appointmentsService;
             _logger = logger;
         }
 
@@ -38,37 +33,38 @@ namespace Sistema.Areas.Public.Controllers
         {
             try
             {
-                var services = await _context.Services
-                    .Include(s => s.Category)
-                    .Where(s => s.IsActive)
-                    .ToListAsync();
+                var servicesResponse = await _servicesService.GetAllAsync();
+                var staffResponse = await _staffService.GetAllAsync();
 
-                var plans = await _context.Plans.ToListAsync();
-                var professionals = await _context.Professionals
-                    .Include(p => p.User)
-                    .Where(p => p.IsActive)
-                    .ToListAsync();
-                var reviews = await _context.ServiceReviews
-                    .Include(r => r.Client)
-                    .OrderByDescending(r => r.ReviewDate)
-                    .Take(10)
-                    .ToListAsync();
+                var services = new List<ServiceDto>();
+                var professionals = new List<ProfessionalDto>();
+
+                if (servicesResponse.IsSuccess && servicesResponse.Data != null)
+                {
+                    services = servicesResponse.Data.Where(s => s.IsActive).ToList();
+                }
+
+                if (staffResponse.IsSuccess && staffResponse.Data != null)
+                {
+                    professionals = staffResponse.Data.Where(p => p.IsActive).ToList();
+                }
 
                 ViewBag.Services = services;
-                ViewBag.Plans = plans;
+                ViewBag.Plans = new List<object>(); // Plans não estão disponíveis via API ainda
                 ViewBag.Professionals = professionals;
-                ViewBag.Reviews = reviews;
+                ViewBag.Reviews = new List<object>(); // Reviews não estão disponíveis via API ainda
 
                 return View();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error loading appointment data");
                 Console.WriteLine($"Erro ao carregar dados: {ex.Message}");
                 
-                ViewBag.Services = new List<Service>();
-                ViewBag.Plans = new List<Plan>();
-                ViewBag.Professionals = new List<Professional>();
-                ViewBag.Reviews = new List<ServiceReview>();
+                ViewBag.Services = new List<ServiceDto>();
+                ViewBag.Plans = new List<object>();
+                ViewBag.Professionals = new List<ProfessionalDto>();
+                ViewBag.Reviews = new List<object>();
                 
                 return View();
             }
@@ -80,111 +76,218 @@ namespace Sistema.Areas.Public.Controllers
         {
             try
             {
-                // Verificar se o profissional existe e está ativo
-                var professional = await _context.Professionals
-                    .FirstOrDefaultAsync(p => p.ProfessionalId == professionalId && p.IsActive);
+                // Buscar agendamentos existentes para o profissional na data
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var bookedTimes = new List<TimeSpan>();
 
-                if (professional == null)
+                if (appointmentsResponse.IsSuccess && appointmentsResponse.Data != null)
                 {
-                    return Json(new { success = false, message = "Profissional não encontrado" });
-                }
+                    var dayAppointments = appointmentsResponse.Data
+                        .Where(a => a.ProfessionalId == professionalId && 
+                                   a.AppointmentDate.Date == date.Date)
+                        .ToList();
 
-                // Buscar horários configurados para o dia da semana
-                var schedules = await _context.ProfessionalSchedules
-                    .Where(s => s.ProfessionalId == professionalId && s.DayOfWeek == date.DayOfWeek)
-                    .ToListAsync();
-
-                if (!schedules.Any())
-                {
-                    return Json(new { success = true, availableTimes = new List<string>(), message = "Nenhum horário disponível para este dia" });
-                }
-
-                // Gerar slots de 30 minutos
-                var allSlots = new List<string>();
-                foreach (var schedule in schedules)
-                {
-                    for (var t = schedule.StartTime; t < schedule.EndTime; t = t.Add(TimeSpan.FromMinutes(30)))
+                    foreach (var appointment in dayAppointments)
                     {
-                        allSlots.Add(t.ToString(@"hh\:mm"));
+                        if (appointment.StartTime != default)
+                        {
+                            bookedTimes.Add(appointment.StartTime);
+                        }
                     }
                 }
 
-                // Buscar horários já ocupados
-                var bookedTimes = await _context.Appointments
-                    .Where(a => a.ProfessionalId == professionalId && 
-                               a.StartTime.Date == date.Date &&
-                               a.Status != "Canceled")
-                    .Select(a => a.StartTime.TimeOfDay)
-                    .ToListAsync();
+                // Gerar horários disponíveis (9h às 18h, intervalos de 30 min)
+                var availableTimes = new List<string>();
+                var startTime = new TimeSpan(9, 0, 0);
+                var endTime = new TimeSpan(18, 0, 0);
+                var interval = new TimeSpan(0, 30, 0);
 
-                // Remover horários ocupados
-                var availableTimes = allSlots
-                    .Where(t => !bookedTimes.Any(bt => bt.ToString(@"hh\:mm") == t))
-                    .ToList();
+                for (var time = startTime; time < endTime; time = time.Add(interval))
+                {
+                    if (!bookedTimes.Contains(time))
+                    {
+                        availableTimes.Add(time.ToString(@"hh\:mm"));
+                    }
+                }
 
-                return Json(new { success = true, availableTimes = availableTimes });
+                return Json(availableTimes);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao buscar horários: {ex.Message}");
-                return Json(new { success = false, message = "Erro ao buscar horários disponíveis" });
+                _logger.LogError(ex, "Error getting available times for professional {Id} on {Date}", professionalId, date);
+                return Json(new List<string>());
             }
         }
 
-        // POST: Create appointment
-        [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentRequest request)
+        // GET: Book appointment
+        [HttpGet]
+        public async Task<IActionResult> Book(int serviceId, int professionalId, DateTime date, string time)
         {
             try
             {
-                if (!ModelState.IsValid)
+                // Buscar dados do serviço e profissional
+                var serviceResponse = await _servicesService.GetByIdAsync(serviceId);
+                var professionalResponse = await _staffService.GetByIdAsync(professionalId);
+
+                if (!serviceResponse.IsSuccess || serviceResponse.Data == null)
                 {
-                    return Json(new { success = false, message = "Dados inválidos" });
+                    TempData["ErrorMessage"] = "Serviço não encontrado.";
+                    return RedirectToAction(nameof(Index));
                 }
 
-                // Verificar se o horário está disponível
-                var startTime = request.Date.Date.Add(request.Time);
-                var endTime = startTime.AddMinutes(request.Duration);
-
-                var isAvailable = await _appointmentRepository.IsTimeSlotAvailableAsync(
-                    request.ProfessionalId, startTime, endTime);
-
-                if (!isAvailable)
+                if (!professionalResponse.IsSuccess || professionalResponse.Data == null)
                 {
-                    return Json(new { success = false, message = "Horário não disponível" });
+                    TempData["ErrorMessage"] = "Profissional não encontrado.";
+                    return RedirectToAction(nameof(Index));
                 }
 
-                // Buscar ou criar cliente
-                var customer = await _customerRepository.GetByUserId(User.Identity.Name).FirstOrDefaultAsync();
-                if (customer == null)
+                var model = new PublicBookingViewModel
                 {
-                    return Json(new { success = false, message = "Cliente não encontrado. Faça login novamente." });
-                }
-
-                // Criar agendamento
-                var appointment = new Appointment
-                {
-                    CustomerId = customer.CustomerId,
-                    ProfessionalId = request.ProfessionalId,
-                    ServiceId = request.ServiceId,
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    Status = "Pending",
-                    Notes = request.Notes,
-                    TotalPrice = request.Price
+                    ServiceId = serviceId,
+                    ProfessionalId = professionalId,
+                    SelectedDate = date,
+                    SelectedTime = time,
+                    ServiceName = serviceResponse.Data.Name,
+                    ProfessionalName = professionalResponse.Data.Name
                 };
 
-                await _appointmentRepository.CreateAsync(appointment);
-
-                return Json(new { success = true, message = "Agendamento criado com sucesso!" });
+                return View(model);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao criar agendamento: {ex.Message}");
-                return Json(new { success = false, message = "Erro ao criar agendamento" });
+                _logger.LogError(ex, "Error loading booking data");
+                TempData["ErrorMessage"] = "An error occurred while loading booking data.";
+                return RedirectToAction(nameof(Index));
             }
         }
 
+        // GET: My appointments
+        [Authorize]
+        public async Task<IActionResult> MyAppointments()
+        {
+            try
+            {
+                // Buscar agendamentos do usuário logado
+                var appointmentsResponse = await _appointmentsService.GetAllAsync();
+                var userAppointments = new List<AppointmentDto>();
+
+                if (appointmentsResponse.IsSuccess && appointmentsResponse.Data != null)
+                {
+                    var userEmail = User.Identity?.Name;
+                    if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        userAppointments = appointmentsResponse.Data
+                            .Where(a => a.ClientEmail == userEmail)
+                            .OrderByDescending(a => a.AppointmentDate)
+                            .ThenBy(a => a.StartTime)
+                            .ToList();
+                    }
+                }
+
+                return View(userAppointments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading user appointments");
+                TempData["ErrorMessage"] = "An error occurred while loading your appointments.";
+                return View(new List<AppointmentDto>());
+            }
+        }
+
+        // GET: Cancel appointment
+        [Authorize]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            try
+            {
+                // Buscar o agendamento para verificar se pertence ao usuário
+                var appointmentResponse = await _appointmentsService.GetByIdAsync(id);
+                
+                if (!appointmentResponse.IsSuccess || appointmentResponse.Data == null)
+                {
+                    TempData["ErrorMessage"] = "Agendamento não encontrado.";
+                    return RedirectToAction(nameof(MyAppointments));
+                }
+
+                var userEmail = User.Identity?.Name;
+                if (appointmentResponse.Data.ClientEmail != userEmail)
+                {
+                    TempData["ErrorMessage"] = "Você não tem permissão para cancelar este agendamento.";
+                    return RedirectToAction(nameof(MyAppointments));
+                }
+
+                // Cancelar o agendamento via API
+                var cancelResponse = await _appointmentsService.DeleteAsync(id);
+                
+                if (cancelResponse.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = "Agendamento cancelado com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Erro ao cancelar o agendamento. Tente novamente.";
+                }
+
+                return RedirectToAction(nameof(MyAppointments));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error canceling appointment {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while canceling the appointment.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+        }
+
+        // GET: Reschedule appointment
+        [Authorize]
+        public async Task<IActionResult> Reschedule(int id)
+        {
+            try
+            {
+                // Buscar o agendamento para verificar se pertence ao usuário
+                var appointmentResponse = await _appointmentsService.GetByIdAsync(id);
+                
+                if (!appointmentResponse.IsSuccess || appointmentResponse.Data == null)
+                {
+                    TempData["ErrorMessage"] = "Agendamento não encontrado.";
+                    return RedirectToAction(nameof(MyAppointments));
+                }
+
+                var userEmail = User.Identity?.Name;
+                if (appointmentResponse.Data.ClientEmail != userEmail)
+                {
+                    TempData["ErrorMessage"] = "Você não tem permissão para reagendar este agendamento.";
+                    return RedirectToAction(nameof(MyAppointments));
+                }
+
+                // Buscar dados do serviço e profissional para o reagendamento
+                var serviceResponse = await _servicesService.GetByIdAsync(appointmentResponse.Data.ServiceId);
+                var professionalResponse = await _staffService.GetByIdAsync(appointmentResponse.Data.ProfessionalId);
+
+                if (!serviceResponse.IsSuccess || !professionalResponse.IsSuccess)
+                {
+                    TempData["ErrorMessage"] = "Erro ao carregar dados para reagendamento.";
+                    return RedirectToAction(nameof(MyAppointments));
+                }
+
+                var model = new PublicBookingViewModel
+                {
+                    ServiceId = appointmentResponse.Data.ServiceId,
+                    ProfessionalId = appointmentResponse.Data.ProfessionalId,
+                    SelectedDate = appointmentResponse.Data.AppointmentDate,
+                    SelectedTime = appointmentResponse.Data.StartTime.ToString(@"hh\:mm"),
+                    ServiceName = serviceResponse.Data.Name,
+                    ProfessionalName = professionalResponse.Data.Name
+                };
+
+                return View("Book", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading appointment for reschedule {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading the appointment.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+        }
     }
 }

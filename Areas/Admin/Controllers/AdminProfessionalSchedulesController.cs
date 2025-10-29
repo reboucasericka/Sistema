@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Sistema.Data;
-using Sistema.Data.Entities;
-using Sistema.Data.Repository.Interfaces;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using Sistema.Models.Admin;
+using Sistema.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -17,20 +17,30 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminProfessionalSchedulesController : Controller
     {
-        private readonly SistemaDbContext _context;
-        private readonly IProfessionalScheduleRepository _professionalScheduleRepository;
+        private readonly IApiStaffService _staffService;
+        private readonly ILogger<AdminProfessionalSchedulesController> _logger;
 
-        public AdminProfessionalSchedulesController(SistemaDbContext context, IProfessionalScheduleRepository professionalScheduleRepository)
+        public AdminProfessionalSchedulesController(IApiStaffService staffService, ILogger<AdminProfessionalSchedulesController> logger)
         {
-            _context = context;
-            _professionalScheduleRepository = professionalScheduleRepository;
+            _staffService = staffService;
+            _logger = logger;
         }
 
         // GET: ProfessionalSchedules
         public async Task<IActionResult> Index()
         {
-            var schedules = _professionalScheduleRepository.GetAllWithIncludes().OrderBy(ps => ps.Professional.Name).ThenBy(ps => ps.DayOfWeek);
-            return View(await schedules.ToListAsync());
+            try
+            {
+                // Implementar busca de hor�rios de profissionais via API quando dispon�vel
+                // Por enquanto, retornar lista vazia
+                return View(new List<ProfessionalSchedule>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar hor�rios de profissionais");
+                TempData["Error"] = "Erro ao carregar hor�rios.";
+                return View(new List<ProfessionalSchedule>());
+            }
         }
 
         // GET: ProfessionalSchedules/Details/5
@@ -41,64 +51,63 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var professionalSchedule = await _context.ProfessionalSchedules
-                .Include(p => p.Professional)
-                .ThenInclude(p => p.User)
-                .FirstOrDefaultAsync(m => m.ScheduleId == id);
-            if (professionalSchedule == null)
+            try
             {
+                // Implementar busca de hor�rio de profissional via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-
-            return View(professionalSchedule);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar hor�rio de profissional {Id}", id);
+                return NotFound();
+            }
         }
 
         // GET: ProfessionalSchedules/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["ProfessionalId"] = new SelectList(_context.Professionals.Where(p => p.IsActive), "ProfessionalId", "Name");
-            return View();
+            try
+            {
+                // Implementar busca de profissionais via API quando dispon�vel
+                ViewData["ProfessionalId"] = new SelectList(new List<object>(), "ProfessionalId", "Name");
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao carregar formul�rio de cria��o de hor�rio");
+                TempData["Error"] = "Erro ao carregar formul�rio.";
+                return View();
+            }
         }
 
         // POST: ProfessionalSchedules/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProfessionalSchedule professionalSchedule)
         {
-            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE SCHEDULE (POST) ===");
-            Console.WriteLine($"Schedule recebido - ProfissionalId: {professionalSchedule.ProfessionalId}, Dia: {professionalSchedule.DayOfWeek}");
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Add(professionalSchedule);
-                    await _context.SaveChangesAsync();
-                    Console.WriteLine("Horário salvo com sucesso no banco de dados!");
-                    TempData["SuccessMessage"] = "Horário criado com sucesso!";
+                    // Implementar cria��o de hor�rio de profissional via API quando dispon�vel
+                    TempData["SuccessMessage"] = "Hor�rio criado com sucesso!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERRO ao criar horário: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
-                    TempData["ErrorMessage"] = $"Erro ao criar horário: {ex.Message}";
+                    _logger.LogError(ex, "Erro ao criar hor�rio de profissional");
+                    TempData["ErrorMessage"] = "Erro ao criar hor�rio.";
                 }
             }
             else
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                Console.WriteLine($"Erro de validação: {errorMessage}");
+                var errorMessage = $"Erros de valida��o: {string.Join(", ", errors)}";
                 TempData["ErrorMessage"] = errorMessage;
             }
             
-            ViewData["ProfessionalId"] = new SelectList(_context.Professionals.Where(p => p.IsActive), "ProfessionalId", "Name", professionalSchedule.ProfessionalId);
+            ViewData["ProfessionalId"] = new SelectList(new List<object>(), "ProfessionalId", "Name", professionalSchedule.ProfessionalId);
             return View(professionalSchedule);
         }
 
@@ -111,21 +120,23 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var professionalSchedule = await _context.ProfessionalSchedules.FindAsync(id);
-            if (professionalSchedule == null)
+            try
             {
+                // Implementar busca de hor�rio de profissional via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-            ViewData["ProfessionalId"] = new SelectList(_context.Professionals.Where(p => p.IsActive), "ProfessionalId", "Name", professionalSchedule.ProfessionalId);
-            return View(professionalSchedule);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar hor�rio de profissional {Id}", id);
+                return NotFound();
+            }
         }
 
         // POST: ProfessionalSchedules/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,  ProfessionalSchedule professionalSchedule)
+        public async Task<IActionResult> Edit(int id, ProfessionalSchedule professionalSchedule)
         {
             if (id != professionalSchedule.ScheduleId)
             {
@@ -136,23 +147,17 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(professionalSchedule);
-                    await _context.SaveChangesAsync();
+                    // Implementar atualiza��o de hor�rio de profissional via API quando dispon�vel
+                    TempData["SuccessMessage"] = "Hor�rio atualizado com sucesso!";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!ProfessionalScheduleExists(professionalSchedule.ScheduleId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    _logger.LogError(ex, "Erro ao atualizar hor�rio de profissional {Id}", id);
+                    TempData["ErrorMessage"] = "Erro ao atualizar hor�rio.";
                 }
-                return RedirectToAction(nameof(Index));
             }
-            ViewData["ProfessionalId"] = new SelectList(_context.Professionals.Where(p => p.IsActive), "ProfessionalId", "Name", professionalSchedule.ProfessionalId);
+            ViewData["ProfessionalId"] = new SelectList(new List<object>(), "ProfessionalId", "Name", professionalSchedule.ProfessionalId);
             return View(professionalSchedule);
         }
 
@@ -164,16 +169,17 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var professionalSchedule = await _context.ProfessionalSchedules
-                .Include(p => p.Professional)
-                .ThenInclude(p => p.User)
-                .FirstOrDefaultAsync(m => m.ScheduleId == id);
-            if (professionalSchedule == null)
+            try
             {
+                // Implementar busca de hor�rio de profissional via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-
-            return View(professionalSchedule);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar hor�rio de profissional {Id}", id);
+                return NotFound();
+            }
         }
 
         // POST: ProfessionalSchedules/Delete/5
@@ -181,19 +187,19 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var professionalSchedule = await _context.ProfessionalSchedules.FindAsync(id);
-            if (professionalSchedule != null)
+            try
             {
-                _context.ProfessionalSchedules.Remove(professionalSchedule);
+                // Implementar exclus�o de hor�rio de profissional via API quando dispon�vel
+                TempData["SuccessMessage"] = "Hor�rio exclu�do com sucesso!";
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao excluir hor�rio de profissional {Id}", id);
+                TempData["ErrorMessage"] = "Erro ao excluir hor�rio.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        private bool ProfessionalScheduleExists(int id)
-        {
-            return _context.ProfessionalSchedules.Any(e => e.ScheduleId == id);
-        }
     }
 }

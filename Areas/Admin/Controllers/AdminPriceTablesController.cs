@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 using Sistema.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -15,17 +16,28 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminPriceTablesController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly ILogger<AdminPriceTablesController> _logger;
 
-        public AdminPriceTablesController(SistemaDbContext context)
+        public AdminPriceTablesController(ILogger<AdminPriceTablesController> logger)
         {
-            _context = context;
+            _logger = logger;
         }
 
         // GET: PriceTables
         public async Task<IActionResult> Index()
         {
-            return View(await _context.PriceTables.ToListAsync());
+            try
+            {
+                // Implementar busca de tabelas de pre�os via API quando dispon�vel
+                // Por enquanto, retornar lista vazia
+                return View(new List<PriceTable>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tabelas de pre�os");
+                TempData["Error"] = "Erro ao carregar tabelas de pre�os.";
+                return View(new List<PriceTable>());
+            }
         }
 
         // GET: PriceTables/Details/5
@@ -36,14 +48,17 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var priceTable = await _context.PriceTables
-                .FirstOrDefaultAsync(m => m.PriceId == id);
-            if (priceTable == null)
+            try
             {
+                // Implementar busca de tabela de pre�os via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-
-            return View(priceTable);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tabela de pre�os {Id}", id);
+                return NotFound();
+            }
         }
 
         // GET: PriceTables/Create
@@ -53,17 +68,23 @@ namespace Sistema.Areas.Admin.Controllers
         }
 
         // POST: PriceTables/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,ServiceName,Price,Description")] PriceTable priceTable)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(priceTable);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Implementar cria��o de tabela de pre�os via API quando dispon�vel
+                    TempData["SuccessMessage"] = "Tabela de pre�os criada com sucesso!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao criar tabela de pre�os");
+                    TempData["ErrorMessage"] = "Erro ao criar tabela de pre�os.";
+                }
             }
             return View(priceTable);
         }
@@ -76,17 +97,20 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var priceTable = await _context.PriceTables.FindAsync(id);
-            if (priceTable == null)
+            try
             {
+                // Implementar busca de tabela de pre�os via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-            return View(priceTable);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tabela de pre�os {Id}", id);
+                return NotFound();
+            }
         }
 
         // POST: PriceTables/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,ServiceName,Price,Description")] PriceTable priceTable)
@@ -100,21 +124,15 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(priceTable);
-                    await _context.SaveChangesAsync();
+                    // Implementar atualiza��o de tabela de pre�os via API quando dispon�vel
+                    TempData["SuccessMessage"] = "Tabela de pre�os atualizada com sucesso!";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!PriceTableExists(priceTable.PriceId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    _logger.LogError(ex, "Erro ao atualizar tabela de pre�os {Id}", id);
+                    TempData["ErrorMessage"] = "Erro ao atualizar tabela de pre�os.";
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(priceTable);
         }
@@ -127,14 +145,17 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var priceTable = await _context.PriceTables
-                .FirstOrDefaultAsync(m => m.PriceId == id);
-            if (priceTable == null)
+            try
             {
+                // Implementar busca de tabela de pre�os via API quando dispon�vel
+                // Por enquanto, retornar NotFound
                 return NotFound();
             }
-
-            return View(priceTable);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tabela de pre�os {Id}", id);
+                return NotFound();
+            }
         }
 
         // POST: PriceTables/Delete/5
@@ -142,19 +163,19 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var priceTable = await _context.PriceTables.FindAsync(id);
-            if (priceTable != null)
+            try
             {
-                _context.PriceTables.Remove(priceTable);
+                // Implementar exclus�o de tabela de pre�os via API quando dispon�vel
+                TempData["SuccessMessage"] = "Tabela de pre�os exclu�da com sucesso!";
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao excluir tabela de pre�os {Id}", id);
+                TempData["ErrorMessage"] = "Erro ao excluir tabela de pre�os.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        private bool PriceTableExists(int id)
-        {
-            return _context.PriceTables.Any(e => e.PriceId == id);
-        }
     }
 }

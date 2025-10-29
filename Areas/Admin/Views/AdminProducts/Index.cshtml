@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Sistema.Data.Entities.Product>
+﻿@model IEnumerable<SistemaAPI.DTOs.ProductDto>
 
 @{
     ViewData["Title"] = "Gestão de Produtos";
@@ -59,7 +59,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>@Model.Count(p => p.Stock > p.MinimumStockLevel)</h3>
+                    <h3>@Model.Count(p => p.Stock > (p.MinStock ?? 0))</h3>
                     <p>Em Estoque</p>
                 </div>
                 <div class="icon">
@@ -70,7 +70,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>@Model.Count(p => p.Stock <= p.MinimumStockLevel)</h3>
+                    <h3>@Model.Count(p => p.Stock <= (p.MinStock ?? 0))</h3>
                     <p>Estoque Baixo</p>
                 </div>
                 <div class="icon">
@@ -156,25 +156,25 @@
                                         </small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">@Html.DisplayFor(modelItem => item.ProductCategory.Name)</span>
+                                        <span class="badge bg-info">@item.CategoryName</span>
                                     </td>
                                     <td>
-                                        <span class="text-success fw-bold">€ @Html.DisplayFor(modelItem => item.PurchasePrice)</span>
+                                        <span class="text-success fw-bold">€ @(item.CostPrice?.ToString("F2") ?? "0.00")</span>
                                     </td>
                                     <td>
-                                        <span class="text-primary fw-bold">€ @Html.DisplayFor(modelItem => item.SalePrice)</span>
+                                        <span class="text-primary fw-bold">€ @item.Price.ToString("F2")</span>
                                     </td>
                                     <td>
                                         @{
-                                            var stockClass = item.Stock <= item.MinimumStockLevel ? "text-danger" : "text-success";
+                                            var stockClass = item.Stock <= (item.MinStock ?? 0) ? "text-danger" : "text-success";
                                         }
                                         <div>
-                                            <span class="@stockClass fw-bold">@Html.DisplayFor(modelItem => item.Stock)</span>
-                                            <small class="text-muted d-block">Mín: @Html.DisplayFor(modelItem => item.MinimumStockLevel)</small>
+                                            <span class="@stockClass fw-bold">@item.Stock</span>
+                                            <small class="text-muted d-block">Mín: @(item.MinStock ?? 0)</small>
                                         </div>
                                     </td>
                                     <td>
-                                        <small class="text-muted">@Html.DisplayFor(modelItem => item.Supplier.Name)</small>
+                                        <small class="text-muted">@item.SupplierName</small>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1 justify-content-center">

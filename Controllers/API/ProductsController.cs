@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Sistema.Data.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Sistema.Data;
+using Sistema.Data.Entities;
 
 namespace Sistema.Controllers.API
 {
@@ -8,11 +10,11 @@ namespace Sistema.Controllers.API
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
+        private readonly SistemaDbContext _context;
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController(SistemaDbContext context)
         {
-            _productRepository = productRepository;
+            _context = context;
         }
 
         /// <summary>
@@ -20,15 +22,20 @@ namespace Sistema.Controllers.API
         /// </summary>
         /// <returns>List of products</returns>
         [HttpGet]
-        public IActionResult GetProducts()
+        public async Task<IActionResult> GetProducts()
         {
             try
             {
-                var products = _productRepository.GetAllWithUsers();
+                var products = await _context.Products
+                    .AsNoTracking()
+                    .Include(p => p.ProductCategory)
+                    .Include(p => p.Supplier)
+                    .ToListAsync();
+                
                 return Ok(new { 
                     success = true, 
                     products = products,
-                    count = products.Count()
+                    count = products.Count
                 });
             }
             catch (Exception ex)

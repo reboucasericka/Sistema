@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data.Repository.Interfaces;
-using Sistema.Data.Entities;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -10,20 +9,40 @@ namespace Sistema.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminProductCategoriesController : Controller
     {
-        private readonly IProductCategoryRepository _productCategoryRepository;
+        private readonly IApiProductCategoriesService _apiService;
+        private readonly ILogger<AdminProductCategoriesController> _logger;
 
-        public AdminProductCategoriesController(IProductCategoryRepository productCategoryRepository)
+        public AdminProductCategoriesController(IApiProductCategoriesService apiService, ILogger<AdminProductCategoriesController> logger)
         {
-            _productCategoryRepository = productCategoryRepository;
+            _apiService = apiService;
+            _logger = logger;
         }
 
         // GET: Admin/ProductCategories
         public async Task<IActionResult> Index()
         {
-            var categories = _productCategoryRepository.GetAll()
-                .OrderBy(c => c.Name);
-            
-            return View(await categories.ToListAsync());
+            try
+            {
+                var response = await _apiService.GetAllAsync();
+                
+                if (response.IsSuccess && response.Data != null)
+                {
+                    var categories = response.Data.OrderBy(c => c.Name).ToList();
+                    return View(categories);
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch product categories: {Message}", response.Message);
+                    TempData["ErrorMessage"] = "Failed to load product categories. Please try again.";
+                    return View(new List<ProductCategoryDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product categories");
+                TempData["ErrorMessage"] = "An error occurred while loading product categories.";
+                return View(new List<ProductCategoryDto>());
+            }
         }
 
         // GET: Admin/ProductCategories/Details/5
@@ -34,14 +53,23 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
-            
-            if (productCategory == null)
+            try
             {
-                return NotFound();
-            }
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
 
-            return View(productCategory);
+                return View(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product category details for ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading product category details.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Admin/ProductCategories/Create
@@ -53,38 +81,39 @@ namespace Sistema.Areas.Admin.Controllers
         // POST: Admin/ProductCategories/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductCategoryId,Name")] ProductCategory productCategory)
+        public async Task<IActionResult> Create(ProductCategoryDto category)
         {
-            Console.WriteLine("=== INÍCIO DO MÉTODO CREATE CATEGORY (POST) ===");
-            Console.WriteLine($"Category recebida - Nome: {productCategory.Name}");
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _productCategoryRepository.CreateAsync(productCategory);
-                    Console.WriteLine("Categoria salva com sucesso no banco de dados!");
-                    TempData["SuccessMessage"] = "Categoria de produto criada com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var response = await _apiService.CreateAsync(category);
+                    
+                    if (response.IsSuccess)
+                    {
+                        TempData["SuccessMessage"] = "Categoria de produto criada com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create product category: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Erro ao criar categoria: {response.Message}";
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERRO ao criar categoria: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
-                    TempData["ErrorMessage"] = $"Erro ao criar categoria: {ex.Message}";
+                    _logger.LogError(ex, "Error creating product category");
+                    TempData["ErrorMessage"] = "Erro ao criar categoria. Tente novamente.";
                 }
             }
             else
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                Console.WriteLine($"Erro de validação: {errorMessage}");
                 TempData["ErrorMessage"] = errorMessage;
             }
-            return View(productCategory);
+            
+            return View(category);
         }
 
         // GET: Admin/ProductCategories/Edit/5
@@ -95,20 +124,31 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
-            if (productCategory == null)
+            try
             {
-                return NotFound();
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
+
+                return View(response.Data);
             }
-            return View(productCategory);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product category for edit with ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading product category for edit.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Admin/ProductCategories/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductCategoryId,Name")] ProductCategory productCategory)
+        public async Task<IActionResult> Edit(int id, ProductCategoryDto category)
         {
-            if (id != productCategory.ProductCategoryId)
+            if (id != category.CategoryId)
             {
                 return NotFound();
             }
@@ -117,24 +157,33 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    await _productCategoryRepository.UpdateAsync(productCategory);
+                    var response = await _apiService.UpdateAsync(id, category);
                     
-                    TempData["SuccessMessage"] = "Categoria de produto atualizada com sucesso!";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await ProductCategoryExists(productCategory.ProductCategoryId))
+                    if (response.IsSuccess)
                     {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Categoria de produto atualizada com sucesso!";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        _logger.LogError("Failed to update product category: {Message}", response.Message);
+                        TempData["ErrorMessage"] = $"Erro ao atualizar categoria: {response.Message}";
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating product category with ID {Id}", id);
+                    TempData["ErrorMessage"] = "Erro ao atualizar categoria. Tente novamente.";
+                }
             }
-            return View(productCategory);
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
+                TempData["ErrorMessage"] = errorMessage;
+            }
+            
+            return View(category);
         }
 
         // GET: Admin/ProductCategories/Delete/5
@@ -145,13 +194,23 @@ namespace Sistema.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var productCategory = await _productCategoryRepository.GetByIdAsync(id.Value);
-            if (productCategory == null)
+            try
             {
-                return NotFound();
-            }
+                var response = await _apiService.GetByIdAsync(id.Value);
+                
+                if (!response.IsSuccess || response.Data == null)
+                {
+                    return NotFound();
+                }
 
-            return View(productCategory);
+                return View(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching product category for delete with ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while loading product category for delete.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Admin/ProductCategories/Delete/5
@@ -159,20 +218,27 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productCategory = await _productCategoryRepository.GetByIdAsync(id);
-            if (productCategory != null)
+            try
             {
-                await _productCategoryRepository.DeleteAsync(productCategory);
+                var response = await _apiService.DeleteAsync(id);
                 
-                TempData["SuccessMessage"] = "Categoria de produto excluída com sucesso!";
+                if (response.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = "Categoria de produto excluída com sucesso!";
+                }
+                else
+                {
+                    _logger.LogError("Failed to delete product category: {Message}", response.Message);
+                    TempData["ErrorMessage"] = $"Erro ao excluir categoria: {response.Message}";
+                }
             }
-
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting product category with ID {Id}", id);
+                TempData["ErrorMessage"] = "Erro ao excluir categoria. Tente novamente.";
+            }
+            
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> ProductCategoryExists(int id)
-        {
-            return await _productCategoryRepository.ExistsAsync(id);
         }
     }
 }

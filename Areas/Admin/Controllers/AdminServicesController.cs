@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Sistema.Services.Api;
@@ -7,6 +7,12 @@ using Sistema.Helpers;
 using Sistema.Models.Admin;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace Sistema.Areas.Admin.Controllers
 {
@@ -85,7 +91,7 @@ namespace Sistema.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            // Buscar categorias via API quando o endpoint estiver dispon�vel
             ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name");
             return View();
         }
@@ -138,7 +144,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
             }
 
-            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            // Buscar categorias via API quando o endpoint estiver dispon�vel
             ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
             return View(model);
         }
@@ -168,7 +174,7 @@ namespace Sistema.Areas.Admin.Controllers
                         IsActive = response.Data.IsActive
                     };
 
-                    // TODO: Buscar categorias via API quando o endpoint estiver disponível
+                    // Buscar categorias via API quando o endpoint estiver dispon�vel
                     ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
                     return View(model);
                 }
@@ -245,7 +251,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
             }
 
-            // TODO: Buscar categorias via API quando o endpoint estiver disponível
+            // Buscar categorias via API quando o endpoint estiver dispon�vel
             ViewData["ServiceCategories"] = new SelectList(new List<object>(), "CategoryId", "Name", model.ServiceCategoryId);
             return View(model);
         }
@@ -286,7 +292,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                // TODO: Buscar o serviço primeiro para deletar a imagem
+                // Buscar o servi�o primeiro para deletar a imagem
                 // var service = await _servicesService.GetByIdAsync(serviceId);
                 // if (service.Success && service.Data?.ImageId != Guid.Empty)
                 // {
@@ -324,13 +330,136 @@ namespace Sistema.Areas.Admin.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    // TODO: Implementar log via API quando o endpoint estiver disponível
+                    // Implementar log via API quando o endpoint estiver dispon�vel
                     _logger.LogInformation("Access Log: {Action} - {Details} by User {UserId}", action, details, userId);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error logging access");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            try
+            {
+                var response = await _servicesService.GetAllAsync();
+                var services = response.Success ? response.Data?.ToList() ?? new List<ServiceDto>() : new List<ServiceDto>();
+
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Lista de Serviços");
+                
+                // Cabeçalho
+                worksheet.Cell(1, 1).Value = "Lista de Serviços - Sistema EwellinBeauty";
+                worksheet.Cell(2, 1).Value = $"Data de Geração: {DateTime.Now:dd/MM/yyyy HH:mm}";
+                worksheet.Cell(3, 1).Value = $"Total de Serviços: {services.Count}";
+                
+                // Cabeçalhos da tabela
+                worksheet.Cell(5, 1).Value = "ID";
+                worksheet.Cell(5, 2).Value = "Nome";
+                worksheet.Cell(5, 3).Value = "Descrição";
+                worksheet.Cell(5, 4).Value = "Preço";
+                worksheet.Cell(5, 5).Value = "Duração (min)";
+                worksheet.Cell(5, 6).Value = "Categoria";
+                worksheet.Cell(5, 7).Value = "Status";
+                
+                // Dados dos serviços
+                int row = 6;
+                foreach (var service in services)
+                {
+                    worksheet.Cell(row, 1).Value = service.ServiceId;
+                    worksheet.Cell(row, 2).Value = service.Name;
+                    worksheet.Cell(row, 3).Value = service.Description;
+                    worksheet.Cell(row, 4).Value = service.Price.ToString("C");
+                    worksheet.Cell(row, 5).Value = service.DurationMinutes;
+                    worksheet.Cell(row, 6).Value = service.CategoryName;
+                    worksheet.Cell(row, 7).Value = service.IsActive ? "Ativo" : "Inativo";
+                    row++;
+                }
+                
+                // Formatação
+                worksheet.Range(1, 1, 1, 7).Merge().Style.Font.Bold = true;
+                worksheet.Range(1, 1, 1, 7).Style.Font.FontSize = 16;
+                worksheet.Range(5, 1, 5, 7).Style.Font.Bold = true;
+
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+
+                return File(stream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Lista_Servicos.xlsx");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao exportar lista de serviços para Excel");
+                TempData["ErrorMessage"] = "Erro ao exportar lista de serviços para Excel.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportToPdf()
+        {
+            try
+            {
+                var response = await _servicesService.GetAllAsync();
+                var services = response.Success ? response.Data?.ToList() ?? new List<ServiceDto>() : new List<ServiceDto>();
+
+                var caminho = Path.Combine(Directory.GetCurrentDirectory(), "Lista_Servicos.pdf");
+                using var writer = new PdfWriter(caminho);
+                using var pdf = new PdfDocument(writer);
+                var doc = new Document(pdf);
+                
+                // Cabeçalho
+                doc.Add(new Paragraph("Lista de Serviços - Sistema EwellinBeauty")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(16));
+                
+                doc.Add(new Paragraph($"Data de Geração: {DateTime.Now:dd/MM/yyyy HH:mm}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+                
+                doc.Add(new Paragraph($"Total de Serviços: {services.Count}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+                
+                doc.Add(new Paragraph(" ")); // Espaço
+                
+                // Tabela de serviços
+                var servicesTable = new Table(7);
+                servicesTable.AddHeaderCell("ID");
+                servicesTable.AddHeaderCell("Nome");
+                servicesTable.AddHeaderCell("Descrição");
+                servicesTable.AddHeaderCell("Preço");
+                servicesTable.AddHeaderCell("Duração (min)");
+                servicesTable.AddHeaderCell("Categoria");
+                servicesTable.AddHeaderCell("Status");
+                
+                foreach (var service in services)
+                {
+                    servicesTable.AddCell(service.ServiceId.ToString());
+                    servicesTable.AddCell(service.Name ?? "");
+                    servicesTable.AddCell(service.Description ?? "");
+                    servicesTable.AddCell(service.Price.ToString("C"));
+                    servicesTable.AddCell(service.DurationMinutes.ToString());
+                    servicesTable.AddCell(service.CategoryName ?? "");
+                    servicesTable.AddCell(service.IsActive ? "Ativo" : "Inativo");
+                }
+                
+                doc.Add(servicesTable);
+                doc.Close();
+
+                var bytes = System.IO.File.ReadAllBytes(caminho);
+                return File(bytes, "application/pdf", "Lista_Servicos.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao exportar lista de serviços para PDF");
+                TempData["ErrorMessage"] = "Erro ao exportar lista de serviços para PDF.";
+                return RedirectToAction(nameof(Index));
             }
         }
     }

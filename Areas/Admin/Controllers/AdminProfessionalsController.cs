@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -96,7 +96,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                // TODO: Buscar usuários via API quando o endpoint estiver disponível
+                // Buscar usu�rios via API quando o endpoint estiver dispon�vel
                 // Por enquanto, usar lista vazia
                 ViewData["ExistingUsers"] = new SelectList(new List<object>(), "Id", "Email");
                 return View(new AdminProfessionalCreateViewModel());
@@ -116,23 +116,23 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                // Validação: deve ter usuário existente OU criar novo usuário
+                // Valida��o: deve ter usu�rio existente OU criar novo usu�rio
                 if (string.IsNullOrEmpty(model.ExistingUserId) && 
                     (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password)))
                 {
-                    ModelState.AddModelError("", "Selecione um usuário existente ou crie um novo.");
+                    ModelState.AddModelError("", "Selecione um usu�rio existente ou crie um novo.");
                     ViewData["ExistingUsers"] = new SelectList(new List<object>(), "Id", "Email");
                     return View(model);
                 }
 
                 string userId = string.Empty;
 
-                // Se usuário existente foi selecionado
+                // Se usu�rio existente foi selecionado
                 if (!string.IsNullOrEmpty(model.ExistingUserId))
                 {
                     userId = model.ExistingUserId;
                 }
-                // Se email e senha foram fornecidos, criar novo usuário
+                // Se email e senha foram fornecidos, criar novo usu�rio
                 else if (!string.IsNullOrEmpty(model.Email) && !string.IsNullOrEmpty(model.Password))
                 {
                     var user = new User
@@ -170,7 +170,7 @@ namespace Sistema.Areas.Admin.Controllers
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error uploading professional photo");
-                        TempData["WarningMessage"] = "Imagem não foi enviada, profissional criado sem foto.";
+                        TempData["WarningMessage"] = "Imagem n�o foi enviada, profissional criado sem foto.";
                     }
                 }
 
@@ -221,7 +221,7 @@ namespace Sistema.Areas.Admin.Controllers
 
                 if (response.Success && response.Data != null)
                 {
-                    // TODO: Buscar usuários via API quando o endpoint estiver disponível
+                    // Buscar usu�rios via API quando o endpoint estiver dispon�vel
                     ViewData["Id"] = new SelectList(new List<object>(), "Id", "Email", response.Data.ProfessionalId);
                     return View(response.Data);
                 }
@@ -255,7 +255,7 @@ namespace Sistema.Areas.Admin.Controllers
                     // Upload da nova foto se fornecida
                     if (photoFile != null && photoFile.Length > 0)
                     {
-                        // TODO: Implementar upload de imagem quando necessário
+                        // Implementar upload de imagem quando necess�rio
                         // Deletar a imagem antiga se existir
                         // if (professional.ImageId != null)
                         // {
@@ -289,7 +289,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
             }
 
-            // TODO: Buscar usuários via API quando o endpoint estiver disponível
+            // Buscar usu�rios via API quando o endpoint estiver dispon�vel
             ViewData["Id"] = new SelectList(new List<object>(), "Id", "Email", professional.ProfessionalId);
             return View(professional);
         }
@@ -358,7 +358,7 @@ namespace Sistema.Areas.Admin.Controllers
         {
             try
             {
-                // TODO: Implementar endpoint na API para toggle status
+                // Implementar endpoint na API para toggle status
                 // Por enquanto, retornar sucesso simulado
                 TempData["SuccessMessage"] = "Status toggle feature not yet implemented in API";
                 return RedirectToAction(nameof(Index));

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Sistema.Services.Api;
@@ -98,7 +98,7 @@ namespace Sistema.Areas.Admin.Controllers
         // =======================
         public IActionResult Create()
         {
-            // TODO: Buscar categorias e fornecedores via API quando os endpoints estiverem disponíveis
+            // Buscar categorias e fornecedores via API quando os endpoints estiverem dispon�veis
             ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name");
             ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name");
             return View();
@@ -112,16 +112,16 @@ namespace Sistema.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminProductViewModel model)
         {
-            _logger.LogInformation("=== INÍCIO DO MÉTODO CREATE (POST) ===");
+            _logger.LogInformation("=== IN�CIO DO M�TODO CREATE (POST) ===");
             _logger.LogInformation("Model recebido - Nome: {Name}, CategoriaId: {ProductCategoryId}, FornecedorId: {SupplierId}", 
                 model.Name, model.ProductCategoryId, model.SupplierId);
 
-            // Validação básica do ModelState
+            // Valida��o b�sica do ModelState
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                var errorMessage = $"Erros de validação: {string.Join(", ", errors)}";
-                _logger.LogWarning("Erro de validação: {ErrorMessage}", errorMessage);
+                var errorMessage = $"Erros de valida��o: {string.Join(", ", errors)}";
+                _logger.LogWarning("Erro de valida��o: {ErrorMessage}", errorMessage);
                 TempData["ErrorMessage"] = errorMessage;
                 
                 // Repopular dropdowns em caso de erro
@@ -130,11 +130,11 @@ namespace Sistema.Areas.Admin.Controllers
                 return View(model);
             }
 
-            // Validação adicional dos campos obrigatórios
+            // Valida��o adicional dos campos obrigat�rios
             if (model.ProductCategoryId <= 0)
             {
-                _logger.LogWarning("ERRO: ProductCategoryId é obrigatório e deve ser maior que 0");
-                TempData["ErrorMessage"] = "Por favor, selecione uma categoria válida.";
+                _logger.LogWarning("ERRO: ProductCategoryId � obrigat�rio e deve ser maior que 0");
+                TempData["ErrorMessage"] = "Por favor, selecione uma categoria v�lida.";
                 ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model?.ProductCategoryId);
                 ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model?.SupplierId);
                 return View(model);
@@ -142,12 +142,12 @@ namespace Sistema.Areas.Admin.Controllers
 
             try
             {
-                _logger.LogInformation("Iniciando validações de existência...");
+                _logger.LogInformation("Iniciando valida��es de exist�ncia...");
 
-                // TODO: Implementar validações via API quando os endpoints estiverem disponíveis
-                // Por enquanto, pular as validações de existência
+                // Implementar valida��es via API quando os endpoints estiverem dispon�veis
+                // Por enquanto, pular as valida��es de exist�ncia
 
-                _logger.LogInformation("Validações de existência concluídas com sucesso");
+                _logger.LogInformation("Valida��es de exist�ncia conclu�das com sucesso");
 
                 // Processar imagem
                 int? imageId = null;
@@ -160,27 +160,27 @@ namespace Sistema.Areas.Admin.Controllers
                         if (!string.IsNullOrEmpty(photoPath))
                         {
                             imageId = int.Parse(photoPath);
-                            _logger.LogInformation("Upload da imagem concluído. ImageId: {ImageId}", imageId);
+                            _logger.LogInformation("Upload da imagem conclu�do. ImageId: {ImageId}", imageId);
                         }
                         else
                         {
-                            _logger.LogWarning("Upload falhou, produto será criado sem imagem");
-                            TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
+                            _logger.LogWarning("Upload falhou, produto ser� criado sem imagem");
+                            TempData["WarningMessage"] = "Imagem n�o foi enviada, produto criado sem foto.";
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "ERRO no upload da imagem");
-                        TempData["WarningMessage"] = "Imagem não foi enviada, produto criado sem foto.";
+                        TempData["WarningMessage"] = "Imagem n�o foi enviada, produto criado sem foto.";
                         // Continua o processo mesmo com erro de upload
                     }
                 }
                 else
                 {
-                    _logger.LogInformation("Nenhuma imagem fornecida, ImageId será null");
+                    _logger.LogInformation("Nenhuma imagem fornecida, ImageId ser� null");
                 }
 
-                // Obter usuário atual
+                // Obter usu�rio atual
                 var currentUser = await _userHelper.GetUserByEmailAsync(this.User.Identity?.Name);
                 var userId = currentUser?.Id;
 
@@ -203,11 +203,11 @@ namespace Sistema.Areas.Admin.Controllers
 
                 if (currentUser != null)
                 {
-                    _logger.LogInformation("Usuário associado: {Email}", currentUser.Email);
+                    _logger.LogInformation("Usu�rio associado: {Email}", currentUser.Email);
                 }
                 else
                 {
-                    _logger.LogWarning("AVISO: Usuário atual não encontrado");
+                    _logger.LogWarning("AVISO: Usu�rio atual n�o encontrado");
                 }
 
                 // Salvar via API
@@ -238,14 +238,14 @@ namespace Sistema.Areas.Admin.Controllers
                     _logger.LogError(ex.InnerException, "Inner Exception");
                     errorMessage += $"Detalhes: {ex.InnerException.Message}";
                     
-                    // Verificar se é erro de constraint de FK
+                    // Verificar se � erro de constraint de FK
                     if (ex.InnerException.Message.Contains("FOREIGN KEY constraint"))
                     {
-                        errorMessage = "Erro de referência: A categoria ou fornecedor selecionado não existe no sistema.";
+                        errorMessage = "Erro de refer�ncia: A categoria ou fornecedor selecionado n�o existe no sistema.";
                     }
                     else if (ex.InnerException.Message.Contains("UNIQUE constraint"))
                     {
-                        errorMessage = "Erro de duplicação: Já existe um produto com este nome.";
+                        errorMessage = "Erro de duplica��o: J� existe um produto com este nome.";
                     }
                 }
                 else
@@ -280,7 +280,7 @@ namespace Sistema.Areas.Admin.Controllers
 
                 if (response.Success && response.Data != null)
                 {
-                    // TODO: Converter ProductDto para AdminProductViewModel
+                    // Converter ProductDto para AdminProductViewModel
                     // Por enquanto, usar o DTO diretamente
                     var model = new AdminProductViewModel
                     {
@@ -296,7 +296,7 @@ namespace Sistema.Areas.Admin.Controllers
                         IsActive = response.Data.IsActive
                     };
 
-                    // TODO: Buscar categorias e fornecedores via API quando os endpoints estiverem disponíveis
+                    // Buscar categorias e fornecedores via API quando os endpoints estiverem dispon�veis
                     ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", response.Data.Category);
                     ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", response.Data.Brand);
 
@@ -329,12 +329,12 @@ namespace Sistema.Areas.Admin.Controllers
             {
                 try
                 {
-                    // Garante que existe um ID válido, mesmo se o model.ImageId for null
+                    // Garante que existe um ID v�lido, mesmo se o model.ImageId for null
                     int? imageId = model.ImageId.HasValue && model.ImageId != null
                         ? int.Parse(model.ImageId.Value.ToString())
                         : null;
 
-                    // Se uma nova imagem foi enviada, faz upload e obtém novo GUID
+                    // Se uma nova imagem foi enviada, faz upload e obt�m novo GUID
                     if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
                         try
@@ -348,11 +348,11 @@ namespace Sistema.Areas.Admin.Controllers
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "ERRO no upload da imagem");
-                            TempData["WarningMessage"] = "Imagem não foi enviada, produto atualizado sem nova foto.";
+                            TempData["WarningMessage"] = "Imagem n�o foi enviada, produto atualizado sem nova foto.";
                         }
                     }
 
-                    // Obter usuário atual
+                    // Obter usu�rio atual
                     var currentUser = await _userHelper.GetUserByEmailAsync(this.User.Identity?.Name);
                     var userId = currentUser?.Id;
 
@@ -390,7 +390,7 @@ namespace Sistema.Areas.Admin.Controllers
                 }
             }
 
-            // se der erro de validação, recarrega dropdowns
+            // se der erro de valida��o, recarrega dropdowns
             ViewData["ProductCategoryId"] = new SelectList(new List<object>(), "ProductCategoryId", "Name", model.ProductCategoryId);
             ViewData["SupplierId"] = new SelectList(new List<object>(), "SupplierId", "Name", model.SupplierId);
 

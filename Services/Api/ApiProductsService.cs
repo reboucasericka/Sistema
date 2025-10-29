@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sistema.Services.Api
 {
-    public class ApiProductsService : ApiClient
+    public class ApiProductsService : ApiClient, IApiProductsService
     {
         public ApiProductsService(HttpClient httpClient, ILogger<ApiProductsService> logger, ApiAuthService auth) 
             : base(httpClient, logger, auth)
@@ -51,6 +51,16 @@ namespace Sistema.Services.Api
         public async Task<ApiResponse<IEnumerable<ProductDto>>> SearchAsync(string searchTerm)
         {
             return await GetAsync<IEnumerable<ProductDto>>($"products/search?q={Uri.EscapeDataString(searchTerm)}");
+        }
+
+        public async Task<ApiResponse<IEnumerable<ProductDto>>> GetActiveAsync()
+        {
+            return await GetAsync<IEnumerable<ProductDto>>("products/active");
+        }
+
+        public async Task<ApiResponse<IEnumerable<ProductDto>>> GetByCategoryIdAsync(int categoryId)
+        {
+            return await GetByCategoryAsync(categoryId);
         }
     }
 }

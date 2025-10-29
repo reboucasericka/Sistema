@@ -5,39 +5,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
-using Sistema.Data.Repository.Implementations;
-using Sistema.Data.Repository.Interfaces;
 using Sistema.Helpers;
 using Sistema.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // =====================================================================
-// 1️⃣ CONFIGURAÇÃO DE BASE DE DADOS E IDENTITY
+// 1️⃣ CONFIGURAÇÃO DE AUTENTICAÇÃO BASEADA EM API
 // =====================================================================
-builder.Services.AddDbContext<SistemaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddIdentity<User, IdentityRole>(cfg =>
-{
-    cfg.User.RequireUniqueEmail = true;
-
-    // Regras de senha simples (desenvolvimento/produção ajustável)
-    cfg.Password.RequireDigit = false;
-    cfg.Password.RequiredUniqueChars = 0;
-    cfg.Password.RequireUppercase = false;
-    cfg.Password.RequireLowercase = false;
-    cfg.Password.RequireNonAlphanumeric = false;
-    cfg.Password.RequiredLength = 4;
-})
-.AddEntityFrameworkStores<SistemaDbContext>()
-.AddDefaultTokenProviders();
-
-// Tempo de expiração de tokens (ex: recuperação de senha)
-builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
-{
-    options.TokenLifespan = TimeSpan.FromHours(3);
-});
+// Configuração de autenticação via cookies para manter sessão do usuário
+// A autenticação real será feita via API
 
 // =====================================================================
 // 2️⃣ CONFIGURAÇÃO DE COOKIES DE AUTENTICAÇÃO
@@ -87,73 +64,163 @@ builder.Services.AddAuthentication()
 .AddFacebook(FacebookDefaults.AuthenticationScheme, options =>
 {
     options.ClientId = builder.Configuration["Authentication:Facebook:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Facebook:clientSecret"];
+    options.ClientSecret = builder.Configuration["Authentication:Facebook:ClientSecret"];
     options.CallbackPath = "/Account/ExternalLoginCallback";
 });
 
 // =====================================================================
-// 4️⃣ REGISTRO DE SERVIÇOS, HELPERS E REPOSITÓRIOS
+// 4️⃣ REGISTRO DE SERVIÇOS E HELPERS
 // =====================================================================
-builder.Services.AddTransient<SeedDb>();
-
+// Helpers básicos que não dependem do banco de dados
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<IRoleHelper, RoleHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
 builder.Services.AddScoped<ICashRegisterHelper, CashRegisterHelper>();
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
-builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
-builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
-builder.Services.AddScoped<IPriceTableRepository, PriceTableRepository>();
-builder.Services.AddScoped<IPayableRepository, PayableRepository>();
-builder.Services.AddScoped<IReceivableRepository, ReceivableRepository>();
-builder.Services.AddScoped<IProfessionalScheduleRepository, ProfessionalScheduleRepository>();
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
 
 // ===== Helpers =====
 builder.Services.AddScoped<IImageHelper, ImageHelper>();
 builder.Services.AddScoped<IBlobHelper, BlobHelper>();
-
 builder.Services.AddScoped<IStorageHelper, StorageHelper>();
 
-
+// Serviços de exportação e comunicação
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
-// Serviços de comunicação
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IAppointmentNotificationService, AppointmentNotificationService>();
 
-// Note: GoogleCalendarSyncService, PaymentService, and NotificationService 
-// have been moved to the API as Business Services
-
+// Serviços de notificação
 builder.Services.AddHostedService<AppointmentReminderService>();
 
 // HttpClient para serviços que fazem requisições HTTP
 builder.Services.AddHttpClient();
 
+// =====================================================================
+// 5️⃣ CONFIGURAÇÃO DO BANCO DE DADOS SQLITE
+// =====================================================================
+builder.Services.AddDbContext<SistemaDbContext>(options =>
+    options.UseSqlite("Data Source=Sistema.db"));
+
+// Identity com Entity Framework
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    // Configurações de senha
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    
+    // Configurações de usuário
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<SistemaDbContext>()
+.AddDefaultTokenProviders();
+
 // ===== API Integration Services =====
-builder.Services.AddHttpClient<Sistema.Services.Api.IApiClientService, Sistema.Services.Api.ApiClientService>();
+// Configure HttpClient with HTTPS and certificate handling for local development
+builder.Services.AddHttpClient<Sistema.Services.Api.IApiClientService, Sistema.Services.Api.ApiClientService>(client =>
+{
+    var apiSettings = builder.Configuration.GetSection("ApiSettings");
+    client.BaseAddress = new Uri(apiSettings["BaseUrl"]!);
+    client.Timeout = TimeSpan.FromSeconds(int.Parse(apiSettings["Timeout"] ?? "30"));
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler();
+    
+    // Ignore certificate errors in development (localhost)
+    if (builder.Environment.IsDevelopment())
+    {
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+    }
+    
+    return handler;
+});
+
 builder.Services.AddScoped<Sistema.Services.Api.IApiClientService, Sistema.Services.Api.ApiClientService>();
 builder.Services.AddScoped<Sistema.Services.Api.IApiAppointmentService, Sistema.Services.Api.ApiAppointmentService>();
 builder.Services.AddScoped<Sistema.Services.Api.IApiUserService, Sistema.Services.Api.ApiUserService>();
 
 // ===== MVC API Services (New Architecture) =====
-// Configure HttpClient for API communication with JWT Authentication
-builder.Services.AddHttpClient<Sistema.Services.Auth.ApiAuthService>();
+// Configure HttpClient for API communication with JWT Authentication and HTTPS
+builder.Services.AddHttpClient<Sistema.Services.Auth.ApiAuthService>(client =>
+{
+    var apiSettings = builder.Configuration.GetSection("ApiSettings");
+    client.BaseAddress = new Uri(apiSettings["BaseUrl"]!);
+    client.Timeout = TimeSpan.FromSeconds(int.Parse(apiSettings["Timeout"] ?? "30"));
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler();
+    
+    // Ignore certificate errors in development (localhost)
+    if (builder.Environment.IsDevelopment())
+    {
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+    }
+    
+    return handler;
+});
 
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiClientsService>();
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiAppointmentsService>();
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiServicesService>();
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiStaffService>();
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiPaymentsService>();
-builder.Services.AddHttpClient<Sistema.Services.Api.ApiProductsService>();
+// Configure all API services with HTTPS
+var configureApiClient = (HttpClient client) =>
+{
+    var apiSettings = builder.Configuration.GetSection("ApiSettings");
+    client.BaseAddress = new Uri(apiSettings["BaseUrl"]!);
+    client.Timeout = TimeSpan.FromSeconds(int.Parse(apiSettings["Timeout"] ?? "30"));
+};
+
+var configureApiHandler = () =>
+{
+    var handler = new HttpClientHandler();
+    
+    // Ignore certificate errors in development (localhost)
+    if (builder.Environment.IsDevelopment())
+    {
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+    }
+    
+    return handler;
+};
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiClientsService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddScoped<Sistema.Services.Api.IApiClientsService, Sistema.Services.Api.ApiClientsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiSettingsService, Sistema.Services.Api.ApiSettingsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiNotificationsService, Sistema.Services.Api.ApiNotificationsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiAppointmentsService, Sistema.Services.Api.ApiAppointmentsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiServicesService, Sistema.Services.Api.ApiServicesService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiProductsService, Sistema.Services.Api.ApiProductsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiStaffService, Sistema.Services.Api.ApiStaffService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiPaymentsService, Sistema.Services.Api.ApiPaymentsService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiSuppliersService, Sistema.Services.Api.ApiSuppliersService>();
+builder.Services.AddScoped<Sistema.Services.Api.IApiProductCategoriesService, Sistema.Services.Api.ApiProductCategoriesService>();
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiAppointmentsService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiServicesService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiStaffService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiPaymentsService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiProductsService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiSuppliersService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
+
+builder.Services.AddHttpClient<Sistema.Services.Api.ApiProductCategoriesService>(configureApiClient)
+    .ConfigurePrimaryHttpMessageHandler(configureApiHandler);
 
 // Memory Cache for API Gateway
 builder.Services.AddMemoryCache();
@@ -357,45 +424,34 @@ foreach (var endpoint in endpointDataSource.Endpoints)
 Console.WriteLine("🛠️ ================================");
 
 // =====================================================================
-// 9️⃣ SEED AUTOMÁTICO (modo produção avançado)
+// 9️⃣ INICIALIZAÇÃO DO SISTEMA
 // =====================================================================
-try
+// 8️⃣ SEED DO BANCO DE DADOS
+// =====================================================================
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    try
     {
-        var services = scope.ServiceProvider;
-        var configuration = services.GetRequiredService<IConfiguration>();
-        var seeder = services.GetRequiredService<SeedDb>();
-
-        // Valida se as credenciais estão configuradas
-        var adminSection = configuration.GetSection("AdminUser");
-        var email = adminSection["Email"];
-        var password = adminSection["Password"];
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(" AdminUser configuration is missing in appsettings or user-secrets!");
-            Console.ResetColor();
-            throw new InvalidOperationException("Missing AdminUser configuration.");
-        }
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(" AdminUser configuration validated. Running Seed...");
-        Console.ResetColor();
-
-        await seeder.SeedAsync();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("✅ SeedDb executado com sucesso");
-        Console.ResetColor();
+        var context = services.GetRequiredService<SistemaDbContext>();
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var seedDb = new SeedDb(context, userManager, roleManager);
+        await seedDb.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erro ao executar seed do banco de dados");
     }
 }
-catch (Exception ex)
-{
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine($"⚠️ SeedDb falhou: {ex.Message}");
-    Console.WriteLine("⚠️ Sistema continuará sem dados iniciais. Configure manualmente se necessário.");
-    Console.ResetColor();
-}
+
+// =====================================================================
+// O seed de dados agora é responsabilidade da API
+// O Sistema MVC apenas consome os dados via API
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("✅ Sistema MVC inicializado - consumindo dados via API");
+Console.ResetColor();
 
 // =====================================================================
 // 9️⃣ EXECUTA O APP

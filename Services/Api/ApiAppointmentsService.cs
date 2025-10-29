@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sistema.Services.Api
 {
-    public class ApiAppointmentsService : ApiClient
+    public class ApiAppointmentsService : ApiClient, IApiAppointmentsService
     {
         public ApiAppointmentsService(HttpClient httpClient, ILogger<ApiAppointmentsService> logger, ApiAuthService auth) 
             : base(httpClient, logger, auth)
@@ -56,6 +56,21 @@ namespace Sistema.Services.Api
         public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetAvailableTimesAsync(int professionalId, DateTime date)
         {
             return await GetAsync<IEnumerable<AppointmentDto>>($"appointments/available/{professionalId}/{date:yyyy-MM-dd}");
+        }
+
+        public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetByClientIdAsync(int clientId)
+        {
+            return await GetByCustomerAsync(clientId);
+        }
+
+        public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetByProfessionalIdAsync(int professionalId)
+        {
+            return await GetByProfessionalAsync(professionalId);
+        }
+
+        public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await GetAsync<IEnumerable<AppointmentDto>>($"appointments/range/{startDate:yyyy-MM-dd}/{endDate:yyyy-MM-dd}");
         }
     }
 }

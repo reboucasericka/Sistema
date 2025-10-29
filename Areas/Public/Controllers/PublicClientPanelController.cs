@@ -38,6 +38,9 @@ namespace Sistema.Areas.Public.Controllers
             {
                 _logger.LogInformation("Acessando painel do cliente");
                 
+                // Limpar o ChangeTracker para forçar atualização
+                _context.ChangeTracker.Clear();
+                
                 // Verificações de segurança
                 _logger.LogDebug("Verificando autenticação do usuário. IsAuthenticated: {IsAuthenticated}, IsInRole: {IsInRole}", 
                     User.Identity?.IsAuthenticated, User.IsInRole("Customer"));
@@ -66,6 +69,7 @@ namespace Sistema.Areas.Public.Controllers
                 
                 // Busca segura do cliente
                 var customer = await _context.Customers
+                    .AsNoTracking()
                     .Include(c => c.User)
                     .FirstOrDefaultAsync(c => c.UserId == userId);
 
@@ -155,8 +159,12 @@ namespace Sistema.Areas.Public.Controllers
                     return RedirectToAction("Login", "PublicAccount", new { area = "Public" });
                 }
 
+                // Limpar o ChangeTracker para forçar atualização
+                _context.ChangeTracker.Clear();
+
                 // Buscar o cliente vinculado ao usuário
                 var customer = await _context.Customers
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.UserId == userId);
                 
                 if (customer == null)
@@ -168,6 +176,7 @@ namespace Sistema.Areas.Public.Controllers
                 _logger.LogDebug("Buscando agendamentos para CustomerId: {CustomerId}", customer.CustomerId);
 
                 var query = _context.Appointments
+                    .AsNoTracking()
                     .Include(a => a.Service)
                         .ThenInclude(s => s.Category)
                     .Include(a => a.Professional)
@@ -198,6 +207,12 @@ namespace Sistema.Areas.Public.Controllers
                     .ToListAsync();
 
                 _logger.LogInformation($"Encontrados {appointments.Count} agendamentos para CustomerId: {customer.CustomerId}");
+
+                // Verificar se há agendamentos
+                if (appointments == null || !appointments.Any())
+                {
+                    ViewBag.InfoMessage = "Nenhum agendamento encontrado. Faça seu primeiro agendamento agora!";
+                }
 
                 ViewBag.StartDate = startDate;
                 ViewBag.EndDate = endDate;
@@ -232,8 +247,12 @@ namespace Sistema.Areas.Public.Controllers
                     return Json(new { error = "Usuário não autenticado" });
                 }
 
+                // Limpar o ChangeTracker para forçar atualização
+                _context.ChangeTracker.Clear();
+
                 // Buscar o cliente vinculado ao usuário
                 var customer = await _context.Customers
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.UserId == userId);
                 
                 if (customer == null)
@@ -245,6 +264,7 @@ namespace Sistema.Areas.Public.Controllers
                 _logger.LogDebug("Buscando agendamentos para calendário - CustomerId: {CustomerId}", customer.CustomerId);
 
                 var appointments = await _context.Appointments
+                    .AsNoTracking()
                     .Include(a => a.Service)
                     .Include(a => a.Professional)
                     .Where(a => a.CustomerId == customer.CustomerId)
@@ -348,7 +368,8 @@ namespace Sistema.Areas.Public.Controllers
         {
             _logger.LogInformation("Solicitação de integração com Google Calendar");
             
-            // TODO: Implementar integração OAuth2 com Google Calendar
+            // Implementar integração OAuth2 com Google Calendar
+            // Funcionalidade futura para sincronização de calendários
             // Por enquanto, retorna uma mensagem informativa
             TempData["Info"] = "Integração com Google Calendar será implementada em breve.";
             return RedirectToAction(nameof(Index));

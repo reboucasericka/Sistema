@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sistema.Services.Api
 {
-    public class ApiServicesService : ApiClient
+    public class ApiServicesService : ApiClient, IApiServicesService
     {
         public ApiServicesService(HttpClient httpClient, ILogger<ApiServicesService> logger, ApiAuthService auth) 
             : base(httpClient, logger, auth)
@@ -51,6 +51,11 @@ namespace Sistema.Services.Api
         public async Task<ApiResponse<IEnumerable<ServiceDto>>> SearchAsync(string searchTerm)
         {
             return await GetAsync<IEnumerable<ServiceDto>>($"services/search?q={Uri.EscapeDataString(searchTerm)}");
+        }
+
+        public async Task<ApiResponse<IEnumerable<ServiceDto>>> GetByCategoryIdAsync(int categoryId)
+        {
+            return await GetByCategoryAsync(categoryId);
         }
     }
 }

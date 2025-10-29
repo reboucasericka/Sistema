@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sistema.Data;
 using Sistema.Data.Entities;
-using Sistema.Data.Repository.Interfaces;
 
 namespace Sistema.Areas.Public.Controllers
 {
@@ -10,19 +9,26 @@ namespace Sistema.Areas.Public.Controllers
     public class PublicProfessionalsController : Controller
     {
         private readonly SistemaDbContext _context;
-        private readonly IProfessionalRepository _professionalRepository;
 
-        public PublicProfessionalsController(SistemaDbContext context, IProfessionalRepository professionalRepository)
+        public PublicProfessionalsController(SistemaDbContext context)
         {
             _context = context;
-            _professionalRepository = professionalRepository;
         }
 
         // GET: Public/Professionals
         public async Task<IActionResult> Index()
         {
-            var professionals = _professionalRepository.GetActiveProfessionals().OrderBy(p => p.Name);
-            return View(await professionals.ToListAsync());
+            // Limpar o ChangeTracker para forçar atualização
+            _context.ChangeTracker.Clear();
+
+            var professionals = await _context.Professionals
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.Name)
+                .ToListAsync();
+            
+            return View(professionals);
         }
 
         // GET: Public/Professionals/Details/5
@@ -33,7 +39,15 @@ namespace Sistema.Areas.Public.Controllers
                 return NotFound();
             }
 
-            var professional = await _professionalRepository.GetByIdWithIncludesAsync(id.Value);
+            // Limpar o ChangeTracker para forçar atualização
+            _context.ChangeTracker.Clear();
+
+            var professional = await _context.Professionals
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.ProfessionalServices)
+                    .ThenInclude(ps => ps.Service)
+                .FirstOrDefaultAsync(p => p.ProfessionalId == id.Value);
 
             if (professional == null || !professional.IsActive)
             {

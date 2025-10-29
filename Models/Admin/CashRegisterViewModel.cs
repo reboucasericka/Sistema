@@ -1,4 +1,5 @@
 using Sistema.Data.Entities;
+using SistemaAPI.DTOs;
 
 namespace Sistema.Models.Admin
 {
@@ -7,7 +8,7 @@ namespace Sistema.Models.Admin
         public decimal CurrentBalance { get; set; }
         public bool IsOpen { get; set; }
         public List<CashMovement> RecentMovements { get; set; } = new List<CashMovement>();
-        public List<Product> Products { get; set; } = new List<Product>();
+        public List<ProductDto> Products { get; set; } = new List<ProductDto>();
         
         // Dados para os cards financeiros
         public decimal TotalEntradasHoje { get; set; }
