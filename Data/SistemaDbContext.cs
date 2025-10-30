@@ -46,6 +46,7 @@ namespace Sistema.Data
         public DbSet<StockExit> StockExits { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<PublicProductInfo> PublicProductInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

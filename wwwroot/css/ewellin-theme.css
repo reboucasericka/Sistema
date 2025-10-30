@@ -1,0 +1,50 @@
+/* Ewellin Theme - tokens e componentes base */
+
+/* Tipografia base aplicada pelo layout via Google Fonts */
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #2A310E;
+}
+
+/* Cabeçalho unificado */
+.app-header {
+    background: linear-gradient(120deg, #c97d5d, #f6d2c0);
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+.app-header h2,
+.app-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+}
+
+/* Botões principais */
+.btn-main {
+    background-color: #c97d5d;
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    transition: all .3s;
+}
+.btn-main:hover { background-color: #b46d51; }
+
+.btn-outline-main {
+    border: 1.5px solid #c97d5d;
+    color: #c97d5d;
+    border-radius: 12px;
+    transition: all .3s;
+}
+.btn-outline-main:hover { background-color: #c97d5d; color: #fff; }
+
+/* Cartões e seções */
+.card { border-radius: 16px !important; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.card-header { background-color: transparent; border-bottom: 1px solid #eee; font-weight: 600; color: #2A310E; }
+
+.filter-section { background-color: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+.sidebar-title { font-weight: 600; margin-bottom: 10px; color: #c97d5d; }
+
+/* Elementos específicos compartilhados */
+.badge-category { background-color: #f0e1db; color: #8a5b47; }
+
+

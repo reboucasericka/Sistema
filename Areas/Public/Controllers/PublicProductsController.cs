@@ -1,55 +1,52 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sistema.Data;
-using Sistema.Data.Entities;
+using Sistema.Services.Api;
+using SistemaAPI.DTOs;
 
 namespace Sistema.Areas.Public.Controllers
 {
     [Area("Public")]
     public class PublicProductsController : Controller
     {
-        private readonly SistemaDbContext _context;
+        private readonly IApiClientService _api;
 
-        public PublicProductsController(SistemaDbContext context)
+        public PublicProductsController(IApiClientService api)
         {
-            _context = context;
+            _api = api;
         }
 
-        // Lista pública
+        // GET: /Public/PublicProducts/
         public async Task<IActionResult> Index()
         {
-            // Limpar o ChangeTracker para forçar atualização
-            _context.ChangeTracker.Clear();
-
-            var products = await _context.Products
-                .AsNoTracking()
-                .Include(p => p.ProductCategory)
-                .Where(p => p.IsActive)
-                .OrderBy(p => p.ProductCategory.Name)
-                .ThenBy(p => p.Name)
-                .ToListAsync();
-
-            return View(products);
+            try
+            {
+                // Usa o endpoint existente (singular)
+                var response = await _api.GetAsync<IEnumerable<PublicProductInfoDto>>("api/public-product-info");
+                return View(response.Data ?? new List<PublicProductInfoDto>());
+            }
+            catch
+            {
+                return View(new List<PublicProductInfoDto>());
+            }
         }
 
-        // Detalhes público
+        // GET: /Public/PublicProducts/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            // Limpar o ChangeTracker para forçar atualização
-            _context.ChangeTracker.Clear();
-
-            var product = await _context.Products
-                .AsNoTracking()
-                .Include(p => p.ProductCategory)
-                .FirstOrDefaultAsync(p => p.ProductId == id);
-            
-            if (product == null)
+            try
             {
-                TempData["Error"] = "Produto não encontrado.";
+                var response = await _api.GetAsync<PublicProductInfoDto>($"api/public-product-info/{id}");
+                if (response.Data == null)
+                {
+                    TempData["Error"] = "Produto não encontrado.";
+                    return RedirectToAction("Index");
+                }
+                return View(response.Data);
+            }
+            catch
+            {
+                TempData["Error"] = "Erro ao carregar produto.";
                 return RedirectToAction("Index");
             }
-
-            return View(product);
         }
     }
 }

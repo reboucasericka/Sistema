@@ -1,5 +1,7 @@
+@model Sistema.Data.Entities.Customer
+
 @{
-    ViewData["Title"] = "Meu Perfil - Painel do Cliente";
+    ViewData["Title"] = "Meu Perfil";
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
@@ -340,6 +342,7 @@
         function handlePhotoChange(e) {
             const file = e.target.files[0];
             if (file) {
+                alert('📸 Função de upload de foto será adicionada na próxima versão.');
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     $('#profilePhoto').attr('src', e.target.result);

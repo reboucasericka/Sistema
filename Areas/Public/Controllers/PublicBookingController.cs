@@ -16,6 +16,7 @@ namespace Sistema.Areas.Public.Controllers
         private readonly IApiServicesService _servicesService;
         private readonly IApiStaffService _staffService;
         private readonly IApiAppointmentsService _appointmentsService;
+        private readonly IApiClientService _apiClient;
         private readonly IAppointmentNotificationService _notificationService;
         private readonly ILogger<PublicBookingController> _logger;
 
@@ -24,13 +25,15 @@ namespace Sistema.Areas.Public.Controllers
             IApiStaffService staffService,
             IApiAppointmentsService appointmentsService,
             IAppointmentNotificationService notificationService,
-            ILogger<PublicBookingController> logger)
+            ILogger<PublicBookingController> logger,
+            IApiClientService apiClient)
         {
             _servicesService = servicesService;
             _staffService = staffService;
             _appointmentsService = appointmentsService;
             _notificationService = notificationService;
             _logger = logger;
+            _apiClient = apiClient;
         }
 
         // GET: Public/Booking
@@ -63,49 +66,14 @@ namespace Sistema.Areas.Public.Controllers
         // GET: Public/Booking/Schedule/5
         public async Task<IActionResult> Schedule(int id)
         {
-            try
+            // Novo fluxo: retornar ServiceDto para view de seleção de horário/profissional
+            var apiResp = await _apiClient.GetAsync<SistemaAPI.DTOs.ServiceDto>("services/" + id);
+            if (apiResp?.Data == null)
             {
-                var serviceResponse = await _servicesService.GetByIdAsync(id);
-                
-                if (!serviceResponse.IsSuccess || serviceResponse.Data == null)
-            {
-                return NotFound();
-            }
-
-                var service = serviceResponse.Data;
-
-            // Buscar profissionais que oferecem este serviço
-                var staffResponse = await _staffService.GetAllAsync();
-                var professionals = new List<ProfessionalDto>();
-                
-                if (staffResponse.IsSuccess && staffResponse.Data != null)
-                {
-                    professionals = staffResponse.Data.Where(p => p.IsActive).ToList();
-                }
-
-            var viewModel = new PublicBookingViewModel
-            {
-                ServiceId = service.ServiceId,
-                ServiceName = service.Name,
-                Price = service.Price,
-                Duration = service.Duration,
-                Description = service.Description,
-                ImageId = service.ImageId.ToString(),
-                SelectedDate = DateTime.Now.Date
-            };
-
-            // Gerar horários disponíveis (exemplo: 9h às 18h, intervalos de 30 min)
-            ViewBag.AvailableTimes = GenerateAvailableTimes();
-            ViewBag.Professionals = professionals;
-
-            return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading service for booking");
-                TempData["ErrorMessage"] = "An error occurred while loading the service.";
+                TempData["ErrorMessage"] = "Serviço não encontrado.";
                 return RedirectToAction(nameof(Index));
             }
+            return View(apiResp.Data);
         }
 
         // POST: Public/Booking/Schedule
@@ -368,6 +336,39 @@ namespace Sistema.Areas.Public.Controllers
             }
 
             return times;
+        }
+
+        // ===== Novas actions para fluxo elegante =====
+        [HttpGet]
+        public async Task<IActionResult> _DaySlots(int serviceId, DateOnly date)
+        {
+            var resp = await _apiClient.GetAsync<List<SistemaAPI.DTOs.AvailableSlotDto>>($"appointments/available?serviceId={serviceId}&date={date:yyyy-MM-dd}");
+            var slots = resp?.Data ?? new List<SistemaAPI.DTOs.AvailableSlotDto>();
+            return PartialView("_DaySlots", slots);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> _StaffForSlot(int serviceId, string time, DateOnly date)
+        {
+            var resp = await _apiClient.GetAsync<List<SistemaAPI.DTOs.ProfessionalAvailabilityDto>>($"professionals/available?serviceId={serviceId}&date={date:yyyy-MM-dd}&time={time}");
+            var staff = resp?.Data ?? new List<SistemaAPI.DTOs.ProfessionalAvailabilityDto>();
+            return PartialView("_StaffForSlot", staff);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Confirm([FromForm] SistemaAPI.DTOs.CreateAppointmentDto dto)
+        {
+            var created = await _apiClient.PostAsync<SistemaAPI.DTOs.AppointmentDto>("appointments", dto);
+            if (created?.Data == null)
+            {
+                TempData["ErrorMessage"] = "Falha ao agendar.";
+                return BadRequest("Falha ao agendar.");
+            }
+
+            _ = await _apiClient.PostAsync<object>($"appointments/{created.Data.Id}/sync-google", new { });
+            TempData["SuccessMessage"] = "Agendamento confirmado!";
+            return RedirectToAction("MyAppointments", "PublicClientPanel", new { area = "Public" });
         }
     }
 }

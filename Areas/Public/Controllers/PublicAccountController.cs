@@ -19,19 +19,22 @@ namespace Sistema.Areas.Public.Controllers
         private readonly ILogger<PublicAccountController> _logger;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly IConfiguration _configuration;
 
         public PublicAccountController(
             IUserHelper userHelper, 
             IEmailService emailService,
             ILogger<PublicAccountController> logger,
             SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            IConfiguration configuration)
         {
             _userHelper = userHelper;
             _emailService = emailService;
             _logger = logger;
             _signInManager = signInManager;
             _userManager = userManager;
+            _configuration = configuration;
         }
 
         // =======================
@@ -301,6 +304,81 @@ namespace Sistema.Areas.Public.Controllers
         public IActionResult ActivateSuccess()
         {
             return View();
+        }
+
+        // =======================
+        // GOOGLE CALENDAR OAUTH
+        // =======================
+        [HttpGet]
+        [Authorize(Roles = "Customer")]
+        public IActionResult LinkGoogleCalendar()
+        {
+            var clientId = _configuration["GoogleCalendar:ClientId"];
+            var redirectUri = _configuration["GoogleCalendar:RedirectUri"];
+            var scope = "https://www.googleapis.com/auth/calendar.events";
+
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
+            {
+                TempData["ErrorMessage"] = "Configuração do Google Calendar ausente.";
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
+
+            var authUrl = $"https://accounts.google.com/o/oauth2/auth?client_id={Uri.EscapeDataString(clientId)}&redirect_uri={Uri.EscapeDataString(redirectUri)}&response_type=code&scope={Uri.EscapeDataString(scope)}&access_type=offline&prompt=consent";
+            return Redirect(authUrl);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleCallback(string code, string? error = null)
+        {
+            if (!string.IsNullOrEmpty(error) || string.IsNullOrEmpty(code))
+            {
+                TempData["ErrorMessage"] = "Não foi possível vincular o Google Calendar.";
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
+
+            try
+            {
+                var clientId = _configuration["GoogleCalendar:ClientId"];
+                var clientSecret = _configuration["GoogleCalendar:ClientSecret"];
+                var redirectUri = _configuration["GoogleCalendar:RedirectUri"];
+
+                using var http = new HttpClient();
+                var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["code"] = code,
+                    ["client_id"] = clientId!,
+                    ["client_secret"] = clientSecret!,
+                    ["redirect_uri"] = redirectUri!,
+                    ["grant_type"] = "authorization_code"
+                });
+
+                var resp = await http.PostAsync("https://oauth2.googleapis.com/token", content);
+                var json = await resp.Content.ReadAsStringAsync();
+                if (!resp.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Erro ao trocar código por token Google: {Status} {Body}", resp.StatusCode, json);
+                    TempData["ErrorMessage"] = "Falha ao vincular Google Calendar.";
+                    return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+                }
+
+                // Armazena o access token na sessão (poderíamos persistir por usuário futuramente)
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var accessToken = doc.RootElement.GetProperty("access_token").GetString();
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    HttpContext.Session.SetString("GoogleAccessToken", accessToken);
+                }
+
+                TempData["SuccessMessage"] = "Google Calendar vinculado com sucesso!";
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exceção ao processar GoogleCallback");
+                TempData["ErrorMessage"] = "Erro ao processar retorno do Google.";
+                return RedirectToAction("Index", "PublicClientPanel", new { area = "Public" });
+            }
         }
 
         // =======================

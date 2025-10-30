@@ -1,0 +1,35 @@
+@model IEnumerable<SistemaAPI.DTOs.AvailableSlotDto>
+
+@{
+    var manha = Model.Where(x => x.Period == "Manhã").ToList();
+    var tarde = Model.Where(x => x.Period == "Tarde").ToList();
+    var noite = Model.Where(x => x.Period == "Noite").ToList();
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted py-4">Sem horários para este dia.</div>
+}
+else
+{
+    <div class="period">
+        <div class="p-title">Manhã</div>
+        <div class="slot-grid">
+            @foreach (var s in manha) { <button class="slot-btn" data-time="@s.Time">@s.Time</button> }
+        </div>
+    </div>
+    <div class="period">
+        <div class="p-title">Tarde</div>
+        <div class="slot-grid">
+            @foreach (var s in tarde) { <button class="slot-btn" data-time="@s.Time">@s.Time</button> }
+        </div>
+    </div>
+    <div class="period">
+        <div class="p-title">Noite</div>
+        <div class="slot-grid">
+            @foreach (var s in noite) { <button class="slot-btn" data-time="@s.Time">@s.Time</button> }
+        </div>
+    </div>
+}
+
+

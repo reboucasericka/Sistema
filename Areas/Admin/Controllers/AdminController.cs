@@ -6,11 +6,12 @@ using Sistema.Models.Admin;
 using Sistema.Services.Api;
 using SistemaAPI.DTOs;
 using Microsoft.Extensions.Logging;
+using Sistema.Security;
 
 namespace Sistema.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [AuthorizeAdmin]
     public class AdminController : Controller
     {
         private readonly ApiAppointmentsService _appointmentsService;

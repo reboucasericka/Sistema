@@ -834,12 +834,12 @@ namespace Sistema.Areas.Public.Controllers
                     averageFrequency = totalDays / (appointmentDates.Count - 1);
                 }
 
-                // Avaliação média dos feedbacks
-                var feedbacks = await _context.Feedbacks
-                    .Where(f => f.ClientId == clientId)
+                // Avaliação média das reviews de serviço (tabela existente no SQLite)
+                var serviceReviews = await _context.ServiceReviews
+                    .Where(r => r.CustomerId == clientId)
                     .ToListAsync();
 
-                var averageRating = feedbacks.Any() ? feedbacks.Average(f => f.Rating) : 0.0;
+                var averageRating = serviceReviews.Any() ? serviceReviews.Average(r => r.Rating) : 0.0;
 
                 // Serviços mais utilizados
                 var topServices = appointments

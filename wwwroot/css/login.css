@@ -1,0 +1,142 @@
+.login-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+    background-color: #f8f8f8;
+    padding-top: 80px;
+}
+
+.login-box {
+    background-color: #ffffff;
+    padding: 2rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+}
+
+.login-box h2 {
+    color: #2A310E; /* NeutralDark */
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.subtitle {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.form-group label {
+    color: #2A310E;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #C97D5D; /* AccentTerracotta */
+    outline: none;
+}
+
+.btn-login {
+    background-color: #C97D5D;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1rem;
+    width: 100%;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.btn-login:hover {
+    background-color: #b56a4b;
+}
+
+.remember-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-check-input {
+    margin: 0;
+}
+
+.form-check-label {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0;
+}
+
+.extras {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.register-link {
+    color: #C97D5D;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.register-link:hover {
+    color: #b56a4b;
+    text-decoration: underline;
+}
+
+.forgot-link {
+    color: #8A916D; /* SecondaryOlive */
+    text-decoration: none;
+}
+
+.forgot-link:hover {
+    color: #6a7a4f;
+    text-decoration: underline;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+    
+    .login-section {
+        padding-top: 60px;
+        height: 90vh;
+    }
+}

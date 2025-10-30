@@ -1,3 +1,19 @@
+/* JS do Painel do Cliente
+   - Centralize aqui integrações do calendário, serviços e produtos
+   - Este arquivo é carregado em Areas/Public/Views/PublicClientPanel/Index.cshtml
+*/
+
+(function () {
+    "use strict";
+
+    // Guardas simples para evitar conflitos caso a página seja reutilizada
+    if (window.__clientPanelInitialized) return;
+    window.__clientPanelInitialized = true;
+
+    // Pontos de extensão: inicializações podem ser plugadas aqui
+    // Ex.: initCalendar(); initServices(); initProducts();
+})();
+
 // client-panel.js - JavaScript otimizado para o painel do cliente
 (function() {
     'use strict';

@@ -29,45 +29,9 @@ namespace Sistema.Areas.Public.Controllers
         }
 
         // GET: Appointment
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            try
-            {
-                var servicesResponse = await _servicesService.GetAllAsync();
-                var staffResponse = await _staffService.GetAllAsync();
-
-                var services = new List<ServiceDto>();
-                var professionals = new List<ProfessionalDto>();
-
-                if (servicesResponse.IsSuccess && servicesResponse.Data != null)
-                {
-                    services = servicesResponse.Data.Where(s => s.IsActive).ToList();
-                }
-
-                if (staffResponse.IsSuccess && staffResponse.Data != null)
-                {
-                    professionals = staffResponse.Data.Where(p => p.IsActive).ToList();
-                }
-
-                ViewBag.Services = services;
-                ViewBag.Plans = new List<object>(); // Plans não estão disponíveis via API ainda
-                ViewBag.Professionals = professionals;
-                ViewBag.Reviews = new List<object>(); // Reviews não estão disponíveis via API ainda
-
-                return View();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading appointment data");
-                Console.WriteLine($"Erro ao carregar dados: {ex.Message}");
-                
-                ViewBag.Services = new List<ServiceDto>();
-                ViewBag.Plans = new List<object>();
-                ViewBag.Professionals = new List<ProfessionalDto>();
-                ViewBag.Reviews = new List<object>();
-                
-                return View();
-            }
+            return View();
         }
 
         // GET: Available times for a professional on a specific date

@@ -90,7 +90,17 @@ namespace Sistema.Helpers
 
         public async Task AddUserToRoleAsync(User user, string roleName) //ok
         {
-            await _userManager.AddToRoleAsync(user, roleName);
+            // Garante que a role exista
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+
+            // Adiciona somente se ainda não estiver na role
+            if (!await _userManager.IsInRoleAsync(user, roleName))
+            {
+                await _userManager.AddToRoleAsync(user, roleName);
+            }
         }
 
 

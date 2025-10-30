@@ -35,6 +35,17 @@
 
     <!-- Tema principal -->
     <link rel="stylesheet" href="~/css/style.css" />
+    
+    <!-- CSS específico para login -->
+    <link rel="stylesheet" href="~/css/login.css" />
+    
+    <!-- CSS específico para serviços -->
+    <link rel="stylesheet" href="~/css/services.css" />
+    
+    <!-- CSS específico para admin login -->
+    <link rel="stylesheet" href="~/css/admin-login.css" />
+    
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <!-- HEADER -->
@@ -62,11 +73,8 @@
                     <li><a asp-area="Public" asp-controller="PublicPrice" asp-action="Index">Tabela de preços</a></li>
                     <li><a asp-area="Public" asp-controller="PublicServices" asp-action="Index">Serviços</a></li>                   
                     <li><a asp-area="Public" asp-controller="PublicProducts" asp-action="Index">Produtos</a></li>
-                    <li><a asp-area="Public" asp-controller="PublicRecrutamento" asp-action="Index">Recrutamento</a></li>              
+                    <li><a asp-area="Public" asp-controller="PublicRecrutamento" asp-action="Index">Recrutamento</a></li>
                     <li><a asp-area="Public" asp-controller="PublicAccount" asp-action="Login">Login</a></li>
-
-
-
 
                 </ul>
             </nav>
@@ -116,10 +124,9 @@
                     <p>(+351) 910 375 956</p>
 
                     <div class="social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-pinterest"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
+                       
+                        <a href="https://www.instagram.com/ewellinup/"><i class="fab fa-instagram"></i></a>
+                      
 
                         <!-- Link discreto para o painel administrativo -->
                         <a asp-area="" asp-controller="Account" asp-action="Login"

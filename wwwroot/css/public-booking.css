@@ -1,0 +1,58 @@
+/* Estilo Premium - Public Booking (EwellinBeauty) */
+.booking-header {
+    background: linear-gradient(120deg, #c97d5d, #f6d2c0);
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+.booking-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+}
+.btn-main {
+    background-color: #c97d5d;
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    transition: all .3s;
+}
+.btn-main:hover {
+    background-color: #b46d51;
+}
+.filter-section {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+.service-card {
+    border-radius: 16px !important;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.badge-category {
+    background-color: #f0e1db;
+    color: #8a5b47;
+}
+
+/* Date strip */
+.date-strip { border-bottom: 1px solid #eee; }
+.date-list { overflow-x: auto; white-space: nowrap; }
+.date-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    height: 56px;
+    padding: 6px 10px;
+    border: 1px solid #f0e1db;
+    border-radius: 10px;
+    color: #8a5b47;
+    background-color: #fff;
+}
+.date-item small { opacity: .8; }
+.date-item.active { border-color: #c97d5d; color: #c97d5d; box-shadow: 0 2px 8px rgba(201,125,93,.2); }
+
+#timeGrid button.active { background-color: #c97d5d; color: #fff; border-color: #c97d5d; }
+

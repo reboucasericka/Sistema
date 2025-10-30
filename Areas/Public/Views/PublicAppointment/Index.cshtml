@@ -1,223 +1,227 @@
 ﻿@{
-    ViewData["Title"] = "Agendamento Online";
-    var services = ViewBag.Services as List<Sistema.Data.Entities.Service>;
-    var plans = ViewBag.Plans as List<Sistema.Data.Entities.Plan>;
-    var professionals = ViewBag.Professionals as List<Sistema.Data.Entities.Professional>;
-    var reviews = ViewBag.Reviews as List<Sistema.Data.Entities.ServiceReview>;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Agendamento Online - Sistema";
 }
 
-<div class="container mt-4">
+<section class="appointment-section">
+    <div class="container py-5">
 
-    <!-- Hero Section -->
-    <div class="row align-items-center mb-5">
-        <div class="col-md-6">
-            <h2 class="display-5 fw-bold">Sua beleza merece destaque <span class="text-warning">Agende com quem entende.</span></h2>
-            <p class="lead">Escolha o serviço ideal, selecione o profissional dos seus sonhos e garanta seu horário com apenas alguns cliques.</p>
-        </div>
-        <div class="col-md-6">
-            <img src="/images/Academy/ew1.jpg" class="img-fluid rounded" alt="Agendamento Online" />
-        </div>
-    </div>
-
-
-
-
-
-    <!-- Mais Procurados -->
-    <h3 class="mb-3">Mais Procurados</h3>
-    <div class="row">
-        @if (services != null && services.Any())
-        {
-            @foreach (var s in services.Take(4))
-            {
-                <div class="col-md-3 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">@s.Name</h5>
-                            <p class="card-text">Preço: @s.Price €</p>
-                            <a asp-controller="Account" asp-action="Login" asp-area="" asp-route-returnUrl="/Public/PublicAppointment"
-                               class="btn btn-primary">Agendar</a>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <p class="text-muted">Nenhum serviço disponível no momento.</p>
+        <!-- Hero -->
+        <div class="row align-items-center mb-5">
+            <div class="col-md-6">
+                <h2 class="display-6 fw-bold">
+                    Sua beleza merece destaque 💫<br />
+                    <span class="text-accent">Agende com quem entende!</span>
+                </h2>
+                <p class="lead mt-3">
+                    Para agendar, é necessário estar logado. Faça seu
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="link-accent">login</a>
+                    ou
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Register" class="link-accent">cadastro</a>
+                    para continuar.
+                </p>
+                <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-primary mt-3">Entrar para Agendar</a>
             </div>
-        }
-    </div>
-
-    <!-- Pacotes -->
-    @if (plans != null && plans.Any())
-    {
-        <h3 class="mt-5 mb-3">Pacotes</h3>
-        <div class="accordion" id="accordionPlans">
-            @foreach (var plan in plans)
-            {
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading-@plan.PlanId">
-                        <button class="accordion-button collapsed" type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#collapse-@plan.PlanId"
-                                aria-expanded="false"
-                                aria-controls="collapse-@plan.PlanId">
-                            @plan.Name <span class="ms-2 badge bg-warning text-dark">@plan.Price €</span>
-                        </button>
-                    </h2>
-                    <div id="collapse-@plan.PlanId" class="accordion-collapse collapse"
-                         aria-labelledby="heading-@plan.PlanId" data-bs-parent="#accordionPlans">
-                        <div class="accordion-body">
-                            <p>@plan.Description</p>
-                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Public/PublicAppointment"
-                               class="btn btn-outline-warning w-100">Agendar</a>
-                        </div>
-                    </div>
-                </div>
-            }
-
-        </div>
-    }
-
-
-
-    <!-- Todos os Serviços -->
-    <div class="mt-5">
-        <h3 class="mb-3">Todos os Serviços</h3>
-
-        <div class="accordion" id="accordionServices">
-            @if (services != null && services.Any())
-            {
-                @foreach (var category in services.GroupBy(s => s.Category?.Name))
-                {
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-@category.Key">
-                            <button class="accordion-button collapsed" type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#collapse-@category.Key.Replace(" ", "_")"
-                                    aria-expanded="false"
-                                    aria-controls="collapse-@category.Key.Replace(" ", "_")">
-                                @category.Key
-                            </button>
-                        </h2>
-                        <div id="collapse-@category.Key.Replace(" ", "_")"
-                             class="accordion-collapse collapse"
-                             aria-labelledby="heading-@category.Key"
-                             data-bs-parent="#accordionServices">
-                            <div class="accordion-body">
-                                @foreach (var s in category)
-                                {
-                                    <div class="d-flex justify-content-between border-bottom py-2">
-                                        <div>
-                                            <strong>@s.Name</strong>
-                                            <div class="text-muted small">@s.Description</div>
-                                            <span class="badge bg-light text-dark">@s.DurationInMinutes min</span>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="fw-bold text-primary">@s.Price €</span><br />
-                                            <a asp-controller="Account" asp-action="Login" asp-area="" asp-route-returnUrl="/Public/PublicAppointment"
-                                               class="btn btn-sm btn-primary mt-2">Agendar</a>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="col-12">
-                    <p class="text-muted">Nenhum serviço disponível no momento.</p>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Nossa Equipa -->
-    <h3 class="mt-5 mb-3">Nossa Equipa</h3>
-    <div class="row">
-        @if (professionals != null && professionals.Any())
-        {
-            @foreach (var prof in professionals)
-            {
-                <div class="col-md-3 mb-4">
-                    <div class="card text-center border-0 shadow-sm">
-                        <img src="@(prof.ImageId == Guid.Empty ? "/images/default-user.png" : prof.ImageFullPath)"
-                             class="rounded-circle mx-auto mt-3" style="width:120px; height:120px; object-fit:cover;" alt="@prof.Name" />
-                        <div class="card-body">
-                            <h5>@prof.Name</h5>
-                            <p class="text-muted small">@prof.Specialty</p>
-                            <button class="btn btn-sm btn-outline-danger" onclick="this.classList.toggle('active')">❤️ Avaliar</button>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <p class="text-muted">Nenhum profissional disponível no momento.</p>
+            <div class="col-md-6 text-center">
+                <img src="/images/Academy/ew1.jpg" class="img-fluid rounded shadow" alt="Agendamento Online" />
             </div>
-        }
-    </div>
+        </div>
 
+        <!-- Profissionais -->
+        <div class="section-header mb-4 text-center">
+            <h3 class="fw-bold text-accent">Nossa Equipa de Profissionais</h3>
+            <p class="text-muted">Conheça os especialistas prontos para transformar o seu visual.</p>
+        </div>
 
-
-    <!-- Avaliações -->
-    <h3 class="mt-5 mb-3">⭐ Avaliações dos Clientes</h3>
-    <div class="list-group">
-        @if (reviews != null && reviews.Any())
-        {
-            @foreach (var r in reviews)
-            {
-                <div class="list-group-item border-start border-3 border-warning">
-                    <strong>@r.Client?.Name</strong>
-                    <span class="ms-2 text-warning">
-                        @for (int i = 0; i < r.Rating; i++)
-                        {
-                            @:★
-                        }
-                        @for (int i = r.Rating; i < 5; i++)
-                        {
-                            @:☆
-                        }
-                    </span>
-                    <p class="fst-italic">“@r.Comments”</p>
-                    <small class="text-muted">(@r.ReviewDate.ToString("dd/MM/yyyy"))</small>
+        <div class="row g-4 justify-content-center">
+            <!-- Profissional 1 -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <img src="/images/professionals/1.jpg" class="rounded-circle mx-auto mt-3"
+                         style="width:120px; height:120px; object-fit:cover;" alt="Maria Santos" />
+                    <div class="card-body">
+                        <h5 class="fw-bold">Maria Santos</h5>
+                        <p class="text-muted small">Especialista em Sobrancelhas e Henna</p>
+                        <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-outline-primary w-100">Agendar com Maria</a>
+                    </div>
                 </div>
-            }
-        }
-        else
-        {
-            <p class="text-muted">Nenhuma avaliação disponível no momento.</p>
-        }
+            </div>
+
+            <!-- Profissional 2 -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <img src="/images/professionals/2.jpg" class="rounded-circle mx-auto mt-3"
+                         style="width:120px; height:120px; object-fit:cover;" alt="Joana Ribeiro" />
+                    <div class="card-body">
+                        <h5 class="fw-bold">Joana Ribeiro</h5>
+                        <p class="text-muted small">Designer de Cílios e Esteticista</p>
+                        <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-outline-primary w-100">Agendar com Joana</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profissional 3 -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <img src="/images/professionals/3.jpg" class="rounded-circle mx-auto mt-3"
+                         style="width:120px; height:120px; object-fit:cover;" alt="Carla Oliveira" />
+                    <div class="card-body">
+                        <h5 class="fw-bold">Carla Oliveira</h5>
+                        <p class="text-muted small">Micropigmentadora & Brow Artist</p>
+                        <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-outline-primary w-100">Agendar com Carla</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profissional 4 -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <img src="/images/professionals/4.jpg" class="rounded-circle mx-auto mt-3"
+                         style="width:120px; height:120px; object-fit:cover;" alt="Patrícia Lopes" />
+                    <div class="card-body">
+                        <h5 class="fw-bold">Patrícia Lopes</h5>
+                        <p class="text-muted small">Maquiadora & Consultora de Imagem</p>
+                        <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-outline-primary w-100">Agendar com Patrícia</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Serviços populares -->
+        <div class="section-header text-center mt-5 mb-4">
+            <h3 class="fw-bold text-accent">Serviços Mais Procurados</h3>
+        </div>
+
+        <div class="row text-center">
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3">
+                    <h5 class="fw-bold">Design de Sobrancelha</h5>
+                    <p class="text-muted">Perfeição para realçar o olhar.</p>
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-primary w-100">Agendar</a>
+
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3">
+                    <h5 class="fw-bold">Extensão de Cílios</h5>
+                    <p class="text-muted">Técnica volume brasileiro e egípcio.</p>
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-primary w-100">Agendar</a>
+
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3">
+                    <h5 class="fw-bold">Coloração de Sobrancelhas</h5>
+                    <p class="text-muted">Harmonia perfeita com sua pele.</p>
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-primary w-100">Agendar</a>
+
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3">
+                    <h5 class="fw-bold">Micropigmentação</h5>
+                    <p class="text-muted">Resultado natural e duradouro.</p>
+                    <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="btn btn-primary w-100">Agendar</a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Depoimentos Reais -->
+        <div class="section-header text-center mt-5 mb-4">
+            <h3 class="fw-bold text-accent">⭐ Depoimentos Reais de Clientes</h3>
+            <p class="text-muted">Veja o que nossos clientes dizem sobre o atendimento e resultados.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Depoimento 1 -->
+            <div class="col-md-4">
+                <div class="testimonial-card shadow-sm p-4 text-center bg-white rounded">
+                    <img src="/images/clients/1.jpg" class="rounded-circle mb-3" style="width:90px; height:90px; object-fit:cover;" alt="Ana Costa">
+                    <h5 class="fw-bold text-accent">Ana Costa</h5>
+                    <p class="text-warning mb-2">★★★★★</p>
+                    <p class="fst-italic">"A Maria é simplesmente perfeita! As sobrancelhas ficaram impecáveis, e o ambiente é super acolhedor."</p>
+                    <small class="text-muted">Serviço: Design de Sobrancelhas + Henna</small>
+                </div>
+            </div>
+
+            <!-- Depoimento 2 -->
+            <div class="col-md-4">
+                <div class="testimonial-card shadow-sm p-4 text-center bg-white rounded">
+                    <img src="/images/clients/2.jpg" class="rounded-circle mb-3" style="width:90px; height:90px; object-fit:cover;" alt="Beatriz Silva">
+                    <h5 class="fw-bold text-accent">Beatriz Silva</h5>
+                    <p class="text-warning mb-2">★★★★★</p>
+                    <p class="fst-italic">"Experiência maravilhosa! Fiz o volume russo com a Joana e o resultado superou minhas expectativas."</p>
+                    <small class="text-muted">Serviço: Extensão de Cílios Volume Russo</small>
+                </div>
+            </div>
+
+            <!-- Depoimento 3 -->
+            <div class="col-md-4">
+                <div class="testimonial-card shadow-sm p-4 text-center bg-white rounded">
+                    <img src="/images/clients/3.jpg" class="rounded-circle mb-3" style="width:90px; height:90px; object-fit:cover;" alt="Catarina Lopes">
+                    <h5 class="fw-bold text-accent">Catarina Lopes</h5>
+                    <p class="text-warning mb-2">★★★★☆</p>
+                    <p class="fst-italic">"Ambiente limpo, atendimento excelente e resultado muito natural. Recomendo a Carla de olhos fechados!"</p>
+                    <small class="text-muted">Serviço: Micropigmentação de Sobrancelhas</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagem final -->
+        <div class="text-center mt-5">
+            <p class="text-muted">
+                ✨ Para garantir a qualidade do seu atendimento, o agendamento online está disponível apenas para clientes logados.<br />
+                Faça seu
+                <a asp-area="Public" asp-controller="PublicAccount" asp-action="Login" class="link-accent">login</a>
+                ou
+                <a asp-area="Public" asp-controller="PublicAccount" asp-action="Register" class="register-link">criar conta</a>
+                para continuar.
+            </p>
+        </div>
     </div>
+</section>
 
-
-
-    <!-- Rodapé -->
-    <footer class="mt-5 p-4 bg-dark text-light rounded">
-        <h4 class="text-warning">Ewellin Jordao Beauty</h4>
-        <p><strong>Bem-vindo!</strong></p>
-        <p><strong>Formas de pagamento:</strong> Visa, Mastercard, American Express, Elo, PicPay, Maestro, Visa Electron, Débito, DOC/TED, Transferência, Dinheiro, Vale-Presente, PIX</p>
-        <p><strong>Idiomas:</strong> Português</p>
-        <p><strong>Facilidades:</strong> Estacionamento Pago, Atendemos adultos e crianças, Acesso a Deficientes</p>
-    </footer>
-</div>
-
-
-@section Scripts {
-    <script>
-        // Avaliação com coração
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.btn-outline-danger').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    this.classList.toggle('active');
-                });
-            });
-        });
-    </script>
+<style>
+.appointment-section {
+    background-color: var(--neutral-light);
 }
+.text-accent {
+    color: var(--accent-terracotta);
+}
+.link-accent {
+    color: var(--accent-peach);
+    text-decoration: none;
+    font-weight: 500;
+}
+.link-accent:hover {
+    text-decoration: underline;
+}
+.card img {
+    border: 3px solid var(--accent-peach);
+}
+.btn-outline-primary {
+    border-radius: 10px;
+}
+.btn-primary, .btn-outline-primary:hover {
+    background-color: var(--accent-terracotta);
+    border-color: var(--accent-terracotta);
+}
+.section-header h3 {
+    color: var(--accent-terracotta);
+}
+.testimonial-card {
+    transition: transform 0.2s ease-in-out;
+    border-top: 4px solid var(--accent-terracotta);
+}
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.testimonial-card p {
+    color: var(--neutral-gray);
+}
+.text-warning {
+    color: #f6c343 !important;
+}
+</style>

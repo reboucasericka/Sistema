@@ -3,117 +3,52 @@
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <!-- Header Principal -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1">
-                                <i class="fas fa-calendar-alt"></i>
-                                Minha Área / Areas/public/views/publicclientpanel
-                            </h2>
-                            <p class="mb-0 opacity-75">Bem-vindo, @ViewBag.CustomerName!</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a asp-action="MyAppointments" class="btn btn-light btn-sm">
-                                <i class="fas fa-list"></i> Meus Compromissos
-                            </a>
-                            <a asp-controller="PublicBooking" asp-action="Index" class="btn btn-warning btn-sm">
-                                <i class="fas fa-plus"></i> Novo Agendamento
-                            </a>
-                            <button class="btn btn-outline-light btn-sm" onclick="linkGoogleCalendar()">
-                                <i class="fab fa-google"></i> Google Calendar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+<!-- ===== Estilo Premium ===== -->
+<link href="~/css/client-panel.css" rel="stylesheet" />
+
+<!-- ===== Layout ===== -->
+
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="page-header my-4 p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2><i class="fas fa-spa me-2"></i>Olá, @ViewBag.CustomerName</h2>
+                <p class="opacity-75 mb-0">Bem-vinda à sua área de agendamentos e serviços exclusivos.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                <a asp-controller="PublicBooking" asp-action="Index" class="btn btn-main btn-sm">
+                    <i class="fas fa-calendar-plus"></i> Novo Agendamento
+                </a>
+                <a asp-action="MyAppointments" class="btn btn-outline-light btn-sm border-light text-light">
+                    <i class="fas fa-list"></i> Meus Agendamentos
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Sidebar com Filtros -->
-        <div class="col-md-3 col-lg-2">
-            @await Html.PartialAsync("_SidebarFilters")
-        </div>
-
-        <!-- Área Principal -->
-        <div class="col-md-9 col-lg-10">
-
-            <!-- Calendário -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-calendar"></i> Calendário de Agendamentos
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div id="calendar" style="min-height: 500px;"></div>
-                </div>
-            </div>
-
-            <!-- Serviços Disponíveis -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-concierge-bell"></i> Serviços Disponíveis
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="services-container" class="row">
-                        <!-- Loading spinner -->
-                        <div class="col-12 text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Carregando...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Carregando serviços...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Produtos Disponíveis -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-shopping-bag"></i> Produtos Disponíveis
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="products-container" class="row">
-                        <!-- Loading spinner -->
-                        <div class="col-12 text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Carregando...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Carregando produtos...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Página intencionalmente vazia: navegação pelas abas do menu lateral -->
+    <div class="row g-4">
+        <div class="col-12">
+            
         </div>
     </div>
 </div>
 
-<!-- Modal de Detalhes do Agendamento -->
+<!-- Modal -->
 <div class="modal fade" id="appointmentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-light">
                 <h5 class="modal-title">Detalhes do Agendamento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="appointment-details">
-                    <!-- Conteúdo será preenchido via JavaScript -->
-                </div>
+            <div class="modal-body" id="appointment-details">
+                <!-- Conteúdo dinâmico -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-danger" id="cancel-appointment-btn" style="display: none;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-danger" id="cancel-appointment-btn" style="display:none;">
                     <i class="fas fa-times"></i> Cancelar Agendamento
                 </button>
             </div>
@@ -121,13 +56,6 @@
     </div>
 </div>
 
-@section Scripts {
-    <!-- JavaScript específico da página (se necessário) -->
-    <script>
-        // Configurações específicas da página podem ser adicionadas aqui
-        // O JavaScript principal está no client-panel.js
-    </script>
-}
+@section Scripts { }
 
-<!-- Token para CSRF -->
 @Html.AntiForgeryToken()

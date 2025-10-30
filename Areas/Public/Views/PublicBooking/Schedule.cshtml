@@ -1,228 +1,63 @@
-@model Sistema.Models.Public.PublicBookingViewModel
-
+@model SistemaAPI.DTOs.ServiceDto
 @{
-    ViewData["Title"] = "Agendar Serviço";
+    ViewData["Title"] = "Escolha o seu horário";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-calendar-plus"></i> Agendar Serviço
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <!-- Informações do Serviço -->
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            @if (!string.IsNullOrEmpty(Model.ImageId))
-                            {
-                                <img src="~/uploads/services/@Model.ImageId" alt="@Model.ServiceName" class="img-fluid rounded">
-                            }
-                            else
-                            {
-                                <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" style="height: 120px;">
-                                    <i class="fas fa-concierge-bell fa-3x"></i>
-                                </div>
-                            }
-                        </div>
-                        <div class="col-md-9">
-                            <h4>@Model.ServiceName</h4>
-                            <p class="text-muted">@Model.Duration</p>
-                            <p class="text-muted">@Model.Description</p>
-                            <h5 class="text-primary">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", Model.Price)</h5>
-                        </div>
-                    </div>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/booking-flow.css" />
 
-                    <form asp-action="Schedule" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        <input type="hidden" asp-for="ServiceId" />
-                        <input type="hidden" asp-for="ServiceName" />
-                        <input type="hidden" asp-for="Price" />
-                        <input type="hidden" asp-for="Duration" />
-                        <input type="hidden" asp-for="Description" />
-                        <input type="hidden" asp-for="ImageId" />
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label asp-for="SelectedDate" class="form-label"></label>
-                                    <input asp-for="SelectedDate" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                                    <span asp-validation-for="SelectedDate" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label asp-for="SelectedTime" class="form-label"></label>
-                                    <select asp-for="SelectedTime" class="form-control" id="timeSelect" disabled>
-                                        <option value="">Selecione primeiro a data e o profissional</option>
-                                    </select>
-                                    <span asp-validation-for="SelectedTime" class="text-danger"></span>
-                                    <div id="loadingSlots" class="text-muted small mt-1" style="display: none;">
-                                        <i class="fas fa-spinner fa-spin"></i> Carregando horários disponíveis...
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if (ViewBag.Professionals != null && ((List<Sistema.Data.Entities.Professional>)ViewBag.Professionals).Any())
-                        {
-                            <div class="form-group mb-3">
-                                <label class="form-label">Profissional</label>
-                                <div class="row">
-                                    @foreach (var professional in ViewBag.Professionals as List<Sistema.Data.Entities.Professional>)
-                                    {
-                                        <div class="col-md-6 mb-2">
-                                            <div class="card">
-                                                <div class="card-body p-2">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input professional-radio" type="radio" name="ProfessionalId" value="@professional.ProfessionalId" id="professional_@professional.ProfessionalId">
-                                                        <label class="form-check-label" for="professional_@professional.ProfessionalId">
-                                                            <div class="d-flex align-items-center">
-                                                                @if (professional.ImageId != Guid.Empty)
-                                                                {
-                                                                    <img src="@professional.ImageFullPath" alt="@professional.Name" class="rounded-circle me-2" width="32" height="32">
-                                                                }
-                                                                else
-                                                                {
-                                                                    <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                                        <i class="fas fa-user text-white"></i>
-                                                                    </div>
-                                                                }
-                                                                <div>
-                                                                    <strong>@professional.Name</strong>
-                                                                    @if (!string.IsNullOrEmpty(professional.Specialty))
-                                                                    {
-                                                                        <br><small class="text-muted">@professional.Specialty</small>
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Voltar
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-calendar-check"></i> Continuar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid px-4">
+    <div class="flow-header">
+        <button class="link" onclick="history.back()"><i class="fas fa-arrow-left"></i> Anterior</button>
+        <h2>Escolha o seu horário</h2>
+        <div></div>
     </div>
+
+    <div class="day-strip" id="dayStrip"></div>
+
+    <div class="selected-time">
+        <span>Horário selecionado:</span>
+        <strong id="selectedTimeBadge">—</strong>
+    </div>
+
+    <div id="daySlots" class="slots-container">
+        <div class="text-muted py-4 text-center">A carregar horários…</div>
+    </div>
+
+    <h5 class="mt-4 mb-2">Profissional</h5>
+    <div id="staffGrid" class="staff-grid">
+        <div class="text-muted py-4 text-center">Selecione um horário para ver profissionais.</div>
+    </div>
+
+    <form id="confirmForm" asp-action="Confirm" method="post" class="confirm-bar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ServiceId" value="@Model.ServiceId" />
+        <input type="hidden" name="Date" id="confirmDate" />
+        <input type="hidden" name="Time" id="confirmTime" />
+        <input type="hidden" name="ProfessionalId" id="confirmProf" />
+        <input type="hidden" name="Notes" value="" />
+
+        <div class="summary">
+            <div>
+                <div class="s-title">@Model.Name</div>
+                <div class="s-sub">@Model.DurationInMinutes min • @Model.CategoryName</div>
+            </div>
+            <div class="s-price">@String.Format(new System.Globalization.CultureInfo("pt-PT"), "{0:C}", @Model.Price)</div>
+        </div>
+        <button type="submit" class="btn-confirm" disabled id="confirmBtn">
+            <i class="fas fa-check"></i> Confirmar agendamento
+        </button>
+        <a class="btn-google" href="/Public/PublicAccount/LinkGoogleCalendar">
+            <i class="fab fa-google"></i> Ligar Google Calendar
+        </a>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        let selectedProfessionalId = null;
-        let selectedDate = null;
-
-        // Event listeners para data e profissional
-        document.getElementById('SelectedDate').addEventListener('change', function() {
-            selectedDate = this.value;
-            loadAvailableSlots();
-        });
-
-        document.querySelectorAll('.professional-radio').forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.checked) {
-                    selectedProfessionalId = this.value;
-                    loadAvailableSlots();
-                }
-            });
-        });
-
-        function loadAvailableSlots() {
-            const timeSelect = document.getElementById('timeSelect');
-            const loadingSlots = document.getElementById('loadingSlots');
-
-            // Verificar se temos data e profissional selecionados
-            if (!selectedDate || !selectedProfessionalId) {
-                timeSelect.disabled = true;
-                timeSelect.innerHTML = '<option value="">Selecione primeiro a data e o profissional</option>';
-                return;
-            }
-
-            // Mostrar loading
-            loadingSlots.style.display = 'block';
-            timeSelect.disabled = true;
-            timeSelect.innerHTML = '<option value="">Carregando...</option>';
-
-            // Fazer requisição AJAX
-            fetch(`@Url.Action("GetAvailableSlots")?professionalId=${selectedProfessionalId}&serviceId=${@Model.ServiceId}&date=${selectedDate}`)
-                .then(response => response.json())
-                .then(data => {
-                    loadingSlots.style.display = 'none';
-                    
-                    if (data.success && data.slots.length > 0) {
-                        timeSelect.innerHTML = '<option value="">Selecione um horário</option>';
-                        data.slots.forEach(slot => {
-                            const option = document.createElement('option');
-                            option.value = slot.time;
-                            option.textContent = slot.time;
-                            timeSelect.appendChild(option);
-                        });
-                        timeSelect.disabled = false;
-                    } else {
-                        timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
-                        timeSelect.disabled = true;
-                        
-                        if (data.message) {
-                            showAlert('info', data.message);
-                        }
-                    }
-                })
-                .catch(error => {
-                    loadingSlots.style.display = 'none';
-                    timeSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
-                    timeSelect.disabled = true;
-                    console.error('Erro ao carregar horários:', error);
-                    showAlert('danger', 'Erro ao carregar horários disponíveis. Tente novamente.');
-                });
-        }
-
-        function showAlert(type, message) {
-            // Criar alerta Bootstrap
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            // Inserir no topo do formulário
-            const form = document.querySelector('form');
-            form.insertBefore(alertDiv, form.firstChild);
-            
-            // Remover automaticamente após 5 segundos
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 5000);
-        }
-
-        // Validação do formulário
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const timeSelect = document.getElementById('timeSelect');
-            if (!timeSelect.value) {
-                e.preventDefault();
-                showAlert('warning', 'Por favor, selecione um horário disponível.');
-                return false;
-            }
-        });
+        const serviceId = @Model.ServiceId;
+        const baseUrl = '@Url.Content("~/")';
     </script>
+    <script src="~/js/booking-flow.js"></script>
 }

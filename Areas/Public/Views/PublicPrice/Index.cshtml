@@ -1,21 +1,127 @@
-﻿@model IEnumerable<Sistema.Data.Entities.PriceTable>
-@{
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Tabela de Preços";
 }
 
-<div class="container tabela-precos">
-    <h2 class="titulo">Tabela de Preços</h2>
+<section class="price-table-section">
+    <div class="container">
+        <h3 class="sub-title">TABELA DE PREÇOS - EUROPA</h3>
+        <div class="price-category">
+            <h2>THREADING</h2>
+            <ul>
+                <li><strong>Sobrancelha</strong> <span>€11,20</span></li>
+                <li><strong>Buço</strong> <span>€6,15</span></li>
+                <li><strong>Sobrancelha + Buço</strong> <span>€15,20</span> <em>Preço Especial</em></li>
+                <li><strong>Sobrancelha + Henna</strong> <span>€17,70</span> <em>Preço Especial</em></li>
+                <li><strong>Sobrancelha + Coloração</strong> <span>€21,40</span> <em>Preço Especial</em></li>
+                <li><strong>Sobrancelha + Brow Lamination</strong> <span>€30,60</span></li>
+                <li><strong>Rosto</strong> <span>€36,80</span> <em>Inclui threading de sobrancelha</em></li>
+            </ul>
+        </div>
 
-    @foreach (var categoria in Model.GroupBy(p => p.Category))
-    {
-        <div class="categoria">@categoria.Key</div>
+        <div class="price-category">
+            <h2>TÉCNICAS SEMIPERMANENTES</h2>
+            <ul>
+                <li><strong>Avaliação</strong> <span>€12,15</span></li>
+                <li><strong>Shadow</strong> <span>€96,90</span></li>
+                <li><strong>Shadow Line</strong> <span>€118,50</span></li>
+                <li><strong>Microblading</strong> <span>€127,70</span></li>
+                <li><strong>Delineado de Olhos</strong> <span>a partir de €101,50</span> <em>Inferior - €60,00 | Superior - €60,00</em></li>
+                <li><strong>Coloração Labial</strong> <span>€152,30</span></li>
+                <li><strong>Despigmentação de Sobrancelha</strong> <span>por sessão €53,85</span></li>
+            </ul>
+        </div>
 
-        @foreach (var item in categoria)
-        {
-            <div class="linha-preco">
-                <span class="servico">@item.ServiceName</span>
-                <span class="preco">€@item.Price.ToString("N2")</span>
-            </div>
-        }
-    }
-</div>
+        <div class="price-category">
+            <h2>CÍLIOS</h2>
+            <ul>
+                <li><strong>Extensão Quick Lash</strong> <span>€29,20</span> <em>(Sem manutenção)</em></li>
+                <li><strong>Extensão Clássica</strong> <span>€36,90</span> <em>Manutenção 2s: €18,30 | 3s: €21,40 | 4s: €26,00</em></li>
+                <li><strong>Volume Russo</strong> <span>€47,70</span> <em>Manutenção 2s: €19,85 | 3s: €22,90 | 4s: €27,55</em></li>
+                <li><strong>Volume Brasileiro</strong> <span>€43,10</span> <em>Manutenção 2s: €19,25 | 3s: €22,30 | 4s: €26,90</em></li>
+                <li><strong>Remoção de Cílios</strong> <span>€11,55</span> <em>Preço Especial</em></li>
+            </ul>
+        </div>
+
+        <div class="price-category">
+            <h2>PRODUTOS</h2>
+            <ul>
+                <li><strong>Demaquilante Wiñk 150ml</strong> <span>€5,98</span></li>
+                <li><strong>Lápis Lift & Draw</strong> <span>€9,22</span></li>
+                <li><strong>Sérum para Cílios</strong> <span>€13,83</span></li>
+                <li><strong>Espelho Portátil</strong> <span>€6,75</span></li>
+                <li><strong>Apontador</strong> <span>€5,37</span></li>
+                <li><strong>Fiber Mascara</strong> <span>€12,30</span></li>
+            </ul>
+        </div>
+
+        <div class="price-category">
+            <h2>COMBOS</h2>
+            <ul>
+                <li><strong>Must Have</strong> <span>€13,22</span> <em>(Lápis + Apontador)</em></li>
+                <li><strong>S.O.S Sobrancelhas Perfeitas</strong> <span>€32,30</span> <em>(Demaquilante + Lápis + Espelho + Threading)</em></li>
+                <li><strong>O Olhar que Marca</strong> <span>€57,22</span> <em>(Demaquilante + Espelho + Extensão de Cílios + Threading)</em></li>
+            </ul>
+        </div>
+
+        <div class="price-category">
+            <h2>THREADING MASCULINO</h2>
+            <ul>
+                <li><strong>Sobrancelhas</strong> <span>€11,20</span></li>
+                <li><strong>Meio de Sobrancelhas</strong> <span>€6,15</span></li>
+                <li><strong>Asas do Nariz</strong> <span>€6,15</span></li>
+                <li><strong>Maçãs do Rosto</strong> <span>€6,15</span></li>
+                <li><strong>Orelhas</strong> <span>€6,15</span></li>
+            </ul>
+        </div>
+
+        <!--AGENDAMENTO APENAS PARA CLIENTES CADASTRADO E LOGADOS-->
+    </div>
+</section>
+
+<style>
+.price-table-section {
+    background: var(--neutral-light);
+    padding: 50px 0;
+    color: var(--neutral-dark);
+}
+.sub-title {
+    text-align: center;
+    color: var(--secondary-olive);
+    margin-bottom: 40px;
+}
+.price-category {
+    background: var(--neutral-white);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+.price-category h2 {
+    color: var(--accent-terracotta);
+    margin-bottom: 10px;
+}
+.price-category ul {
+    list-style: none;
+    padding: 0;
+}
+.price-category li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+.price-category li em {
+    font-size: 0.9em;
+    color: var(--secondary-olive);
+}
+.price-category li span {
+    color: var(--accent-peach);
+    font-weight: 600;
+}
+.disclaimer {
+    text-align: center;
+    margin-top: 40px;
+    color: var(--neutral-gray);
+}
+</style>

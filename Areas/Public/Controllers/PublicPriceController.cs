@@ -15,17 +15,9 @@ namespace Sistema.Areas.Public.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            // Limpar o ChangeTracker para forçar atualização
-            _context.ChangeTracker.Clear();
-
-            var prices = await _context.PriceTables
-                .AsNoTracking()
-                .OrderBy(p => p.ServiceName)
-                .ToListAsync();
-
-            return View(prices);
+            return View();
         }
 
         public async Task<IActionResult> Details(int id)

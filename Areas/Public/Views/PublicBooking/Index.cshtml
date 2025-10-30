@@ -1,110 +1,100 @@
-@model IEnumerable<Sistema.Data.Entities.Service>
+@model IEnumerable<SistemaAPI.DTOs.ServiceDto>
 
 @{
     ViewData["Title"] = "Agendamento Online";
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
 }
 
-<div class="container-fluid">
+<link href="~/css/public-booking.css" rel="stylesheet" />
+<script src="~/js/shared/ui-helpers.js"></script>
+
+<div class="container-fluid px-4">
     <!-- Header Principal -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1">
-                                <i class="fas fa-calendar-plus"></i>
-                                Agendamento Online
-                            </h2>
-                            <p class="mb-0 opacity-75">Escolha seu serviço e agende seu horário</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a asp-action="Index" asp-controller="PublicClientPanel" class="btn btn-light btn-sm">
-                                <i class="fas fa-home"></i> Minha Área
-                            </a>
-                            <a asp-action="MyAppointments" asp-controller="PublicClientPanel" class="btn btn-outline-light btn-sm">
-                                <i class="fas fa-list"></i> Meus Agendamentos
-                            </a>
-                        </div>
+            <div class="booking-header my-4 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="fas fa-calendar-plus"></i>
+                            Agendamento Online
+                        </h2>
+                        <p class="mb-0 opacity-75">Escolha seu serviço e agende seu horário</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Index" asp-controller="PublicClientPanel" class="btn btn-outline-light btn-sm border-light text-light">
+                            <i class="fas fa-home"></i> Minha Área
+                        </a>
+                        <a asp-action="MyAppointments" asp-controller="PublicClientPanel" class="btn btn-outline-light btn-sm border-light text-light">
+                            <i class="fas fa-list"></i> Meus Agendamentos
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Sidebar de Filtros -->
         <div class="col-md-3 col-lg-2">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-filter"></i> Filtros
-                    </h6>
+            <div class="filter-section">
+                <div class="sidebar-title">Filtros</div>
+                <!-- Data -->
+                <div class="mb-3">
+                    <label class="form-label">Quando deseja agendar</label>
+                    <input type="date" class="form-control" id="bookingDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
                 </div>
-                <div class="card-body">
-                    <!-- Data -->
-                    <div class="mb-3">
-                        <label class="form-label">Quando deseja agendar</label>
-                        <input type="date" class="form-control" id="bookingDate" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+
+                <!-- Categorias -->
+                <div class="mb-3">
+                    <label class="form-label">Categorias</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="Pestanas">
+                        <label class="form-check-label" for="Pestanas">Pestanas</label>
                     </div>
 
-                    <!-- Preço -->
-                    <div class="mb-3">
-                        <label class="form-label">Preço</label>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small">€0</span>
-                            <span class="small">€200+</span>
-                        </div>
-                        <input type="range" class="form-range" min="0" max="200" value="100" id="priceRange">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="barbearia">
+                        <label class="form-check-label" for="barbearia">Barbearia</label>
                     </div>
-
-                    <!-- Categorias -->
-                    <div class="mb-3">
-                        <label class="form-label">Categorias</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="barbearia">
-                            <label class="form-check-label" for="barbearia">Barbearia</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="cabelos">
-                            <label class="form-check-label" for="cabelos">Cabelos</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="depilacao">
-                            <label class="form-check-label" for="depilacao">Depilação</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="maquiagem">
-                            <label class="form-check-label" for="maquiagem">Maquiagem</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="massagem">
-                            <label class="form-check-label" for="massagem">Massagem e Estética</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="podologia">
-                            <label class="form-check-label" for="podologia">Podologia</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="sobrancelhas">
-                            <label class="form-check-label" for="sobrancelhas">Sobrancelhas</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="unhas">
-                            <label class="form-check-label" for="unhas">Unhas</label>
-                        </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="cabelos">
+                        <label class="form-check-label" for="cabelos">Cabelos</label>
                     </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="depilacao">
+                        <label class="form-check-label" for="depilacao">Depilação</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="maquiagem">
+                        <label class="form-check-label" for="maquiagem">Maquiagem</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="massagem">
+                        <label class="form-check-label" for="massagem">Massagem e Estética</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="podologia">
+                        <label class="form-check-label" for="podologia">Podologia</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sobrancelhas">
+                        <label class="form-check-label" for="sobrancelhas">Sobrancelhas</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="unhas">
+                        <label class="form-check-label" for="unhas">Unhas</label>
+                    </div>
+                </div>
 
-                    <!-- Facilidades -->
-                    <div class="mb-3">
-                        <label class="form-label">Facilidades</label>
-                        <div class="d-flex flex-wrap gap-1">
-                            <span class="badge bg-warning text-dark small">Agendamento online</span>
-                            <span class="badge bg-warning text-dark small">Aceita cartão</span>
-                            <span class="badge bg-warning text-dark small">WiFi</span>
-                            <span class="badge bg-warning text-dark small">Acessível</span>
-                        </div>
+                <!-- Facilidades -->
+                <div class="mb-3">
+                    <label class="form-label">Facilidades</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-warning text-dark small">Agendamento online</span>
+                        <span class="badge bg-warning text-dark small">Aceita cartão</span>
+                        <span class="badge bg-warning text-dark small">WiFi</span>
+                        <span class="badge bg-warning text-dark small">Acessível</span>
                     </div>
                 </div>
             </div>
@@ -112,52 +102,22 @@
 
         <!-- Conteúdo Principal -->
         <div class="col-md-9 col-lg-10">
-            <!-- Header do Estabelecimento -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-2">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                <span class="fw-bold fs-3">E</span>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <h3 class="mb-1">Ewellin Jordão - Estética</h3>
-                            <p class="text-muted mb-1">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                Rua da Beleza, 123, Centro, Lisboa
-                            </p>
-                            <div class="d-flex align-items-center">
-                                <div class="text-warning me-2">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <span class="text-muted">Avaliações (26)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Lista de Serviços -->
             <div class="row">
                 @foreach (var service in Model)
                 {
                     <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card h-100 shadow-sm border-0 service-card" data-service-id="@service.ServiceId">
+                        <div class="card h-100 border-0 service-card" data-service-id="@service.ServiceId">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0">@service.Name</h6>
-                                    <span class="badge bg-primary">@service.Category?.Name</span>
+                                    <span class="badge badge-category">@service.CategoryName</span>
                                 </div>
                                 <p class="card-text text-muted small mb-3">@service.Description</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <small class="text-muted">
-                                            <i class="fas fa-clock"></i> @service.Duration
+                                            <i class="fas fa-clock"></i> @service.DurationInMinutes minutos
                                         </small>
                                     </div>
                                     <div class="text-end">
@@ -165,8 +125,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer bg-light">
-                                <a asp-action="Schedule" asp-route-id="@service.ServiceId" class="btn btn-primary btn-sm w-100">
+                            <div class="card-footer bg-white">
+                                <a asp-area="Public" asp-controller="PublicBooking" asp-action="Schedule" asp-route-id="@service.ServiceId" class="btn btn-main btn-sm w-100">
                                     <i class="fas fa-calendar-plus"></i> Agendar
                                 </a>
                             </div>
@@ -174,110 +134,12 @@
                     </div>
                 }
             </div>
-
-            <!-- Link para ver todos os serviços -->
-            <div class="text-center mt-4">
-                <a href="#" class="btn btn-outline-primary">
-                    Ver todos os serviços <i class="fas fa-arrow-right ms-2"></i>
-                </a>
-            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            // Toggle dos serviços
-            $('.service-toggle').click(function() {
-                const serviceId = $(this).data('service-id');
-                const details = $(this).closest('.service-card').find('.service-details');
-                const icon = $(this).find('i');
-                
-                if (details.is(':visible')) {
-                    details.slideUp();
-                    icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-                } else {
-                    // Carregar profissionais se ainda não foram carregados
-                    if (details.find('.professionals-list').children().length === 0) {
-                        loadServiceDetails(serviceId);
-                    }
-                    details.slideDown();
-                    icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                }
-            });
-        });
-
-        function loadServiceDetails(serviceId) {
-            $.ajax({
-                url: '/PublicBooking/GetServiceDetails',
-                type: 'GET',
-                data: { serviceId: serviceId },
-                success: function(response) {
-                    if (response.success) {
-                        displayProfessionals(serviceId, response.professionals);
-                    }
-                },
-                error: function() {
-                    console.error('Erro ao carregar detalhes do serviço');
-                }
-            });
-        }
-
-        function displayProfessionals(serviceId, professionals) {
-            const container = $(`.service-card[data-service-id="${serviceId}"] .professionals-list`);
-            let html = '';
-
-            professionals.forEach(function(professional) {
-                const recommendationsText = professional.recommendations > 0 
-                    ? `${professional.recommendations} recomendações` 
-                    : 'Nenhuma recomendação';
-
-                const hasAvailableTimes = professional.availableTimes.length > 0;
-                const timeButtons = hasAvailableTimes 
-                    ? professional.availableTimes.map(time => 
-                        `<button class="btn btn-success btn-sm me-2 mb-2 time-slot" data-time="${time}">${time}</button>`
-                      ).join('')
-                    : '<button class="btn btn-secondary btn-sm" disabled>HORÁRIOS INDISPONÍVEIS</button>';
-
-                html += `
-                    <div class="professional-card border rounded p-3 mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <img src="${professional.photo}" class="rounded-circle me-3" width="40" height="40" alt="${professional.name}">
-                            <div>
-                                <h6 class="mb-0">${professional.name}</h6>
-                                <small class="text-muted">${professional.specialty}</small>
-                            </div>
-                            <div class="ms-auto">
-                                <small class="text-muted">${recommendationsText}</small>
-                            </div>
-                        </div>
-                        <div class="time-slots">
-                            ${timeButtons}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.html(html);
-
-            // Adicionar evento aos botões de horário
-            container.find('.time-slot').click(function() {
-                const time = $(this).data('time');
-                const serviceId = $(this).closest('.service-card').data('service-id');
-                bookAppointment(serviceId, time);
-            });
-        }
-
-        function bookAppointment(serviceId, time) {
-            // Redirecionar para login se não estiver logado
-            if (!@(User.Identity.IsAuthenticated.ToString().ToLower())) {
-                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
-                return;
-            }
-
-            // Redirecionar para página de agendamento
-            window.location.href = `/Client/NewAppointment?serviceId=${serviceId}&time=${time}`;
-        }
-    </script>
+    <script src="~/js/public-booking.js"></script>
 }
+
+@Html.AntiForgeryToken()

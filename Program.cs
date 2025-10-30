@@ -97,23 +97,42 @@ builder.Services.AddHostedService<AppointmentReminderService>();
 // HttpClient para serviços que fazem requisições HTTP
 builder.Services.AddHttpClient();
 
+// HttpClient específico para SistemaAPI
+builder.Services.AddHttpClient("SistemaAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7001/api/");
+    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+});
+
+// Habilitar sessão
+builder.Services.AddSession();
+
 // =====================================================================
 // 5️⃣ CONFIGURAÇÃO DO BANCO DE DADOS SQLITE
 // =====================================================================
 builder.Services.AddDbContext<SistemaDbContext>(options =>
-    options.UseSqlite("Data Source=Sistema.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Garante apenas que o banco existe (não migra nem recria tabelas)
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<SistemaDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 // Identity com Entity Framework
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
-    // Configurações de senha
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 6;
+    // Permitir senhas simples (ex: 123456)
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
+    options.Password.RequiredLength = 3; // mínimo de 3 caracteres
     
     // Configurações de usuário
+    options.User.AllowedUserNameCharacters =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     options.User.RequireUniqueEmail = true;
     options.SignIn.RequireConfirmedEmail = false;
 })
@@ -357,6 +376,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Habilitar sessão
+app.UseSession();
+
+// Middleware de validação JWT
+app.UseMiddleware<Sistema.Middleware.JwtValidationMiddleware>();
+
 // =====================================================================
 // CORS MIDDLEWARE - ANTES DA AUTENTICAÇÃO
 // =====================================================================
@@ -428,23 +453,7 @@ Console.WriteLine("🛠️ ================================");
 // =====================================================================
 // 8️⃣ SEED DO BANCO DE DADOS
 // =====================================================================
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<SistemaDbContext>();
-        var userManager = services.GetRequiredService<UserManager<User>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var seedDb = new SeedDb(context, userManager, roleManager);
-        await seedDb.SeedAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Erro ao executar seed do banco de dados");
-    }
-}
+// Seeding removido do MVC: responsabilidade da API
 
 // =====================================================================
 // O seed de dados agora é responsabilidade da API
