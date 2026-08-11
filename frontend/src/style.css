@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Salon brand — alinhado ao site público */
+  --color-brand-50: #faf6f4;
+  --color-brand-100: #f3ece8;
+  --color-brand-200: #e8d5cc;
+  --color-brand-500: #d9a791;
+  --color-brand-600: #c97d5d;
+  --color-brand-700: #a86548;
+  --color-brand-800: #8a5239;
+  --color-surface: #f8f9fa;
+  --color-ink: #1f2937;
+}
+
+body {
+  @apply antialiased;
+}
+
+body:not(.legacy-site) {
+  @apply bg-surface text-ink;
+}

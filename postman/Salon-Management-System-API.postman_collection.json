@@ -1,0 +1,221 @@
+{
+  "info": {
+    "name": "Salon Management System API",
+    "description": "API do projeto salon-management-system (ASP.NET Core). Endpoints atuais para app mobile e integrações.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://localhost:5001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Appointments",
+      "description": "Agendamentos - usado pelo app de telefone",
+      "item": [
+        {
+          "name": "Criar agendamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"serviceId\": {{service_id}},\n  \"professionalId\": {{professional_id}},\n  \"startTime\": \"2026-06-25T14:00:00\",\n  \"endTime\": \"2026-06-25T15:00:00\",\n  \"status\": \"Pending\",\n  \"notes\": \"Agendamento via Postman\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/api/ApiAppointments/create",
+            "description": "Cria agendamento e sincroniza com Google Calendar"
+          }
+        },
+        {
+          "name": "Atualizar agendamento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"serviceId\": {{service_id}},\n  \"professionalId\": {{professional_id}},\n  \"startTime\": \"2026-06-25T15:00:00\",\n  \"endTime\": \"2026-06-25T16:00:00\",\n  \"status\": \"Confirmed\",\n  \"notes\": \"Reagendado via Postman\"\n}"
+            },
+            "url": "{{base_url}}/api/ApiAppointments/update/{{appointment_id}}"
+          }
+        },
+        {
+          "name": "Cancelar agendamento",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/ApiAppointments/cancel/{{appointment_id}}"
+          }
+        },
+        {
+          "name": "Listar por profissional",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/ApiAppointments/professional/{{professional_id}}"
+          }
+        },
+        {
+          "name": "Obter agendamento",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/ApiAppointments/{{appointment_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "description": "Clientes (AspNetUsers)",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/Clients"
+          }
+        },
+        {
+          "name": "Obter cliente",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/Clients/{{client_id}}"
+          }
+        },
+        {
+          "name": "Criar cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) pm.environment.set('client_id', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Maria\",\n  \"lastName\": \"Silva\",\n  \"email\": \"maria.silva@example.com\",\n  \"phoneNumber\": \"+351912345678\"\n}"
+            },
+            "url": "{{base_url}}/api/Clients"
+          }
+        },
+        {
+          "name": "Atualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Maria\",\n  \"lastName\": \"Santos\",\n  \"phoneNumber\": \"+351912345679\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/api/Clients/{{client_id}}"
+          }
+        },
+        {
+          "name": "Remover cliente",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/Clients/{{client_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "Listar produtos",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/Produtos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Google Calendar",
+      "item": [
+        {
+          "name": "Status autenticação",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/calendar/status"
+          }
+        },
+        {
+          "name": "Sincronizar manual",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/calendar/sync?calendarId=primary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar", "sync"],
+              "query": [
+                {
+                  "key": "calendarId",
+                  "value": "primary"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Webhook Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Google-Webhook-Secret",
+                "value": "{{google_webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"abc123\",\n  \"calendarId\": \"primary\",\n  \"startTime\": \"2026-06-25T14:00:00\",\n  \"endTime\": \"2026-06-25T15:00:00\",\n  \"summary\": \"Corte de cabelo\",\n  \"status\": \"confirmed\",\n  \"updated\": \"2026-06-23T10:00:00Z\",\n  \"action\": \"updated\"\n}"
+            },
+            "url": "{{base_url}}/api/calendar/webhook"
+          }
+        },
+        {
+          "name": "Sync agendamento específico",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/calendar/event/{{appointment_id}}"
+          }
+        }
+      ]
+    }
+  ]
+}
